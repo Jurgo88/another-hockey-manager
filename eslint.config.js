@@ -1,5 +1,6 @@
 import js from '@eslint/js'
 import tseslint from 'typescript-eslint'
+import globals from 'globals'
 
 /**
  * Banned domain vocabulary (D-07). See .clauden/02-domain-model.md.
@@ -28,7 +29,10 @@ export default tseslint.config(
   {
     languageOptions: {
       parserOptions: {
-        projectService: true,
+        projectService: {
+          // Config files that sit outside every package's tsconfig.
+          allowDefaultProject: ['packages/*/vitest.config.ts'],
+        },
         tsconfigRootDir: import.meta.dirname,
       },
     },
@@ -56,9 +60,26 @@ export default tseslint.config(
   },
 
   {
+    // Repo-root tooling config, plain Node ESM, not part of any tsconfig.
+    files: ['eslint.config.js'],
+    ...tseslint.configs.disableTypeChecked,
+    languageOptions: {
+      ...tseslint.configs.disableTypeChecked.languageOptions,
+      globals: globals.node,
+    },
+  },
+
+  {
     // Scripts are plain Node ESM, not part of the typed project.
     files: ['scripts/**/*.mjs'],
     ...tseslint.configs.disableTypeChecked,
-    rules: { 'no-console': 'off' },
+    languageOptions: {
+      ...tseslint.configs.disableTypeChecked.languageOptions,
+      globals: globals.node,
+    },
+    rules: {
+      ...tseslint.configs.disableTypeChecked.rules,
+      'no-console': 'off',
+    },
   },
 )
