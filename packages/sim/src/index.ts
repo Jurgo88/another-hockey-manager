@@ -1,5 +1,6 @@
 export * from './domain/index.js'
 export * from './rng/index.js'
+export * from './engine/lineup.js'
 export * from './engine/playoff.js'
 export * from './engine/schedule.js'
 export * from './generate/index.js'
