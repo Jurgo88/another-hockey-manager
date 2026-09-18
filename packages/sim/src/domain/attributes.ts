@@ -9,6 +9,11 @@
  * src/engine reads it. An attribute with no effect on simulation is noise in
  * the UI and a lie to the player. Adding one means adding its read site in
  * the same change.
+ *
+ * `strength` was removed under that rule. It had no public data source and
+ * its intended effect - winning contested pucks on the boards and at the net
+ * - overlapped almost entirely with `checking` and `puckControl`. It can
+ * return if board battles ever become a distinct step in the engine.
  */
 
 export const ATTRIBUTE_MIN = 1
@@ -41,8 +46,6 @@ export interface SkaterAttributes {
   // Physical
   /** Acceleration and top speed. */
   speed: AttributeValue
-  /** Winning contested pucks along the boards and in front of the net. */
-  strength: AttributeValue
   /** How slowly fatigue accumulates and how quickly it clears between shifts. */
   stamina: AttributeValue
 
@@ -74,7 +77,6 @@ export const SKATER_ATTRIBUTE_KEYS = [
   'shotBlocking',
   'faceoffs',
   'speed',
-  'strength',
   'stamina',
   'discipline',
 ] as const satisfies readonly (keyof SkaterAttributes)[]

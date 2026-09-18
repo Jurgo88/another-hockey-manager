@@ -60,6 +60,22 @@ export interface Tactics {
   /** 0-100. Higher means shorter shifts and less fatigue, but worse matchups. */
   shiftLength: number
   matchup: MatchupPolicy
+  /**
+   * Pulling the Goalie for an extra attacker (FR-22). Applies only when
+   * trailing, and never in playoff overtime where a goal ends the Fixture.
+   * This is the only source of empty-net goals.
+   */
+  pullGoalie: {
+    /** Pull once at most this many seconds remain in the third Period. */
+    secondsRemaining: number
+    /** Pull only when behind by at most this many goals. */
+    maxDeficit: number
+  }
+}
+
+/** Three Skaters for 3-on-3 regular-season overtime (FR-09). */
+export interface OvertimeTrio {
+  players: readonly [PlayerId, PlayerId, PlayerId]
 }
 
 /**
@@ -79,5 +95,11 @@ export interface Lineup {
   powerPlayUnits: readonly Unit[]
   /** Up to 2 penalty-kill units, ordered. */
   penaltyKillUnits: readonly Unit[]
+  /**
+   * Ordered trios for 3-on-3 regular-season overtime. Three-on-three is a
+   * different game from even strength - far more open ice - so it gets its
+   * own rotation rather than reusing Lines and Pairings (FR-09).
+   */
+  overtimeRotation: readonly OvertimeTrio[]
   tactics: Tactics
 }

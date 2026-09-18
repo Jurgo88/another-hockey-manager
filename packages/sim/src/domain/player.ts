@@ -1,4 +1,5 @@
 import type { GoalieAttributes, SkaterAttributes } from './attributes.js'
+import type { GoalieProvenance, SkaterProvenance } from './provenance.js'
 
 export type PlayerId = string
 export type ClubId = string
@@ -32,11 +33,18 @@ export interface Skater extends PlayerBase {
   /** Ordered by preference. The first entry is the natural position. */
   preferredPositions: readonly SkaterPosition[]
   attributes: SkaterAttributes
+  /**
+   * Where each attribute came from and how much to trust it (ADR-008).
+   * Optional: a Roster with no provenance is treated as uniformly generated.
+   * Kept parallel to `attributes` so engine reads stay plain numbers.
+   */
+  provenance?: SkaterProvenance
 }
 
 export interface Goalie extends PlayerBase {
   kind: 'goalie'
   attributes: GoalieAttributes
+  provenance?: GoalieProvenance
 }
 
 export type Player = Skater | Goalie

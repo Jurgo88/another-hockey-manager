@@ -1,10 +1,9 @@
 import type { Club, Lineup } from './club.js'
+import type { CompetitionId, SeasonId } from './competition.js'
 import type { MatchEvent } from './event.js'
 import type { ClubId } from './player.js'
 
 export type FixtureId = string
-export type SeasonId = string
-export type CompetitionId = string
 
 /** A scheduled game. `Game` is banned vocabulary - it collides with the product. */
 export interface Fixture {
