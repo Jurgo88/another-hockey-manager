@@ -1,0 +1,32 @@
+{
+  "name": "another-hockey-manager",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Another Hockey Manager - a text-first online hockey management simulation",
+  "type": "module",
+  "packageManager": "pnpm@9.12.0",
+  "engines": {
+    "node": ">=20.11.0"
+  },
+  "scripts": {
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "test:watch": "pnpm --filter @ahm/sim test:watch",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "sim:season": "pnpm --filter @ahm/sim sim:season",
+    "gh:setup": "node scripts/github/setup-labels-milestones.mjs",
+    "gh:setup:dry": "node scripts/github/setup-labels-milestones.mjs --dry-run"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.12.0",
+    "@types/node": "^22.7.5",
+    "dotenv": "^16.4.5",
+    "eslint": "^9.12.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.8.1"
+  }
+}

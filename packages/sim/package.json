@@ -1,0 +1,23 @@
+{
+  "name": "@ahm/sim",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Deterministic hockey match and season simulation engine. Zero runtime dependencies.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:realism": "vitest run test/realism",
+    "sim:season": "tsx src/cli/simulate-season.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "tsx": "^4.19.1",
+    "vitest": "^2.1.2"
+  }
+}

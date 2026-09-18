@@ -1,0 +1,19 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+.env
+.env.*
+!.env.example
+
+.DS_Store
+Thumbs.db
+
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Simulation output artifacts (regenerable)
+out/
+*.season.json
