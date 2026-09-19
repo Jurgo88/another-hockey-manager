@@ -22,10 +22,21 @@ Identifier scheme follows the convention established on HermanTool:
 | FR-06 | A save may leave the puck live, producing a rebound chance within the same possession sequence. |
 | FR-07 | Penalties create a man advantage that persists for the penalty duration or until a power-play goal. |
 | FR-08 | Special-teams units declared in the Lineup are used while a man advantage is active. |
-| FR-09 | Tied Fixtures that disallow a tie proceed to overtime and then a shootout. |
+| FR-09 | Regular-season overtime is one five-minute sudden-death Period at 3-on-3, then a shootout. The overtime unit is three Skaters, not a Line and a Pairing, and the Lineup supplies an overtime rotation. |
+| FR-09a | Playoff overtime is full twenty-minute sudden-death Periods at 5-on-5, with intermissions, repeated until a goal. There is no shootout. Fatigue must keep accumulating across every extra Period. |
+| FR-09b | A `PlayoffFormat` implies its overtime regime. The engine is told which regime applies; `allowsTie` alone is insufficient, and the two regimes must not share a code path that assumes five minutes. |
 | FR-10 | Tactics affect outcomes: `aggression`, `shotVolume`, `shiftLength` and `matchup` each have a measurable effect on the resulting statistics. |
 | FR-11 | All Match, Club, and Player statistics are computed from the event stream. No statistic is produced by the engine alongside the stream. |
-| FR-12 | A Season schedules a double round robin over N Clubs and produces standings from played Matches. |
+| FR-12 | A Season schedules the real NHL 2026-27 competition - 32 Clubs, 2 conferences, 4 divisions of 8 - using the 84-game key: 4 games against each divisional opponent (2 home / 2 away), 3 against each cross-division conference opponent (home-heavy against exactly 4 of the 8), 2 against each non-conference opponent (1 home / 1 away). 84 Fixtures per Club, 42 home and 42 away, over 84 rounds of 16 Fixtures. See ADR-006. |
+| FR-15 | Standings use the NHL points scheme: 2 for a win, 1 for an overtime or shootout loss, 0 for a regulation loss. Ties break on points, then regulation wins, then goal differential, then Club id. |
+| FR-16 | Playoff formats are declarative data, selectable when a game starts. Phase 0 implements the current NHL format: top three per division plus two wild cards per conference, four best-of-seven rounds, fixed brackets, the better division winner drawing the weaker wild card. See ADR-007. |
+| FR-17 | Every attribute value carries a provenance record - `measured`, `derived`, `rated` or `generated` - plus a confidence in 0-1, held parallel to the attributes. A Roster without provenance is treated as uniformly generated. See ADR-008. |
+| FR-18 | The interface presents a low-confidence attribute as a range, never as an exact figure. Narrowing that range is what scouting does. |
+| FR-19 | Rosters can be imported from and exported to a documented roster file. Imported values arrive as `rated`. See the ADR-003 amendment. |
+| FR-20 | A Lineup dresses exactly 18 Skaters and 2 Goalies - four Lines, three Pairings, a starter and a backup. This is already the shape of the `Lineup` type; it is stated here so validation has a rule to cite. |
+| FR-21 | A playoff series alternates venues 2-2-1-1-1: the higher seed is at home for games 1, 2, 5 and 7. |
+| FR-22 | A trailing Club may replace its Goalie with an extra attacker late in a Fixture, governed by a deficit and time threshold. This is the only source of `emptyNet` goals. It never applies in playoff overtime. |
+| FR-23 | Ice-time deployment must match measured NHL distribution: about 19:34 per Fixture for a first-Line forward and 12:03 for a fourth-Line forward. The point gap between tiers must come mostly from scoring rate, not from extra ice time. See `04-validation-targets.md`. |
 | FR-13 | A CLI command simulates a full Season and prints standings plus scoring leaders. |
 | FR-14 | Fatigue accumulates within a Match and carries across a congested schedule, recovering between Fixtures. |
 
@@ -53,22 +64,33 @@ Identifier scheme follows the convention established on HermanTool:
 | D-07 | Domain vocabulary is enforced. `Team`, `Game`, `User`, `Squad` are banned identifiers. |
 | D-08 | Each Fixture draws from its own forked `Rng` stream, so adding or removing a Fixture does not change the results of the others. |
 | D-09 | Statistical realism targets live in `04-validation-targets.md` and are expressed as executable tests, not prose. |
+| D-10 | Competition and playoff formats are declarative data, not code branches. Supporting another league means declaring a value, not editing the engine. |
+| D-11 | Player identity and Player ability are separate concerns. Provenance is per attribute, stored parallel to the attributes so engine reads stay plain numbers. Real names with generated ability is a valid configuration. |
 
 ## Risks
 
 | ID | Risk | Mitigation |
 | --- | --- | --- |
-| R-01 | The engine produces realistic aggregate scoring but distributes points evenly across a Roster, so Manager decisions feel weightless. | Point-distribution assertions are a first-class gate, not a nice-to-have. See `04-validation-targets.md`. |
+| R-01 | The engine produces realistic aggregate scoring but distributes points evenly across a Roster, so Manager decisions feel weightless. | Point-distribution assertions are a first-class gate, not a nice-to-have. See `04-validation-targets.md` Tier 2 - now measured, after an estimated target of 3.0 for the forward tier ratio proved to be 4.4 and would have certified a distribution flatter than real hockey. |
 | R-02 | Licensing: NHL club marks and the exclusive simulation licence held by EA make a monetised product using real club identity untenable. | D-05 / ADR-003. Real data stays local; a public build uses generated Rosters. No club logos at any point. |
 | R-03 | Calibrating the engine turns into indefinite parameter fiddling with no completion criterion. | The realism suite defines done. Phase 0 ends when it is green, not when the engine feels right. |
 | R-04 | Scope creep into interface work before the engine is validated, which is the standard failure mode for this genre. | Phase 0 has no web application in the workspace at all. |
 | R-05 | Solo project stalls after a break because decisions were held in the author's head. | ADRs for every non-obvious decision; specification precedes implementation. |
 | R-06 | Slovak Extraliga has no public API, so real non-NHL data needs scraping or manual seeding. | Out of Phase 0 entirely. Revisit when a Roster source beyond the generator is actually needed. |
+| R-07 | An attribute estimator built on raw counting statistics mis-rates Players in a predictable direction: hit and block totals measure deployment and position on the ice rather than ability, so heavy fourth lines are overrated and elite defenders underrated. | Adjust for ice time, zone starts and teammate quality, or do not derive the attribute at all - mark it generated and say so. `checking`, `defPositioning` and `shotBlocking` are the affected attributes (ADR-008). |
+| R-08 | Tracking data covers roughly 900 NHL Skaters. Prospects, minor leagues, juniors and Europe have none, and that is where drafting and call-ups live - so attribute quality falls off a cliff exactly where the genre gets its texture. | Provenance makes the cliff visible instead of hidden, and low confidence on unscouted Players is the intended experience rather than a defect. |
 
 ## Open questions
 
-| ID | Question | Blocks |
-| --- | --- | --- |
-| OQ #1 | Should shootouts award a distinct standings point scheme (3-2-1-0) or the NHL 2-1-0? | FR-09, FR-12 |
-| OQ #2 | Confirm shots-per-game, league save percentage and power-play percentage against a current season before locking tolerance bands. | `04-validation-targets.md` |
-| OQ #3 | How many Clubs in the Phase 0 reference Competition - 14, 16, or a real 32-Club structure? | FR-12 |
+| ID | Question | Status | Blocks |
+| --- | --- | --- | --- |
+| OQ #1 | Standings point scheme - NHL 2-1-0 or 3-2-1-0? | **Resolved:** NHL 2-1-0 (FR-15). The Tier 2 standings targets are NHL-derived and only comparable under this scheme. | - |
+| OQ #2 | Confirm the Tier 1 reference figures against a current season. | **Mostly resolved.** Goals, shots, shooting percentage, save percentage, power play, penalty kill, faceoffs and points percentage are now measured from the NHL 2025-26 season via `api.nhle.com`. Two remain estimates: penalties per Fixture (opportunities not exposed) and home win rate (no home-away split in the endpoint used). | `04-validation-targets.md` Tier 1 |
+| OQ #3 | How many Clubs in the reference Competition? | **Resolved:** the real NHL 2026-27 structure - 32 Clubs, 4 divisions of 8, 84 games (FR-12, ADR-006). | - |
+| OQ #4 | Playoff format. | **Resolved:** formats are declarative data and selectable at game start; the current NHL format is the only one implemented in Phase 0 (FR-16, ADR-007). | - |
+| OQ #5 | Tier 2 carried four estimated rows. | **Resolved:** all Tier 2 rows are measured from NHL 2025-26. The forward tier ratio turned out to be 4.4, not the estimated 3.0 - outside the old band, and in the direction that would have hidden an R-01 failure. | - |
+| OQ #6 | Penalties per Fixture and home win rate were estimates. | **Resolved.** Penalties derived from `ppOpportunities` at 2.88 per Club per Fixture, with a three-way identity that closes exactly. Home win rate measured at 50.5% from the final standings - the previous estimate of 54% ±3 excluded the real value. | - |
+| OQ #7 | Ice-time distribution across Lines. | **Resolved and measured:** 19:34 for a tier-1 forward, 12:03 for tier-4, ratio 1.62 (FR-23). The important result is the decomposition - the 4.40 point ratio is 1.62 ice time times 2.71 points per minute, so two thirds of the gap must come from the shot model, not deployment. The earlier guess of 9-11 minutes for a fourth Line was also low. | - |
+| OQ #8 | Playoff overtime differs from regular-season overtime. | **Resolved:** FR-09, FR-09a, FR-09b. Regular season is 5 minutes of 3-on-3 then a shootout; playoffs are repeated full 20-minute 5-on-5 periods with no shootout. | - |
+| OQ #9 | Dressed Roster size, playoff series venue pattern, and when a Goalie is pulled. | **Resolved:** FR-20, FR-21, FR-22. Active Roster limits stay out until contracts exist in Phase 3. | - |
+| OQ #10 | The deficit and time thresholds for pulling the Goalie are a Tactics decision with no measured target yet - empty-net goals per Fixture would give one. | **Open.** Minor; affects late-Fixture scoring only. | FR-22 |

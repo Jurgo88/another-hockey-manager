@@ -42,13 +42,15 @@ In:
 - Domain model for Player, Club, Lineup, Tactics, Fixture, Match
 - Deterministic match simulation producing an event stream
 - Statistics derived from the event stream
-- Season scheduling and standings
+- Season scheduling on the real NHL 2026-27 structure (32 Clubs, 4 divisions,
+  84 games) and standings - see ADR-006
 - A CLI that simulates a Season and prints tables
 - A realism test suite that gates the phase
 
 Out (deferred, with the phase that owns them in `05-roadmap.md`):
 
 - Any web interface, database, or authentication
+- Real Roster import and the attribute estimator (Phase 0.5)
 - Transfers, contracts, finances
 - Scouting, youth development, drafting
 - Multiplayer
@@ -73,3 +75,16 @@ Out (deferred, with the phase that owns them in `05-roadmap.md`):
 | `04-validation-targets.md` | Statistical targets, as tests |
 | `05-roadmap.md` | Phases 0-4 and their gates |
 | `adr/` | Architecture decision records |
+
+## Accepted decisions
+
+| ADR | Decision |
+| --- | --- |
+| 001 | Monorepo with the simulation as a separate package |
+| 002 | The simulation is a pure function emitting an event stream |
+| 003 | Roster source behind an interface |
+| 004 | A Manager is one entity with an `isAi` flag |
+| 005 | i18n from the start, English hockey terminology |
+| 006 | Real NHL 2026-27 competition structure and 84-game schedule key |
+| 007 | Playoff formats are declarative data |
+| 008 | Attributes carry provenance and confidence |

@@ -58,11 +58,15 @@ beer-league, 10 is replacement-level professional, 20 is generational.
 
 The set is deliberately small. Rule D-06: an attribute exists only if
 `src/engine` reads it. An attribute with no effect on a Match is noise in the
-interface and a lie to the Manager. Twelve plus five is enough to make
+interface and a lie to the Manager. Eleven plus five is enough to make
 decisions matter; the set is extensible, but each addition ships together with
 its read site.
 
-### Skater (12)
+`strength` was removed under D-06: no public data source, and its intended
+effect overlapped almost entirely with `checking` and `puckControl`. It can
+return if board battles become a distinct engine step.
+
+### Skater (11)
 
 | Group | Attribute | Meaning |
 | --- | --- | --- |
@@ -75,7 +79,6 @@ its read site.
 | | `shotBlocking` | Getting into shot lanes and absorbing pucks. |
 | | `faceoffs` | Winning draws. Only meaningful for centres. |
 | Physical | `speed` | Acceleration and top speed. |
-| | `strength` | Winning contested pucks on the boards and at the net. |
 | | `stamina` | How slowly fatigue accrues and how fast it clears. |
 | Mental | `discipline` | Inverse of penalty propensity. |
 
@@ -95,6 +98,29 @@ its read site.
 `handedness`, `preferredPositions[]` (Skater only, first entry is natural),
 `form` (0-100, short-term deviation, resets each Season), `fatigue` (0-100,
 accrues within a Match and across a congested schedule).
+
+### Attribute provenance (ADR-008)
+
+Each attribute value is accompanied by a record saying where it came from and
+how much to trust it. Provenance sits in a record **parallel** to the
+attributes, so `attributes.speed` stays a plain number that the engine can
+read without touching metadata.
+
+| Source | Meaning | Default confidence |
+| --- | --- | --- |
+| `measured` | From tracking data - NHL EDGE speed and shot velocity, published faceoff rates | 0.95 |
+| `rated` | Set by hand, by a community database or the author. Outranks `derived` | 0.80 |
+| `derived` | Inferred from performance statistics by the estimator | 0.50 |
+| `generated` | Procedural, anchored to the Player's level | 0.25 |
+
+Confidence is per attribute, not per Player, because the real situation is
+that one Player's `speed` can be radar-measured while his `checking` is a
+guess. An estimator may lower its own figure for a specific attribute.
+
+`observedRange(value, confidence)` turns a value and its confidence into the
+band a Manager is shown. This is the scouting system: scouting narrows the
+band rather than existing as a separate mechanic. A Roster with no provenance
+is treated as uniformly generated.
 
 ## Tactics
 

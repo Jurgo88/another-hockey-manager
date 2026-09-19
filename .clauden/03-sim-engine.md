@@ -33,6 +33,43 @@ The match clock advances by Shift. A Shift is about 45 seconds of ice time at
 `shiftLength = 50`, scaled by the dial and shortened when the unit on the ice
 is fatigued.
 
+### Ice-time budget, and the decomposition that matters most
+
+Measured NHL 2025-26 deployment for forwards with 40 or more appearances
+(411 of them), ranked by ice time:
+
+| Tier | Ice time per Fixture |
+| --- | --- |
+| Ranks 1-96 - the first Lines | 19:34 mean, 18:02 to 22:59 |
+| Ranks 289-384 - the fourth Lines | 12:03 mean, 10:33 to 13:18 |
+
+The ratio is **1.62**. The measured point ratio between the same two tiers is
+**4.40**. Dividing one by the other gives the number this engine has to
+produce on its own:
+
+```
+point ratio        4.40
+------------  =  --------  =  2.71  points per minute, tier 1 over tier 4
+TOI ratio          1.62
+```
+
+**Only a third of the scoring gap comes from ice time.** The remaining 2.71x
+has to come out of the possession and shot model - better attributes, and
+better linemates to play them with.
+
+This is the single most useful constraint in the specification, because it
+splits a hard question into two checkable ones. If the engine deploys first
+Lines for 19:34 and fourth Lines for 12:03 and still misses the 4.40 point
+ratio, then unit selection is right and the shot model is too flat. Without
+the split, a failing Tier 2 says only "the distribution is wrong" and every
+parameter looks equally guilty.
+
+The corollary is a trap to avoid: the gap must NOT be closed by handing first
+Lines more ice time. Ice time is measured and is only worth 1.62x. An engine
+that hits 4.40 by deploying its top Line for 26 minutes has produced the right
+statistic from the wrong mechanism, and it will feel wrong to anyone who reads
+a box score.
+
 Per Shift:
 
 1. **Unit selection.** Each Club's `matchup` policy picks the next unit. With
@@ -41,6 +78,13 @@ Per Shift:
    home-ice last-change advantage), and the away Club selects blind. This is
    where home advantage is generated structurally rather than bolted on as a
    flat bonus.
+
+   **The effect must be small.** Measured NHL home win rate is 50.5%, so the
+   whole home advantage is worth about one percentage point - the NHL is the
+   outlier sport where home ice barely matters, and playoff evidence shows no
+   increase. If the last-change advantage produces a materially larger edge
+   than that, the mechanism is overweighted and needs damping, not
+   compensating elsewhere. See `04-validation-targets.md`.
 2. **Strength check.** If a man advantage is active, the appropriate special
    teams `Unit` replaces the even-strength selection.
 3. **Possession sequence.** Level 2 runs.
@@ -89,13 +133,40 @@ advantage ends on expiry, on a power-play goal, or at period end, each emitting
 a queue of active penalties per Club and deriving skater counts from it, rather
 than by special-casing 5-on-3.
 
-## Overtime and shootout
+## Overtime
 
-When `fixture.allowsTie` is false and the score is level after three periods,
-a sudden-death overtime Period runs with reduced skater counts, then a
-shootout. Shootout attempts resolve shooter `shooting` and `puckControl`
-against goalie `reflexes` and `positioning`, and are emitted as `shot` events
-in Period `SO`.
+Regular season and playoffs use **different formats**, and the difference is
+not cosmetic.
+
+**Regular season.** One five-minute sudden-death Period at 3-on-3. If still
+level, a shootout. Three-on-three changes the possession model materially -
+far more open ice, far higher scoring rate per minute - so the unit on the ice
+is three Skaters, not a Line and a Pairing, and the `Lineup` must supply an
+overtime rotation rather than reusing even-strength units.
+
+**Playoffs.** Full twenty-minute sudden-death Periods at 5-on-5, with normal
+intermissions, repeated until somebody scores. **No shootout ever.** A playoff
+Fixture can run to four or more extra Periods, which means fatigue accumulates
+far past anything the regular season produces, and the goalie models keep
+running the whole way.
+
+A `PlayoffFormat` therefore implies its overtime rules; `fixture.allowsTie`
+alone is not enough information. The engine must be told which overtime regime
+applies, and the two must not share a code path that assumes five minutes.
+
+Shootout attempts resolve shooter `shooting` and `puckControl` against goalie
+`reflexes` and `positioning`, and are emitted as `shot` events in Period `SO`.
+
+## Pulling the goalie
+
+A trailing Club replaces its Goalie with an extra attacker late in a Fixture.
+This is a Manager decision with a threshold - how far behind, and how early -
+and it is the only source of `emptyNet` goals, which are a real and
+non-trivial share of league scoring. It raises the trailing Club's scoring
+rate and the leading Club's much more.
+
+Never applies in playoff overtime, where a goal ends the Fixture and there is
+nothing to chase.
 
 ## Output contract
 

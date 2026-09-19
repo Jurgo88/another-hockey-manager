@@ -29,6 +29,8 @@
 | D-06 | A Player attribute exists only if `src/engine` reads it. Add the read site in the same change. |
 | D-07 | Banned identifiers: `Team`, `Game`, `User`, `Squad`. |
 | D-08 | Each Fixture draws from its own forked `Rng` stream. |
+| D-10 | Competition and playoff formats are declarative data, not code branches. Adding a league means adding a value. |
+| D-11 | Player identity and ability are separate. Provenance is per attribute, parallel to `attributes`, so engine reads stay plain numbers. Never present a low-confidence value as a fact. |
 
 ## Domain vocabulary
 
@@ -40,11 +42,12 @@ defensive duo, `Unit` a special-teams formation. Full table in
 ## Module boundaries
 
 ```
-domain/  types only, no behaviour       - imports nothing internal
-rng/     deterministic randomness       - imports nothing internal
-engine/  simulation                     - may import domain, rng
-stats/   folds over the event stream    - may import domain ONLY
-cli/     entry points                   - may import anything
+domain/   types only, no behaviour       - imports nothing internal
+rng/      deterministic randomness      - imports nothing internal
+generate/ procedural Rosters and names  - may import domain, rng
+engine/   simulation                    - may import domain, rng
+stats/    folds over the event stream   - may import domain ONLY
+cli/      entry points                  - may import anything
 ```
 
 `stats/` importing from `engine/` breaks D-03. This is the boundary that

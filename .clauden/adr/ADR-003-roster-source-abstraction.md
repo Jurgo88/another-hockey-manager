@@ -56,6 +56,37 @@ Making the generator the default rather than the fallback has a second
 benefit: it forces the generated Rosters to be good enough to play with,
 which is a requirement for any public build anyway.
 
+## Amendment, 2026-09-18: a roster file format
+
+`RosterProvider` covers acquisition inside the application. It does not cover
+the case that matters most for real names, which is a Roster the *Manager*
+supplies.
+
+This is the pattern Eastside Hockey Manager itself arrived at. EHM ships on
+Steam with a fictional default database; real Player and competition names
+come from community-built databases distributed through the Steam Workshop,
+maintained by people who follow the sport. Sports Interactive does not
+distribute the licensed names - the community does, which is a materially
+different position.
+
+So a third element is added: a documented **roster file format** with import
+and export.
+
+- The default build generates its Rosters.
+- A Manager may import a roster file, which may contain whatever names they
+  like.
+- Export exists so that a Roster can be edited, shared and improved outside
+  the application.
+
+Real names therefore become an action taken by the Manager rather than a
+distribution decision taken by the project - and it is a feature rather than a
+concession, since it is also how community rating work becomes possible at
+all. Imported values arrive with `source: 'rated'` (ADR-008), which outranks
+anything the estimator derived.
+
+A real-data import path for development (`NhlImportRosterProvider`) remains
+separate from this and stays out of deployed builds.
+
 ## Consequences
 
 - Nothing in the engine or the application may assume a Player has a real-world
