@@ -18,7 +18,11 @@
     "format": "prettier --write .",
     "sim:season": "pnpm --filter @ahm/sim sim:season",
     "gh:setup": "node scripts/github/setup-labels-milestones.mjs",
-    "gh:setup:dry": "node scripts/github/setup-labels-milestones.mjs --dry-run"
+    "gh:setup:dry": "node scripts/github/setup-labels-milestones.mjs --dry-run",
+    "gh:issues": "node scripts/github/create-phase-0-issues.mjs",
+    "gh:issues:dry": "node scripts/github/create-phase-0-issues.mjs --dry-run",
+    "gh:issues:plan": "node scripts/github/print-issue-plan.mjs",
+    "gh:issues:plan:full": "node scripts/github/print-issue-plan.mjs --bodies"
   },
   "devDependencies": {
     "@eslint/js": "^9.12.0",

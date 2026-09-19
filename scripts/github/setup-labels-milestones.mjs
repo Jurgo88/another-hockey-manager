@@ -8,26 +8,18 @@
  *   node scripts/github/setup-labels-milestones.mjs --dry-run
  *   node scripts/github/setup-labels-milestones.mjs
  *
- * Requires in .env:
- *   GITHUB_TOKEN=ghp_...            (scope: repo)
- *   GITHUB_OWNER=Jurgo88
- *   GITHUB_REPO=another-hockey-manager
+ * Credentials resolve automatically from the GitHub CLI and the git remote,
+ * so no .env is needed when `gh auth login` has been done once. See env.mjs
+ * for the precedence rules and for the .env override.
  */
 import 'dotenv/config'
+import { pathToFileURL } from 'node:url'
+import { resolveGitHub } from './env.mjs'
 
 const DRY_RUN = process.argv.includes('--dry-run')
 const REQUEST_DELAY_MS = 500
 
-const { GITHUB_TOKEN, GITHUB_OWNER, GITHUB_REPO } = process.env
-
-if (!GITHUB_TOKEN || !GITHUB_OWNER || !GITHUB_REPO) {
-  console.error('Missing GITHUB_TOKEN, GITHUB_OWNER or GITHUB_REPO in environment (.env).')
-  process.exit(1)
-}
-
-const API = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}`
-
-const LABELS = [
+export const LABELS = [
   // Area
   { name: 'area: engine', color: '1d4ed8', description: 'Shift loop, possession, shot resolution' },
   { name: 'area: domain', color: '3b82f6', description: 'Entities, attributes, event schema' },
@@ -59,11 +51,16 @@ const LABELS = [
   { name: 'gate: realism', color: 'be123c', description: 'Required for the phase 0 realism gate' },
 ]
 
-const MILESTONES = [
+export const MILESTONES = [
   {
     title: 'Phase 0 - Engine',
     description:
       'Deterministic match and season simulation with a green realism suite. No web application, no database.',
+  },
+  {
+    title: 'Phase 0.5 - Real roster import',
+    description:
+      'Roster file format and the attribute estimator from public data. Gate: a simulated Season from imported real Rosters produces standings and scoring leaders recognisably close to the real Season.',
   },
   {
     title: 'Phase 1 - Playable season',
@@ -85,12 +82,14 @@ const MILESTONES = [
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
+let env
+
 async function gh(path, init = {}) {
-  const response = await fetch(`${API}${path}`, {
+  const response = await fetch(`${env.api}${path}`, {
     ...init,
     headers: {
       Accept: 'application/vnd.github+json',
-      Authorization: `Bearer ${GITHUB_TOKEN}`,
+      Authorization: `Bearer ${env.token}`,
       'X-GitHub-Api-Version': '2022-11-28',
       'Content-Type': 'application/json',
       ...init.headers,
@@ -181,7 +180,10 @@ async function syncMilestones() {
 }
 
 async function main() {
-  console.log(`${DRY_RUN ? '[dry-run] ' : ''}${GITHUB_OWNER}/${GITHUB_REPO}`)
+  env = resolveGitHub()
+  console.log(
+    `${DRY_RUN ? '[dry-run] ' : ''}${env.owner}/${env.repo}  (token from ${env.tokenSource})`,
+  )
   console.log('labels')
   await syncLabels()
   console.log('milestones')
@@ -189,7 +191,11 @@ async function main() {
   console.log(DRY_RUN ? 'Dry run complete. No changes were made.' : 'Done.')
 }
 
-main().catch((error) => {
-  console.error(error.message)
-  process.exit(1)
-})
+// Only run when executed directly, so the label and milestone lists can be
+// imported by print-issue-plan.mjs without touching the network.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((error) => {
+    console.error(error.message)
+    process.exit(1)
+  })
+}
