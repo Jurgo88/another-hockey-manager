@@ -223,7 +223,7 @@ Cheap, and they catch the bugs that erode trust (D-03).
 | Every `save` event corresponds to a `shot` with `result: 'save'`. |
 | Shots on goal equal goals plus saves. Blocks and misses are excluded. |
 | Sum of per-Player points equals twice the goal count plus assist count, with no orphan credits. |
-| Power-play time derived from `powerplay_start` / `powerplay_end` pairs equals penalty minutes served. |
+| Power-play time derived from `powerplay_start` / `powerplay_end` pairs equals the time one Club had more Skaters on the ice than the other (ADR-009). |
 | No `powerplay_start` without a matching `powerplay_end`. |
 | Clock is monotonically non-decreasing across the stream. |
 | No Player appears in two units in the same `shift_change`. |

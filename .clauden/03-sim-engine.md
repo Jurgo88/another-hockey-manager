@@ -127,11 +127,22 @@ Per possession:
 
 ## Man advantage
 
-A `penalty` event emits `powerplay_start` with the skater counts. The
-advantage ends on expiry, on a power-play goal, or at period end, each emitting
-`powerplay_end` with the reason. Overlapping penalties are handled by tracking
-a queue of active penalties per Club and deriving skater counts from it, rather
-than by special-casing 5-on-3.
+Overlapping penalties are handled by tracking a queue of active penalties per
+Club and deriving skater counts from it, rather than by special-casing 5-on-3.
+At most two penalties per Club run at once; a third waits in the queue and
+starts when one ends. Penalties continue across Period breaks.
+
+`powerplay_start` and `powerplay_end` bracket a numerical advantage, not a
+penalty (ADR-009). Each Skater of advantage gained emits a start; each one lost
+emits an end with the reason - `expired`, `goal`, `penalty` (the advantaged
+Club was penalised in turn) or `period_end` (the Fixture ended). A 5-on-3 is
+two nested pairs; 4-on-4 is none.
+
+A power-play goal ends the shorthanded Club's minor with the least time left,
+or the first half of a double minor. Majors run their full five minutes.
+
+Any change in skater counts ends the Shift: the special-teams `Unit` takes the
+ice at once, and even-strength units return the moment the advantage ends.
 
 ## Overtime
 
