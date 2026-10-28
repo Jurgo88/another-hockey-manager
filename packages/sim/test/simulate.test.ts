@@ -56,16 +56,27 @@ describe('simulateFixture', () => {
 
   it('plays three Periods of whole-second, non-decreasing clock', async () => {
     const [home, away] = await twoClubs()
-    const events = play(home, away, 3)
+    // No overtime, so regulation is the whole Fixture whatever the score.
+    const fixture = { ...fixtureBetween(home.id, away.id), overtime: null }
+    const input = {
+      fixture,
+      homeClub: home,
+      awayClub: away,
+      homeLineup: buildNaiveLineup(home),
+      awayLineup: buildNaiveLineup(away),
+    }
 
-    expect(events[0]).toMatchObject({ type: 'period_start', period: 1, clock: 0 })
-    expect(events.at(-1)).toMatchObject({ type: 'period_end', period: 3, clock: 3600 })
-    expect(events.filter((e) => e.type === 'period_start').map((e) => e.clock)).toEqual([
-      0, 1200, 2400,
-    ])
-    for (let i = 1; i < events.length; i++) {
-      expect(Number.isInteger(events[i]!.clock)).toBe(true)
-      expect(events[i]!.clock).toBeGreaterThanOrEqual(events[i - 1]!.clock)
+    for (const seed of [1, 2, 3, 4, 5]) {
+      const events = simulateFixture(input, seed)
+      expect(events[0]).toMatchObject({ type: 'period_start', period: 1, clock: 0 })
+      expect(events.at(-1)).toMatchObject({ type: 'period_end', period: 3, clock: 3600 })
+      expect(events.filter((e) => e.type === 'period_start').map((e) => e.clock)).toEqual([
+        0, 1200, 2400,
+      ])
+      for (let i = 1; i < events.length; i++) {
+        expect(Number.isInteger(events[i]!.clock)).toBe(true)
+        expect(events[i]!.clock).toBeGreaterThanOrEqual(events[i - 1]!.clock)
+      }
     }
   })
 
@@ -336,5 +347,24 @@ describe('penalties respond to discipline and aggression (directional)', () => {
         playMany(FIXTURES, (seed) => play(home, away, seed, lineup(aggression))),
       )
     expect(count(75)).toBeGreaterThan(count(25))
+  })
+})
+
+describe('score effects', () => {
+  it('a trailing Club takes the larger share of shot attempts', async () => {
+    const [home, away] = await twoClubs()
+    let trailing = 0
+    let leading = 0
+    for (const events of playMany(300, (seed) => play(home, away, seed))) {
+      const score = { [home.id]: 0, [away.id]: 0 }
+      for (const event of events) {
+        if (event.type === 'goal') score[event.clubId]!++
+        if (event.type !== 'shot' || event.period === 'SO') continue
+        const other = event.clubId === home.id ? away.id : home.id
+        if (score[event.clubId]! < score[other]!) trailing++
+        if (score[event.clubId]! > score[other]!) leading++
+      }
+    }
+    expect(trailing / (trailing + leading)).toBeGreaterThan(0.5)
   })
 })

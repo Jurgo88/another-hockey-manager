@@ -37,7 +37,7 @@ const MIN_POSSESSION_SECONDS = 2
 // --- Outcome of a possession -----------------------------------------------
 
 /** Log-odds that a possession between average units ends in a shot attempt. */
-const ATTEMPT_BASE = logit(0.333)
+const ATTEMPT_BASE = logit(0.328)
 /** Slope on the attacking unit's offence minus the defending unit's defence. */
 const ATTEMPT_EDGE = 0.45
 /** `shotVolume` at 100 adds this to attempt log-odds (and -this at 0). */
@@ -75,6 +75,16 @@ const OPEN_ICE_DANGER = 0.45
  * need be. Added to attempt log-odds. Provisional, unmeasured (OQ #10, #19).
  */
 const EMPTY_NET_ATTEMPT = 1.0
+
+/**
+ * Score effects: a trailing Club presses and a leading one sits back, so the
+ * game tends back towards level. Added to attempt log-odds per goal behind,
+ * up to SCORE_EFFECT_CAP; a leading Club loses the same. Calibrated on the
+ * measured mean of 94 Club points over 84 Fixtures, which is a direct
+ * measure of how often regulation ends level.
+ */
+const SCORE_EFFECT = 0.25
+const SCORE_EFFECT_CAP = 2
 
 // --- Penalties -------------------------------------------------------------
 
@@ -325,6 +335,12 @@ export function createPossessionModel(
       const advantageOf = (side: Side) =>
         units[side].skaters.length - units[otherSide(side)].skaters.length
       const openIce = (10 - units.home.skaters.length - units.away.skaters.length) / 4
+      /** Goals `side` trails by, capped; negative when it leads. */
+      const scoreGap = (side: Side) =>
+        Math.max(
+          -SCORE_EFFECT_CAP,
+          Math.min(SCORE_EFFECT_CAP, score[otherSide(side)] - score[side]),
+        )
       const situation = segment.situation(from)
 
       let clock = from
@@ -392,6 +408,7 @@ export function createPossessionModel(
             ADVANTAGE_ATTEMPT * advantageOf(attacking) +
             OPEN_ICE_ATTEMPT * openIce +
             (emptyNet[defending] ? EMPTY_NET_ATTEMPT : 0) +
+            SCORE_EFFECT * scoreGap(attacking) +
             SHOT_VOLUME_ATTEMPTS * dial(attTactics.shotVolume) +
             AGGRESSION_FOR * dial(attTactics.aggression) +
             AGGRESSION_AGAINST * dial(defTactics.aggression),
