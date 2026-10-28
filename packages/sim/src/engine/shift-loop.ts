@@ -34,6 +34,8 @@ const PAIRING_DEPLOYMENT_WEIGHT: readonly number[] = [1.4, 1.15, 1.0]
  */
 const POWER_PLAY_UNIT_WEIGHT: readonly number[] = [3.0, 1.0]
 const PENALTY_KILL_UNIT_WEIGHT: readonly number[] = [1.8, 1.0]
+/** Deployment weight of the first overtime trio; every later trio weighs 1. Provisional, unmeasured. */
+const FIRST_OVERTIME_TRIO_WEIGHT = 1.3
 
 /** Target shift length in seconds at shiftLength=0 and shiftLength=100. Higher dial, shorter shifts. */
 const BASE_SHIFT_SECONDS_LONG = 60
@@ -125,9 +127,12 @@ function targetShiftSeconds(shiftLengthDial: number, unitFatigue0to100: number):
 /** What one Club faces when the next Shift starts. */
 export interface SideSituation {
   strength: Strength
+  /** Skaters to put out - more than the penalties allow when the Goalie is pulled. */
   skaters: number
   /** Players in the box, who cannot take the ice. */
   boxed: ReadonlySet<PlayerId>
+  /** Regular-season overtime: level play uses the overtime trios (FR-09). */
+  threeOnThree: boolean
 }
 
 /** Who is on the ice for one Club. */
@@ -236,8 +241,8 @@ function fromUnit(state: ClubState, unit: Unit, side: SideSituation): OnIce {
 
 /**
  * The shift loop for one Fixture. Stateful only within the Fixture that
- * created it - fatigue carries from Shift to Shift and Period to Period.
- * Overtime is #6.
+ * created it - fatigue carries from Shift to Shift and Period to Period,
+ * through every overtime (FR-09a).
  */
 export function createShiftLoop(
   home: { club: Club; lineup: Lineup },
@@ -274,6 +279,17 @@ export function createShiftLoop(
     return fromUnit(state, units[weightedIndex(unitRng, weights)]!, side)
   }
 
+  /** A trio from the Lineup's overtime rotation, for level 3-on-3 play. */
+  function overtimeTrio(state: ClubState, trioRng: Rng, side: SideSituation): OnIce {
+    const trios = state.lineup.overtimeRotation
+    const weights = trios.map(
+      (trio, i) =>
+        (i === 0 ? FIRST_OVERTIME_TRIO_WEIGHT : 1) *
+        fatigueSelectionWeight(unitFatigue(state, trio.players)),
+    )
+    return fromUnit(state, { skaters: trios[weightedIndex(trioRng, weights)]!.players }, side)
+  }
+
   function next(
     maxSeconds: number,
     situation: Readonly<Record<'home' | 'away', SideSituation>>,
@@ -282,7 +298,9 @@ export function createShiftLoop(
     let awayLine: Line | null = null
     let awayPairing: Pairing | null = null
     let awayOnIce: OnIce
-    if (situation.away.strength === 'even') {
+    if (situation.away.strength === 'even' && situation.away.threeOnThree) {
+      awayOnIce = overtimeTrio(awayState, awayRng, situation.away)
+    } else if (situation.away.strength === 'even') {
       awayLine = awayState.lineup.lines[weightedIndex(awayRng, lineWeights(awayState))]!
       awayPairing = awayState.lineup.pairings[weightedIndex(awayRng, pairingWeights(awayState))]!
       awayOnIce = fromEvenStrength(awayState, awayLine, awayPairing, situation.away)
@@ -291,7 +309,9 @@ export function createShiftLoop(
     }
 
     let homeOnIce: OnIce
-    if (situation.home.strength === 'even') {
+    if (situation.home.strength === 'even' && situation.home.threeOnThree) {
+      homeOnIce = overtimeTrio(homeState, homeRng, situation.home)
+    } else if (situation.home.strength === 'even') {
       const homeLineWeights = lineWeights(homeState)
       const homePairingWeights = pairingWeights(homeState)
 

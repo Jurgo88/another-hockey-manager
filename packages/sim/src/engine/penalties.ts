@@ -28,6 +28,8 @@ export const otherSide = (side: Side): Side => (side === 'home' ? 'away' : 'home
 const FULL_STRENGTH = 5
 /** Two penalties at once is the floor: three Skaters a side. */
 const MAX_SERVING = 2
+/** Regular-season overtime (FR-09). */
+const THREE_ON_THREE = 3
 
 interface Penalty {
   player: PlayerId
@@ -64,6 +66,13 @@ export interface PenaltyBox {
   goal(side: Side, clock: number, period: Period, events: MatchEvent[]): void
   /** The Fixture is over: closes every open advantage with 'period_end'. */
   close(clock: number, period: Period, events: MatchEvent[]): void
+  /**
+   * Regular-season overtime from here on. At 3-on-3 a penalty adds a Skater
+   * to the Club with the advantage instead of removing one from the Club
+   * without it, so 5-on-4 carries over as 4-on-3 - the margin, and the
+   * power-play pairs, unchanged.
+   */
+  startThreeOnThree(): void
 }
 
 export function createPenaltyBox(clubIds: Readonly<Record<Side, ClubId>>): PenaltyBox {
@@ -71,8 +80,12 @@ export function createPenaltyBox(clubIds: Readonly<Record<Side, ClubId>>): Penal
   const waiting: Record<Side, Penalty[]> = { home: [], away: [] }
   /** Open `powerplay_start` events per Club, without their `powerplay_end`. */
   const open: Record<Side, number> = { home: 0, away: 0 }
+  let threeOnThree = false
 
-  const skaters = (side: Side) => FULL_STRENGTH - serving[side].length
+  const skaters = (side: Side) =>
+    threeOnThree
+      ? THREE_ON_THREE + Math.max(0, serving[otherSide(side)].length - serving[side].length)
+      : FULL_STRENGTH - serving[side].length
 
   const strength = (side: Side): Strength => {
     const margin = skaters(side) - skaters(otherSide(side))
@@ -206,6 +219,10 @@ export function createPenaltyBox(clubIds: Readonly<Record<Side, ClubId>>): Penal
 
     close(clock, period, events) {
       sync(clock, period, 'period_end', events, true)
+    },
+
+    startThreeOnThree() {
+      threeOnThree = true
     },
   }
 }

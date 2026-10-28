@@ -1,4 +1,5 @@
 import type { ClubId } from './player.js'
+import type { OvertimeRegime } from './playoff.js'
 
 export type ConferenceId = string
 export type DivisionId = string
@@ -41,6 +42,8 @@ export interface CompetitionStructure {
   conferences: readonly Conference[]
   divisions: readonly Division[]
   scheduleKey: ScheduleKey
+  /** How a level regular-season Fixture is decided, or null when ties stand (FR-09b). */
+  overtime: OvertimeRegime | null
 }
 
 /** Total regular-season Fixtures per Club implied by a key. */

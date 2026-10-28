@@ -22,7 +22,8 @@ import type { OnIce, ShiftSelection } from './shift-loop.js'
  * the slopes are judgement until Tier 2 constrains them. Constants with no
  * measured target say so.
  *
- * Overtime and the empty net are #6.
+ * The same model plays regulation, 3-on-3 and playoff overtime; what changes
+ * is who is on the ice, which the Skater counts and open ice carry in.
  */
 
 // --- Pace ------------------------------------------------------------------
@@ -36,7 +37,7 @@ const MIN_POSSESSION_SECONDS = 2
 // --- Outcome of a possession -----------------------------------------------
 
 /** Log-odds that a possession between average units ends in a shot attempt. */
-const ATTEMPT_BASE = logit(0.345)
+const ATTEMPT_BASE = logit(0.333)
 /** Slope on the attacking unit's offence minus the defending unit's defence. */
 const ATTEMPT_EDGE = 0.45
 /** `shotVolume` at 100 adds this to attempt log-odds (and -this at 0). */
@@ -58,7 +59,22 @@ const TAKEAWAY_EDGE = 1.0
 /** Per Skater of advantage, added to the attacking Club's attempt log-odds. */
 const ADVANTAGE_ATTEMPT = 0.8
 /** Per Skater of advantage, added to danger log-odds - open ice, a free man. */
-const ADVANTAGE_DANGER = 0.42
+const ADVANTAGE_DANGER = 0.3
+
+/**
+ * Fewer Skaters on the ice means more open ice: 0 at 5-on-5, 0.5 at 4-on-4,
+ * 1 at 3-on-3. These scale it into attempt and danger log-odds. Provisional,
+ * unmeasured (OQ #11) - the share of overtimes ending before a shootout
+ * would constrain them.
+ */
+const OPEN_ICE_ATTEMPT = 0.3
+const OPEN_ICE_DANGER = 0.45
+
+/**
+ * Facing an empty net, any clear look is a shot - from the Club's own end if
+ * need be. Added to attempt log-odds. Provisional, unmeasured (OQ #10, #19).
+ */
+const EMPTY_NET_ATTEMPT = 1.5
 
 // --- Penalties -------------------------------------------------------------
 
@@ -97,7 +113,7 @@ const MAJOR_CHANCE: Partial<Record<PenaltyKind, number>> = { boarding: 0.5, cros
 const DEFENCE_SHOOTER_WEIGHT = 0.5
 
 /** Log-odds of a goal for a typical attempt against an average goalie. */
-const DANGER_BASE = logit(0.134)
+const DANGER_BASE = logit(0.131)
 const DANGER_SHOOTER = 0.55
 const DANGER_SUPPORT = 0.25
 const DANGER_PRESSURE = 0.3
@@ -236,21 +252,30 @@ function faceoffTaker(unit: Unit): Skater {
   return pool.reduce((best, s) => (s.attributes.faceoffs > best.attributes.faceoffs ? s : best))
 }
 
+/** The stretch of play one Shift covers, and what it is played under. */
+export interface Segment {
+  from: number
+  to: number
+  period: Period
+  /** Clubs whose Goalie is pulled for an extra attacker. */
+  emptyNet: Readonly<Record<Side, boolean>>
+  /**
+   * Describes everything that decides who should be on the ice. Play stops
+   * as soon as it changes - a penalty, a power-play goal, a goal that
+   * changes whether a Goalie should be pulled, a sudden-death winner.
+   */
+  situation(clock: number): string
+}
+
 export interface PossessionModel {
   /** The puck is dropped at centre ice: the next possession starts with a faceoff. */
   startPeriod(): void
   /**
-   * Plays the Shift from `from` towards `to`, appending its events. Returns
-   * the clock it reached: earlier than `to` when the skater counts changed -
-   * a penalty, or a power-play goal - and the Units on the ice must change.
+   * Plays the Shift from `segment.from` towards `segment.to`, appending its
+   * events. Returns the clock it reached: earlier than `to` when the
+   * situation changed and the Units on the ice must change.
    */
-  playShift(
-    shift: ShiftSelection,
-    from: number,
-    to: number,
-    period: Period,
-    events: MatchEvent[],
-  ): number
+  playShift(shift: ShiftSelection, segment: Segment, events: MatchEvent[]): number
   goals(): { home: number; away: number }
 }
 
@@ -277,8 +302,6 @@ export function createPossessionModel(
   /** Who has the puck; null when play restarts with a faceoff. */
   let puck: Side | null = null
 
-  const counts = () => `${box.skaters('home')}-${box.skaters('away')}`
-
   return {
     startPeriod() {
       puck = null
@@ -288,7 +311,8 @@ export function createPossessionModel(
       return { ...score }
     },
 
-    playShift(shift, from, to, period, events) {
+    playShift(shift, segment, events) {
+      const { from, to, period, emptyNet } = segment
       const units: Record<Side, Unit> = {
         home: buildUnit(contexts.home, shift.home),
         away: buildUnit(contexts.away, shift.away),
@@ -296,7 +320,12 @@ export function createPossessionModel(
       const meanPossession =
         POSSESSION_SECONDS / (1 + PACE_SPEED * mean([units.home.speed, units.away.speed]))
       const at = (side: Side) => ({ period, strength: box.strength(side) })
-      const situation = counts()
+      // Skaters actually on the ice - an extra attacker counts here, though
+      // it is not a power play (ADR-009).
+      const advantageOf = (side: Side) =>
+        units[side].skaters.length - units[otherSide(side)].skaters.length
+      const openIce = (10 - units.home.skaters.length - units.away.skaters.length) / 4
+      const situation = segment.situation(from)
 
       let clock = from
       while (clock < to) {
@@ -311,7 +340,7 @@ export function createPossessionModel(
         if (clock + seconds > to) return to
         clock += seconds
         possession(puck, clock)
-        if (counts() !== situation) return clock
+        if (segment.situation(clock) !== situation) return clock
       }
       return to
 
@@ -357,11 +386,12 @@ export function createPossessionModel(
           return
         }
 
-        const advantage = box.skaters(attacking) - box.skaters(defending)
         const attempt = sigmoid(
           ATTEMPT_BASE +
             ATTEMPT_EDGE * (att.offence - def.defending) +
-            ADVANTAGE_ATTEMPT * advantage +
+            ADVANTAGE_ATTEMPT * advantageOf(attacking) +
+            OPEN_ICE_ATTEMPT * openIce +
+            (emptyNet[defending] ? EMPTY_NET_ATTEMPT : 0) +
             SHOT_VOLUME_ATTEMPTS * dial(attTactics.shotVolume) +
             AGGRESSION_FOR * dial(attTactics.aggression) +
             AGGRESSION_AGAINST * dial(defTactics.aggression),
@@ -476,7 +506,8 @@ export function createPossessionModel(
             centred((shooter.attributes.shooting + shooter.attributes.offPositioning) / 2) +
           DANGER_SUPPORT * att.support -
           DANGER_PRESSURE * def.pressure +
-          ADVANTAGE_DANGER * (box.skaters(attacking) - box.skaters(defending)) +
+          ADVANTAGE_DANGER * advantageOf(attacking) +
+          OPEN_ICE_DANGER * openIce +
           (pointShot ? DANGER_POINT_SHOT : 0) -
           SHOT_VOLUME_DANGER * shotVolume +
           DANGER_SPREAD * logisticNoise(rng)
@@ -545,8 +576,10 @@ export function createPossessionModel(
         const goalChance = sigmoid(
           logit(danger) - reading - GOALIE_REFLEXES * centred(goalie.attributes.reflexes),
         )
+        // On target at an empty net is in (FR-22).
+        const netEmpty = emptyNet[defending]
 
-        if (rng.chance(goalChance)) {
+        if (netEmpty || rng.chance(goalChance)) {
           score[attacking]++
           events.push({
             type: 'shot',
@@ -564,8 +597,8 @@ export function createPossessionModel(
             clubId,
             scorer: shooter.id,
             assists: assists(units[attacking], shooter),
-            goalieBeaten: goalie.id,
-            emptyNet: false,
+            ...(netEmpty ? {} : { goalieBeaten: goalie.id }),
+            emptyNet: netEmpty,
           })
           box.goal(attacking, clock, period, events)
           puck = null

@@ -2,6 +2,7 @@ import type { Club, Lineup } from './club.js'
 import type { CompetitionId, SeasonId } from './competition.js'
 import type { MatchEvent } from './event.js'
 import type { ClubId } from './player.js'
+import type { OvertimeRegime } from './playoff.js'
 
 export type FixtureId = string
 
@@ -14,8 +15,12 @@ export interface Fixture {
   round: number
   homeClubId: ClubId
   awayClubId: ClubId
-  /** Whether a tie must be broken by overtime and shootout. */
-  allowsTie: boolean
+  /**
+   * How a level score after regulation is broken (FR-09b), or null when it
+   * stands. Regular-season Fixtures take it from the CompetitionStructure,
+   * playoff Fixtures from the PlayoffFormat.
+   */
+  overtime: OvertimeRegime | null
 }
 
 /** Everything the engine needs to simulate one Fixture. Fully self-contained. */

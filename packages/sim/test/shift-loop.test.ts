@@ -7,6 +7,7 @@ import { simulateFixture } from '../src/engine/simulate.js'
 import { createGeneratedRosterProvider } from '../src/generate/roster.js'
 import { NHL_2026_27, NHL_2026_27_CLUB_SEEDS } from '../src/data/nhl-2026-27.js'
 import { foldMatch } from '../src/stats/match.js'
+import { endOfPlay, skatersAllowed } from './support/events.js'
 import { fixtureBetween } from './support/fixtures.js'
 
 const IDENTITIES = new Map(
@@ -40,26 +41,29 @@ function iceTimeByPlayer(home: Club, away: Club, events: readonly MatchEvent[]):
 }
 
 describe('shift loop', () => {
-  it('fills exactly 3600 seconds of regulation, with every on-ice slot accounted for', async () => {
+  it('fills the whole of play with Shifts, every on-ice slot accounted for', async () => {
     const [home, away] = await someClubs(2026, 2)
-    for (const seed of [1, 2, 3]) {
+    for (const seed of [1, 2, 3, 4, 5, 6]) {
       const events = play(home!, away!, seed)
+      const end = endOfPlay(events)
       const iceTime = iceTimeByPlayer(home!, away!, events)
       const homeShifts = shiftChanges(events).filter((e) => e.clubId === home!.id)
 
       // Shifts tile the clock with no gap, and the fold credits each one's
-      // seconds to everybody it put on the ice - five a side, fewer when short.
+      // seconds to everybody it put on the ice - five a side, fewer when
+      // short, six with the Goalie pulled.
       let covered = 0
       let slotSeconds = 0
       homeShifts.forEach((shift, i) => {
-        const seconds = (homeShifts[i + 1]?.clock ?? 3600) - shift.clock
+        const seconds = (homeShifts[i + 1]?.clock ?? end) - shift.clock
         covered += seconds
         slotSeconds += seconds * shift.onIce.length
       })
       const homeTotal = home!.skaters.reduce((sum, s) => sum + (iceTime.get(s.id) ?? 0), 0)
 
       expect(homeShifts[0]!.clock).toBe(0)
-      expect(covered).toBe(3600)
+      expect(end).toBeGreaterThanOrEqual(3600)
+      expect(covered).toBe(end)
       expect(homeTotal).toBe(slotSeconds)
     }
   })
@@ -77,9 +81,9 @@ describe('shift loop', () => {
       for (let i = 0; i < changes.length; i += 2) {
         const [a, b] = [changes[i]!, changes[i + 1]!]
         expect(a.clock).toBe(b.clock)
-        for (const shift of [a, b]) expect(shift.onIce.length).toBeGreaterThanOrEqual(3)
+        for (const shift of [a, b]) expect(skatersAllowed(shift)).toBeGreaterThanOrEqual(3)
 
-        const margin = a.onIce.length - b.onIce.length
+        const margin = skatersAllowed(a) - skatersAllowed(b)
         expect(a.strength).toBe(margin > 0 ? 'powerplay' : margin < 0 ? 'penaltykill' : 'even')
         expect(b.strength).toBe(margin < 0 ? 'powerplay' : margin > 0 ? 'penaltykill' : 'even')
       }

@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import type { Club, Lineup } from '../src/domain/club.js'
-import type { GoalEvent, MatchEvent, ShotEvent } from '../src/domain/event.js'
+import type { GoalEvent, MatchEvent, ShiftChangeEvent, ShotEvent } from '../src/domain/event.js'
 import { NHL_2026_27, NHL_2026_27_CLUB_SEEDS } from '../src/data/nhl-2026-27.js'
 import { buildNaiveLineup, DEFAULT_TACTICS } from '../src/engine/lineup.js'
 import { fixtureSeed, simulateFixture } from '../src/engine/simulate.js'
 import { createGeneratedRosterProvider } from '../src/generate/roster.js'
 import { createRng } from '../src/rng/index.js'
 import { foldMatch } from '../src/stats/match.js'
+import { endOfPlay, skatersAllowed } from './support/events.js'
 import { fixtureBetween } from './support/fixtures.js'
 
 const IDENTITIES = new Map(
@@ -81,8 +82,10 @@ describe('simulateFixture', () => {
         if (event.type === 'save') expect(shot.goalie).toBe(event.goalie)
       })
 
+      // Shootout attempts produce no goal or save events (event.ts).
       const shotsOnGoal = events.filter(
-        (e) => e.type === 'shot' && (e.result === 'goal' || e.result === 'save'),
+        (e) =>
+          e.type === 'shot' && e.period !== 'SO' && (e.result === 'goal' || e.result === 'save'),
       )
       const goalsAndSaves = events.filter((e) => e.type === 'goal' || e.type === 'save')
       expect(shotsOnGoal).toHaveLength(goalsAndSaves.length)
@@ -268,14 +271,13 @@ describe('penalties and special teams', () => {
     const { home, away, matches } = await runs()
     for (const events of matches) {
       const stats = foldMatch(fixtureBetween(home.id, away.id), events)
-      const changes = events.filter((e) => e.type === 'shift_change')
+      const changes = events.filter((e): e is ShiftChangeEvent => e.type === 'shift_change')
       const advantage = { [home.id]: 0, [away.id]: 0 }
       for (let i = 0; i < changes.length; i += 2) {
         const [a, b] = [changes[i]!, changes[i + 1]!]
-        if (a.type !== 'shift_change' || b.type !== 'shift_change') continue
-        const seconds = (changes[i + 2]?.clock ?? 3600) - a.clock
-        if (a.onIce.length > b.onIce.length) advantage[a.clubId]! += seconds
-        if (b.onIce.length > a.onIce.length) advantage[b.clubId]! += seconds
+        const seconds = (changes[i + 2]?.clock ?? endOfPlay(events)) - a.clock
+        if (skatersAllowed(a) > skatersAllowed(b)) advantage[a.clubId]! += seconds
+        if (skatersAllowed(b) > skatersAllowed(a)) advantage[b.clubId]! += seconds
       }
       expect(stats.clubs.get(home.id)!.powerPlaySeconds).toBe(advantage[home.id])
       expect(stats.clubs.get(away.id)!.powerPlaySeconds).toBe(advantage[away.id])
@@ -287,7 +289,7 @@ describe('penalties and special teams', () => {
     for (const events of matches) {
       const onIce = new Map<string, number>()
       for (const event of events) {
-        if (event.type === 'shift_change') onIce.set(event.clubId, event.onIce.length)
+        if (event.type === 'shift_change') onIce.set(event.clubId, skatersAllowed(event))
         if (event.type !== 'goal') continue
         const own = onIce.get(event.clubId)!
         const other = [...onIce.entries()].find(([id]) => id !== event.clubId)![1]

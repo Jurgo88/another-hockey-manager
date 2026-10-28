@@ -9,6 +9,6 @@ export function fixtureBetween(homeClubId: ClubId, awayClubId: ClubId, id = 'f1'
     round: 0,
     homeClubId,
     awayClubId,
-    allowsTie: false,
+    overtime: 'regular-3on3-then-shootout',
   }
 }
