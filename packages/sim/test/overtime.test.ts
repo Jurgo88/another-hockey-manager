@@ -192,21 +192,45 @@ describe('a Fixture whose level score stands', async () => {
 describe('pulling the Goalie (FR-22)', async () => {
   const [home, away] = await twoClubs()
 
-  it('pulls only late in the third Period, only while trailing within the threshold', () => {
-    const { secondsRemaining, maxDeficit } = DEFAULT_TACTICS.pullGoalie
-    let pulls = 0
+  it('pulls only in the third Period, only when one of the rules matches', () => {
+    const pullsByDeficit = new Map<number, number>()
     for (const { events } of playMany(home, away, 'regular-3on3-then-shootout')) {
       const score = { [home.id]: 0, [away.id]: 0 }
       for (const event of events) {
         if (event.type === 'goal') score[event.clubId]!++
         if (!isShift(event) || event.goalie !== null) continue
-        pulls++
         const other = event.clubId === home.id ? away.id : home.id
         const deficit = score[other]! - score[event.clubId]!
+        pullsByDeficit.set(deficit, (pullsByDeficit.get(deficit) ?? 0) + 1)
+
         expect(event.period).toBe(3)
-        expect(3600 - event.clock).toBeLessThanOrEqual(secondsRemaining)
-        expect(deficit).toBeGreaterThanOrEqual(1)
-        expect(deficit).toBeLessThanOrEqual(maxDeficit)
+        const matching = DEFAULT_TACTICS.pullGoalie.filter(
+          (rule) =>
+            rule.deficit === deficit &&
+            3600 - event.clock <= rule.secondsRemaining &&
+            (!rule.powerPlayOnly || event.strength === 'powerplay'),
+        )
+        expect(matching.length).toBeGreaterThan(0)
+      }
+    }
+    // The default rules pull one goal down and two goals down alike.
+    expect(pullsByDeficit.get(1)).toBeGreaterThan(0)
+    expect(pullsByDeficit.get(2)).toBeGreaterThan(0)
+  })
+
+  it('pulls three goals down only on a power play, for a 6-on-4', () => {
+    const threeDown = { deficit: 3, secondsRemaining: 1200, powerPlayOnly: true }
+    const chasing = {
+      ...buildNaiveLineup(home),
+      tactics: { ...DEFAULT_TACTICS, pullGoalie: [threeDown] },
+    }
+    let pulls = 0
+    for (const { events } of playMany(home, away, 'regular-3on3-then-shootout', chasing)) {
+      for (const shift of events.filter(isShift)) {
+        if (shift.clubId !== home.id || shift.goalie !== null) continue
+        pulls++
+        expect(shift.strength).toBe('powerplay')
+        expect(shift.onIce).toHaveLength(skatersAllowed(shift) + 1)
       }
     }
     expect(pulls).toBeGreaterThan(0)
@@ -233,7 +257,7 @@ describe('pulling the Goalie (FR-22)', async () => {
   it('never empties the net when the Manager never pulls', () => {
     const neverPull = {
       ...buildNaiveLineup(home),
-      tactics: { ...DEFAULT_TACTICS, pullGoalie: { secondsRemaining: 0, maxDeficit: 0 } },
+      tactics: { ...DEFAULT_TACTICS, pullGoalie: [] },
     }
     for (const { events } of playMany(home, away, 'regular-3on3-then-shootout', neverPull)) {
       expect(events.some((e) => isShift(e) && e.clubId === home.id && e.goalie === null)).toBe(

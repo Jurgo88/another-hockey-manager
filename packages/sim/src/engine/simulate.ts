@@ -58,17 +58,27 @@ export function simulateFixture(input: FixtureInput, seed: number): MatchEvent[]
   const pulled = (side: Side, clock: number, end: number): boolean => {
     const goals = play.goals()
     const deficit = goals[otherSide(side)] - goals[side]
-    const { secondsRemaining, maxDeficit } = tactics[side].pullGoalie
-    return deficit >= 1 && deficit <= maxDeficit && end - clock <= secondsRemaining
+    const onPowerPlay = box.strength(side) === 'powerplay'
+    return tactics[side].pullGoalie.some(
+      (rule) =>
+        rule.deficit === deficit &&
+        end - clock <= rule.secondsRemaining &&
+        (!rule.powerPlayOnly || onPowerPlay),
+    )
   }
 
-  /** The earliest clock a trailing Club should pull its Goalie, if that is still ahead. */
+  /**
+   * The earliest clock a trailing Club's rules pull its Goalie, if that is
+   * still ahead with the score and strength as they are. A goal or a change
+   * of strength ends the Shift anyway, so this is asked again after either.
+   */
   const nextPull = (clock: number, end: number): number =>
     Math.min(
-      ...(['home', 'away'] as const).map((side) => {
-        const at = end - tactics[side].pullGoalie.secondsRemaining
-        return at > clock && pulled(side, at, end) ? at : Infinity
-      }),
+      ...(['home', 'away'] as const).flatMap((side) =>
+        tactics[side].pullGoalie
+          .map((rule) => end - rule.secondsRemaining)
+          .filter((at) => at > clock && pulled(side, at, end)),
+      ),
     )
 
   /**

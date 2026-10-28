@@ -74,12 +74,12 @@ const OPEN_ICE_DANGER = 0.45
  * Facing an empty net, any clear look is a shot - from the Club's own end if
  * need be. Added to attempt log-odds. Provisional, unmeasured (OQ #10, #19).
  */
-const EMPTY_NET_ATTEMPT = 1.5
+const EMPTY_NET_ATTEMPT = 1.0
 
 // --- Penalties -------------------------------------------------------------
 
 /** Log-odds that the defending unit takes a penalty in a possession, at average discipline. */
-const PENALTY_BASE = logit(0.0157)
+const PENALTY_BASE = logit(0.0154)
 /** The attacking unit takes far fewer - interference, hooking on the forecheck. Unmeasured. */
 const PENALTY_ATTACKING = -1.1
 /** Slope on the unit's indiscipline (centred, so low `discipline` is positive). */
@@ -113,7 +113,7 @@ const MAJOR_CHANCE: Partial<Record<PenaltyKind, number>> = { boarding: 0.5, cros
 const DEFENCE_SHOOTER_WEIGHT = 0.5
 
 /** Log-odds of a goal for a typical attempt against an average goalie. */
-const DANGER_BASE = logit(0.131)
+const DANGER_BASE = logit(0.1255)
 const DANGER_SHOOTER = 0.55
 const DANGER_SUPPORT = 0.25
 const DANGER_PRESSURE = 0.3

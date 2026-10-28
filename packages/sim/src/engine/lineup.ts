@@ -169,7 +169,13 @@ export const DEFAULT_TACTICS: Tactics = {
   shotVolume: 50,
   shiftLength: 50,
   matchup: 'none' satisfies MatchupPolicy,
-  pullGoalie: { secondsRemaining: 120, maxDeficit: 1 },
+  // One goal down at two minutes, two down at three, three down at four
+  // only with a power play to make it 6-on-4. Provisional (OQ #10).
+  pullGoalie: [
+    { deficit: 1, secondsRemaining: 120, powerPlayOnly: false },
+    { deficit: 2, secondsRemaining: 180, powerPlayOnly: false },
+    { deficit: 3, secondsRemaining: 240, powerPlayOnly: true },
+  ],
 }
 
 function mean(values: readonly number[]): number {
