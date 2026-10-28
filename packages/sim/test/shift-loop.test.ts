@@ -7,6 +7,8 @@ import { runShiftLoop } from '../src/engine/shift-loop.js'
 import { createGeneratedRosterProvider } from '../src/generate/roster.js'
 import { createRng } from '../src/rng/index.js'
 import { NHL_2026_27, NHL_2026_27_CLUB_SEEDS } from '../src/data/nhl-2026-27.js'
+import { foldMatch } from '../src/stats/match.js'
+import { fixtureBetween, inRegulationPeriods } from './support/streams.js'
 
 const IDENTITIES = new Map(
   NHL_2026_27_CLUB_SEEDS.map((club) => [club.id, { code: club.code, name: club.name }]),
@@ -18,22 +20,13 @@ async function someClubs(seed: number, count: number): Promise<Club[]> {
   return clubs.slice(0, count)
 }
 
-/** Mirrors what src/stats will eventually do: fold shift_change events into ice time per Player. */
-function iceTimeByPlayer(events: readonly ShiftChangeEvent[]): Map<PlayerId, number> {
-  const clocks = [...new Set(events.map((e) => e.clock))].sort((a, b) => a - b)
-  const REGULATION_SECONDS = 3 * 1200
-  const durationByClock = new Map(
-    clocks.map((clock, i) => [clock, (clocks[i + 1] ?? REGULATION_SECONDS) - clock]),
-  )
-
-  const iceTime = new Map<PlayerId, number>()
-  for (const event of events) {
-    const duration = durationByClock.get(event.clock)!
-    for (const playerId of event.onIce) {
-      iceTime.set(playerId, (iceTime.get(playerId) ?? 0) + duration)
-    }
-  }
-  return iceTime
+function iceTimeByPlayer(
+  home: Club,
+  away: Club,
+  events: readonly ShiftChangeEvent[],
+): Map<PlayerId, number> {
+  const stats = foldMatch(fixtureBetween(home.id, away.id), inRegulationPeriods(events))
+  return new Map([...stats.skaters].map(([id, skater]) => [id, skater.iceTimeSeconds]))
 }
 
 describe('runShiftLoop', () => {
@@ -44,7 +37,7 @@ describe('runShiftLoop', () => {
       { club: away!, lineup: buildNaiveLineup(away!) },
       createRng(1),
     )
-    const iceTime = iceTimeByPlayer(events)
+    const iceTime = iceTimeByPlayer(home!, away!, events)
     // Every dressed Skater's ice time across the match should sum, per Club, to 5 * 3600
     // (5 on-ice slots at every instant of a 3600s game).
     const homeIds = new Set([
@@ -110,7 +103,7 @@ describe('ice-time distribution (FR-23)', () => {
         { club: away!, lineup: awayLineup },
         createRng(5000 + i),
       )
-      const iceTime = iceTimeByPlayer(events)
+      const iceTime = iceTimeByPlayer(home!, away!, events)
 
       for (const lineup of [homeLineup, awayLineup]) {
         const line1 = lineup.lines[0]
@@ -156,7 +149,7 @@ describe('matchup policy (directional effect)', () => {
           { club: away!, lineup: awayLineup },
           createRng(3000 + i),
         )
-        const iceTime = iceTimeByPlayer(events)
+        const iceTime = iceTimeByPlayer(home!, away!, events)
         const line1 = homeLineup.lines[0]
         const line1Time = [line1.leftWing, line1.centre, line1.rightWing].reduce(
           (sum, id) => sum + (iceTime.get(id) ?? 0),
