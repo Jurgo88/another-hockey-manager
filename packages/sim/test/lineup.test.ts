@@ -136,9 +136,41 @@ describe('validateLineup', () => {
     const lineup = buildNaiveLineup(bruins)
     const broken = {
       ...lineup,
-      powerPlayUnits: [...lineup.powerPlayUnits, { line: lineup.lines[2], pairing: lineup.pairings[2] }],
+      powerPlayUnits: [...lineup.powerPlayUnits, lineup.powerPlayUnits[0]!],
     }
     expect(rulesOf(validateLineup(broken, bruins))).toContain('special-teams-unit-invalid')
+  })
+
+  it('rejects a Lineup with no penalty-kill unit (special-teams-unit-invalid)', () => {
+    const broken = { ...buildNaiveLineup(bruins), penaltyKillUnits: [] }
+    expect(rulesOf(validateLineup(broken, bruins))).toContain('special-teams-unit-invalid')
+  })
+
+  it('rejects special-teams units of the wrong size (ADR-009)', () => {
+    const lineup = buildNaiveLineup(bruins)
+    const fivePenaltyKillers = { ...lineup, penaltyKillUnits: [{ skaters: lineup.powerPlayUnits[0]!.skaters }] }
+    const fourOnThePowerPlay = { ...lineup, powerPlayUnits: [{ skaters: lineup.penaltyKillUnits[0]!.skaters }] }
+    expect(rulesOf(validateLineup(fivePenaltyKillers, bruins))).toContain('special-teams-unit-invalid')
+    expect(rulesOf(validateLineup(fourOnThePowerPlay, bruins))).toContain('special-teams-unit-invalid')
+  })
+
+  it('builds a naive kill with its defencemen listed first, from the checking Lines', () => {
+    const lineup = buildNaiveLineup(bruins)
+    const defence = new Set(lineup.pairings.flatMap((p) => [p.leftDefence, p.rightDefence]))
+    const topSix = new Set(lineup.lines.slice(0, 2).flatMap((l) => [l.leftWing, l.centre, l.rightWing]))
+    for (const unit of lineup.penaltyKillUnits) {
+      expect(unit.skaters.map((id) => defence.has(id))).toEqual([true, true, false, false])
+      expect(unit.skaters.some((id) => topSix.has(id))).toBe(false)
+    }
+  })
+
+  it('builds a naive power play of four forwards and a defenceman, the fourth forward last', () => {
+    const lineup = buildNaiveLineup(bruins)
+    const defence = new Set(lineup.pairings.flatMap((p) => [p.leftDefence, p.rightDefence]))
+    for (const unit of lineup.powerPlayUnits) {
+      expect(unit.skaters.map((id) => defence.has(id))).toEqual([false, false, false, true, false])
+    }
+    expect(validateLineup(lineup, bruins)).toEqual([])
   })
 
   it('rejects a malformed Lines/Pairings count (roster-size)', () => {

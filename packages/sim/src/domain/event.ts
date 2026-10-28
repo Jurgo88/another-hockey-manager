@@ -43,7 +43,10 @@ interface EventBase {
   /** Elapsed match time in whole seconds from the opening faceoff. */
   clock: number
   period: Period
-  /** From the perspective of the event's `clubId`, where it has one. */
+  /**
+   * From the perspective of the event's `clubId`; for a faceoff, the Club
+   * that won it; for Period boundaries, the home Club. 4-on-4 is 'even'.
+   */
   strength: Strength
 }
 
@@ -128,9 +131,12 @@ export interface PenaltyEvent extends EventBase {
 
 export interface PowerPlayStartEvent extends EventBase {
   type: 'powerplay_start'
-  /** The Club with the advantage. */
+  /**
+   * The Club gaining one Skater of advantage (ADR-009). A 5-on-3 is two
+   * nested starts.
+   */
   clubId: ClubId
-  /** 5 means 5-on-4, 4 means 5-on-3 handled as skaters on each side. */
+  /** Skaters on each side once this advantage is gained: 5 and 3 for a 5-on-3. */
   skatersFor: number
   skatersAgainst: number
 }
@@ -138,8 +144,11 @@ export interface PowerPlayStartEvent extends EventBase {
 export interface PowerPlayEndEvent extends EventBase {
   type: 'powerplay_end'
   clubId: ClubId
-  /** Why the advantage ended. */
-  reason: 'expired' | 'goal' | 'period_end'
+  /**
+   * Why one Skater of advantage was lost (ADR-009). 'penalty' means the
+   * advantaged Club was penalised in turn; 'period_end' that the Fixture ended.
+   */
+  reason: 'expired' | 'goal' | 'penalty' | 'period_end'
 }
 
 export type MatchEvent =

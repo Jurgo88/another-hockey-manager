@@ -111,9 +111,13 @@ describe('simulateFixture', () => {
     for (const events of playMany(20, (seed) => play(home, away, seed))) {
       events.forEach((event, i) => {
         if (event.type !== 'goal') return
-        const next = events
-          .slice(i + 1)
-          .find((e) => e.type !== 'shift_change' && e.type !== 'period_start')
+        const between = new Set([
+          'shift_change',
+          'period_start',
+          'powerplay_start',
+          'powerplay_end',
+        ])
+        const next = events.slice(i + 1).find((e) => !between.has(e.type))
         if (next && next.type !== 'period_end') expect(next.type).toBe('faceoff')
       })
     }
@@ -214,5 +218,121 @@ describe('attributes and tactics move the outcome (directional)', () => {
     const aggressive = runs(75)
     expect(shotsBy(home.id, aggressive).length).toBeGreaterThan(shotsBy(home.id, passive).length)
     expect(shotsBy(away.id, aggressive).length).toBeGreaterThan(shotsBy(away.id, passive).length)
+  })
+})
+
+describe('penalties and special teams', () => {
+  const runs = async () => {
+    const [home, away] = await twoClubs()
+    return { home, away, matches: playMany(40, (seed) => play(home, away, seed)) }
+  }
+
+  it('keeps a penalised Player off the ice until the penalty can have ended', async () => {
+    const { matches } = await runs()
+    let penalties = 0
+    for (const events of matches) {
+      events.forEach((event, i) => {
+        if (event.type !== 'penalty') return
+        penalties++
+        // Nothing shorter than a minor exists, and only a goal against can end one early.
+        for (const later of events.slice(i + 1)) {
+          if (later.clock >= event.clock + 120) break
+          if (later.type === 'goal' && later.clubId !== event.clubId) break
+          if (later.type === 'shift_change' && later.clubId === event.clubId) {
+            expect(later.onIce).not.toContain(event.player)
+          }
+        }
+      })
+    }
+    expect(penalties).toBeGreaterThan(0)
+  })
+
+  it('closes every powerplay_start with a powerplay_end (Tier 4)', async () => {
+    const { matches } = await runs()
+    for (const events of matches) {
+      const open = new Map<string, number>()
+      for (const event of events) {
+        if (event.type === 'powerplay_start')
+          open.set(event.clubId, (open.get(event.clubId) ?? 0) + 1)
+        if (event.type === 'powerplay_end') {
+          const depth = open.get(event.clubId) ?? 0
+          expect(depth).toBeGreaterThan(0)
+          open.set(event.clubId, depth - 1)
+        }
+      }
+      for (const depth of open.values()) expect(depth).toBe(0)
+    }
+  })
+
+  it('times the power play as exactly the time one Club had more Skaters (Tier 4, ADR-009)', async () => {
+    const { home, away, matches } = await runs()
+    for (const events of matches) {
+      const stats = foldMatch(fixtureBetween(home.id, away.id), events)
+      const changes = events.filter((e) => e.type === 'shift_change')
+      const advantage = { [home.id]: 0, [away.id]: 0 }
+      for (let i = 0; i < changes.length; i += 2) {
+        const [a, b] = [changes[i]!, changes[i + 1]!]
+        if (a.type !== 'shift_change' || b.type !== 'shift_change') continue
+        const seconds = (changes[i + 2]?.clock ?? 3600) - a.clock
+        if (a.onIce.length > b.onIce.length) advantage[a.clubId]! += seconds
+        if (b.onIce.length > a.onIce.length) advantage[b.clubId]! += seconds
+      }
+      expect(stats.clubs.get(home.id)!.powerPlaySeconds).toBe(advantage[home.id])
+      expect(stats.clubs.get(away.id)!.powerPlaySeconds).toBe(advantage[away.id])
+    }
+  })
+
+  it('counts a goal as a power-play goal only with more Skaters on the ice', async () => {
+    const { matches } = await runs()
+    for (const events of matches) {
+      const onIce = new Map<string, number>()
+      for (const event of events) {
+        if (event.type === 'shift_change') onIce.set(event.clubId, event.onIce.length)
+        if (event.type !== 'goal') continue
+        const own = onIce.get(event.clubId)!
+        const other = [...onIce.entries()].find(([id]) => id !== event.clubId)![1]
+        expect(event.strength).toBe(
+          own > other ? 'powerplay' : own < other ? 'penaltykill' : 'even',
+        )
+      }
+    }
+  })
+})
+
+describe('penalties respond to discipline and aggression (directional)', () => {
+  const FIXTURES = 300
+
+  function penaltiesBy(clubId: string, runs: MatchEvent[][]): number {
+    return runs.flat().filter((e) => e.type === 'penalty' && e.clubId === clubId).length
+  }
+
+  it('a less disciplined Roster takes more penalties', async () => {
+    const [home, away] = await twoClubs()
+    const withDiscipline = (discipline: number): Club => ({
+      ...home,
+      skaters: home.skaters.map((s) => ({ ...s, attributes: { ...s.attributes, discipline } })),
+    })
+    const count = (discipline: number) => {
+      const club = withDiscipline(discipline)
+      return penaltiesBy(
+        club.id,
+        playMany(FIXTURES, (seed) => play(club, away, seed)),
+      )
+    }
+    expect(count(5)).toBeGreaterThan(count(16))
+  })
+
+  it('aggression raises penalties taken (Tier 3)', async () => {
+    const [home, away] = await twoClubs()
+    const lineup = (aggression: number) => ({
+      ...buildNaiveLineup(home),
+      tactics: { ...DEFAULT_TACTICS, aggression },
+    })
+    const count = (aggression: number) =>
+      penaltiesBy(
+        home.id,
+        playMany(FIXTURES, (seed) => play(home, away, seed, lineup(aggression))),
+      )
+    expect(count(75)).toBeGreaterThan(count(25))
   })
 })

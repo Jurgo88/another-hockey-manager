@@ -38,11 +38,18 @@ export interface Pairing {
   rightDefence: PlayerId
 }
 
-/** A special-teams formation: a Line and a Pairing declared together. */
+/**
+ * A special-teams formation (ADR-009): Skaters in priority order. A power-play
+ * Unit lists exactly 5, a penalty-kill Unit exactly 4. When fewer are needed,
+ * or a listed Skater is in the box, the engine takes the first available in
+ * order - so a Manager decides who stays out on a 5-on-3 by listing them last.
+ */
 export interface Unit {
-  line: Line
-  pairing: Pairing
+  skaters: readonly PlayerId[]
 }
+
+export const POWER_PLAY_UNIT_SIZE = 5
+export const PENALTY_KILL_UNIT_SIZE = 4
 
 export type MatchupPolicy =
   /** Roll units in order, ignoring who the opponent has out. */
@@ -91,9 +98,9 @@ export interface Lineup {
   pairings: readonly [Pairing, Pairing, Pairing]
   starter: PlayerId
   backup: PlayerId
-  /** Up to 2 power-play units, ordered. */
+  /** 1 or 2 power-play Units of 5, ordered. */
   powerPlayUnits: readonly Unit[]
-  /** Up to 2 penalty-kill units, ordered. */
+  /** 1 or 2 penalty-kill Units of 4, ordered. */
   penaltyKillUnits: readonly Unit[]
   /**
    * Ordered trios for 3-on-3 regular-season overtime. Three-on-three is a

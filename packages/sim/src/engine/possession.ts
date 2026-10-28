@@ -1,10 +1,11 @@
 import type { Lineup, Tactics } from '../domain/club.js'
-import type { MatchEvent, Period } from '../domain/event.js'
+import type { MatchEvent, PenaltyKind, Period } from '../domain/event.js'
 import type { FixtureInput } from '../domain/fixture.js'
 import type { ClubId, Goalie, PlayerId, Skater } from '../domain/player.js'
 import type { Rng } from '../rng/index.js'
 import { logisticNoise, logit, sigmoid, weightedIndex } from './draw.js'
-import { onIce, type ShiftSelection } from './shift-loop.js'
+import { otherSide, type PenaltyBox, type Side } from './penalties.js'
+import type { OnIce, ShiftSelection } from './shift-loop.js'
 
 /**
  * Level 2 of the two-level loop (03-sim-engine.md): possessions inside a
@@ -21,8 +22,7 @@ import { onIce, type ShiftSelection } from './shift-loop.js'
  * the slopes are judgement until Tier 2 constrains them. Constants with no
  * measured target say so.
  *
- * Special teams (#5), overtime and the empty net (#6) are not modelled here.
- * Every event is at even strength.
+ * Overtime and the empty net are #6.
  */
 
 // --- Pace ------------------------------------------------------------------
@@ -53,13 +53,51 @@ const RECORDED_TURNOVER_SHARE = 0.12
 /** Slope on defending `checking` against attacking `puckControl` for takeaway vs giveaway. */
 const TAKEAWAY_EDGE = 1.0
 
+// --- Man advantage ---------------------------------------------------------
+
+/** Per Skater of advantage, added to the attacking Club's attempt log-odds. */
+const ADVANTAGE_ATTEMPT = 0.8
+/** Per Skater of advantage, added to danger log-odds - open ice, a free man. */
+const ADVANTAGE_DANGER = 0.22
+
+// --- Penalties -------------------------------------------------------------
+
+/** Log-odds that the defending unit takes a penalty in a possession, at average discipline. */
+const PENALTY_BASE = logit(0.0157)
+/** The attacking unit takes far fewer - interference, hooking on the forecheck. Unmeasured. */
+const PENALTY_ATTACKING = -1.1
+/** Slope on the unit's indiscipline (centred, so low `discipline` is positive). */
+const PENALTY_DISCIPLINE = 0.5
+/** Own `aggression` at 100 adds this to penalty log-odds. */
+const PENALTY_AGGRESSION = 0.3
+
+/** Relative frequency of each infraction. Provisional, unmeasured. */
+const PENALTY_KINDS: readonly (readonly [PenaltyKind, number])[] = [
+  ['tripping', 20],
+  ['hooking', 16],
+  ['slashing', 13],
+  ['holding', 12],
+  ['interference', 11],
+  ['roughing', 10],
+  ['highsticking', 9],
+  ['crosschecking', 4],
+  ['delayofgame', 4],
+  ['boarding', 1],
+]
+/**
+ * Chance an infraction is called as a double minor or a major rather than a
+ * minor. Provisional, unmeasured: about 3% double minors, 1% majors overall.
+ */
+const DOUBLE_MINOR_CHANCE: Partial<Record<PenaltyKind, number>> = { highsticking: 0.3 }
+const MAJOR_CHANCE: Partial<Record<PenaltyKind, number>> = { boarding: 0.5, crosschecking: 0.15 }
+
 // --- Shot attempt ----------------------------------------------------------
 
 /** A defenceman's pull on the shooter draw relative to a forward. */
 const DEFENCE_SHOOTER_WEIGHT = 0.5
 
 /** Log-odds of a goal for a typical attempt against an average goalie. */
-const DANGER_BASE = logit(0.141)
+const DANGER_BASE = logit(0.132)
 const DANGER_SHOOTER = 0.55
 const DANGER_SUPPORT = 0.25
 const DANGER_PRESSURE = 0.3
@@ -120,10 +158,6 @@ function mean(values: readonly number[]): number {
   return values.reduce((sum, v) => sum + v, 0) / values.length
 }
 
-type Side = 'home' | 'away'
-
-const other = (side: Side): Side => (side === 'home' ? 'away' : 'home')
-
 interface SideContext {
   clubId: ClubId
   tactics: Tactics
@@ -131,22 +165,24 @@ interface SideContext {
   skaterById: ReadonlyMap<PlayerId, Skater>
 }
 
-/** One unit's composites, computed once per Shift. Skaters are forwards then defence. */
+/** One unit's composites, computed once per Shift. */
 interface Unit {
   skaters: readonly Skater[]
-  centre: Skater
+  /** Parallel to `skaters`: true for a defenceman. */
+  defence: readonly boolean[]
   offence: number
-  defence: number
+  defending: number
   speed: number
   support: number
   pressure: number
   blocking: number
   puckControl: number
   checking: number
+  discipline: number
 }
 
-function buildUnit(context: SideContext, ids: readonly PlayerId[]): Unit {
-  const skaters = ids.map((id) => {
+function buildUnit(context: SideContext, onIce: OnIce): Unit {
+  const skaters = [...onIce.forwards, ...onIce.defence].map((id) => {
     const skater = context.skaterById.get(id)
     if (!skater) throw new Error(`Player ${id} is not a Skater of Club ${context.clubId}`)
     return skater
@@ -155,7 +191,7 @@ function buildUnit(context: SideContext, ids: readonly PlayerId[]): Unit {
 
   return {
     skaters,
-    centre: skaters[1]!,
+    defence: skaters.map((_, i) => i >= onIce.forwards.length),
     offence: avg(
       (s) =>
         (s.attributes.passing +
@@ -164,7 +200,7 @@ function buildUnit(context: SideContext, ids: readonly PlayerId[]): Unit {
           s.attributes.speed) /
         4,
     ),
-    defence: avg(
+    defending: avg(
       (s) => (s.attributes.defPositioning + s.attributes.checking + s.attributes.speed) / 3,
     ),
     speed: avg((s) => s.attributes.speed),
@@ -173,6 +209,7 @@ function buildUnit(context: SideContext, ids: readonly PlayerId[]): Unit {
     blocking: avg((s) => s.attributes.shotBlocking),
     puckControl: avg((s) => s.attributes.puckControl),
     checking: avg((s) => s.attributes.checking),
+    discipline: avg((s) => s.attributes.discipline),
   }
 }
 
@@ -192,21 +229,36 @@ function sideContext(
   }
 }
 
+/** The forward on the ice best at the draw; a defenceman only when no forward is out. */
+function faceoffTaker(unit: Unit): Skater {
+  const forwards = unit.skaters.filter((_, i) => !unit.defence[i])
+  const pool = forwards.length > 0 ? forwards : unit.skaters
+  return pool.reduce((best, s) => (s.attributes.faceoffs > best.attributes.faceoffs ? s : best))
+}
+
 export interface PossessionModel {
   /** The puck is dropped at centre ice: the next possession starts with a faceoff. */
   startPeriod(): void
-  /** Plays the Shift from `from` to `to`, appending its events. */
+  /**
+   * Plays the Shift from `from` towards `to`, appending its events. Returns
+   * the clock it reached: earlier than `to` when the skater counts changed -
+   * a penalty, or a power-play goal - and the Units on the ice must change.
+   */
   playShift(
     shift: ShiftSelection,
     from: number,
     to: number,
     period: Period,
     events: MatchEvent[],
-  ): void
+  ): number
   goals(): { home: number; away: number }
 }
 
-export function createPossessionModel(input: FixtureInput, rng: Rng): PossessionModel {
+export function createPossessionModel(
+  input: FixtureInput,
+  box: PenaltyBox,
+  rng: Rng,
+): PossessionModel {
   const contexts: Record<Side, SideContext> = {
     home: sideContext(
       input.homeClub.id,
@@ -225,6 +277,8 @@ export function createPossessionModel(input: FixtureInput, rng: Rng): Possession
   /** Who has the puck; null when play restarts with a faceoff. */
   let puck: Side | null = null
 
+  const counts = () => `${box.skaters('home')}-${box.skaters('away')}`
+
   return {
     startPeriod() {
       puck = null
@@ -236,12 +290,13 @@ export function createPossessionModel(input: FixtureInput, rng: Rng): Possession
 
     playShift(shift, from, to, period, events) {
       const units: Record<Side, Unit> = {
-        home: buildUnit(contexts.home, onIce(shift.homeLine, shift.homePairing)),
-        away: buildUnit(contexts.away, onIce(shift.awayLine, shift.awayPairing)),
+        home: buildUnit(contexts.home, shift.home),
+        away: buildUnit(contexts.away, shift.away),
       }
       const meanPossession =
         POSSESSION_SECONDS / (1 + PACE_SPEED * mean([units.home.speed, units.away.speed]))
-      const base = { period, strength: 'even' as const }
+      const at = (side: Side) => ({ period, strength: box.strength(side) })
+      const situation = counts()
 
       let clock = from
       while (clock < to) {
@@ -253,14 +308,16 @@ export function createPossessionModel(input: FixtureInput, rng: Rng): Possession
         )
         // A possession still running at the change carries over to the next
         // Shift - the puck stays with the same Club, the time is spent.
-        if (clock + seconds > to) break
+        if (clock + seconds > to) return to
         clock += seconds
         possession(puck, clock)
+        if (counts() !== situation) return clock
       }
+      return to
 
       function faceoff(clock: number): Side {
-        const home = units.home.centre
-        const away = units.away.centre
+        const home = faceoffTaker(units.home)
+        const away = faceoffTaker(units.away)
         const homeWins = rng.chance(
           sigmoid(
             FACEOFF_EDGE * (centred(home.attributes.faceoffs) - centred(away.attributes.faceoffs)),
@@ -270,7 +327,7 @@ export function createPossessionModel(input: FixtureInput, rng: Rng): Possession
         events.push({
           type: 'faceoff',
           clock,
-          ...base,
+          ...at(winner),
           wonBy: contexts[winner].clubId,
           winner: homeWins ? home.id : away.id,
           loser: homeWins ? away.id : home.id,
@@ -279,15 +336,32 @@ export function createPossessionModel(input: FixtureInput, rng: Rng): Possession
       }
 
       function possession(attacking: Side, clock: number): void {
-        const defending = other(attacking)
+        const defending = otherSide(attacking)
         const att = units[attacking]
         const def = units[defending]
         const attTactics = contexts[attacking].tactics
         const defTactics = contexts[defending].tactics
 
+        const penaltyChance = (unit: Unit, tactics: Tactics, offset: number) =>
+          sigmoid(
+            PENALTY_BASE +
+              offset -
+              PENALTY_DISCIPLINE * unit.discipline +
+              PENALTY_AGGRESSION * dial(tactics.aggression),
+          )
+        const byDefending = penaltyChance(def, defTactics, 0)
+        const byAttacking = penaltyChance(att, attTactics, PENALTY_ATTACKING)
+        const penaltyRoll = rng.next()
+        if (penaltyRoll < byDefending + byAttacking) {
+          penalty(penaltyRoll < byDefending ? defending : attacking, clock)
+          return
+        }
+
+        const advantage = box.skaters(attacking) - box.skaters(defending)
         const attempt = sigmoid(
           ATTEMPT_BASE +
-            ATTEMPT_EDGE * (att.offence - def.defence) +
+            ATTEMPT_EDGE * (att.offence - def.defending) +
+            ADVANTAGE_ATTEMPT * advantage +
             SHOT_VOLUME_ATTEMPTS * dial(attTactics.shotVolume) +
             AGGRESSION_FOR * dial(attTactics.aggression) +
             AGGRESSION_AGAINST * dial(defTactics.aggression),
@@ -302,7 +376,7 @@ export function createPossessionModel(input: FixtureInput, rng: Rng): Possession
           events.push({
             type: 'turnover',
             clock,
-            ...base,
+            ...at(attacking),
             clubId: contexts[attacking].clubId,
             kind: rng.chance(0.5) ? 'icing' : 'offside',
             player: rng.pick(att.skaters).id,
@@ -324,7 +398,7 @@ export function createPossessionModel(input: FixtureInput, rng: Rng): Possession
             events.push({
               type: 'turnover',
               clock,
-              ...base,
+              ...at(defending),
               clubId: contexts[defending].clubId,
               kind: 'takeaway',
               player: taker.id,
@@ -340,7 +414,7 @@ export function createPossessionModel(input: FixtureInput, rng: Rng): Possession
             events.push({
               type: 'turnover',
               clock,
-              ...base,
+              ...at(attacking),
               clubId: contexts[attacking].clubId,
               kind: 'giveaway',
               player: loser.id,
@@ -352,8 +426,34 @@ export function createPossessionModel(input: FixtureInput, rng: Rng): Possession
         puck = defending
       }
 
+      /** The whistle goes: the offender is picked by indiscipline, play restarts with a faceoff. */
+      function penalty(offending: Side, clock: number): void {
+        const unit = units[offending]
+        const offender =
+          unit.skaters[
+            weightedIndex(
+              rng,
+              unit.skaters.map((s) => 21 - s.attributes.discipline),
+            )
+          ]!
+        const kind =
+          PENALTY_KINDS[
+            weightedIndex(
+              rng,
+              PENALTY_KINDS.map(([, w]) => w),
+            )
+          ]![0]
+        const minutes = rng.chance(MAJOR_CHANCE[kind] ?? 0)
+          ? 5
+          : rng.chance(DOUBLE_MINOR_CHANCE[kind] ?? 0)
+            ? 4
+            : 2
+        box.call(offending, offender.id, kind, minutes, clock, period, events)
+        puck = null
+      }
+
       function shotAttempt(attacking: Side, clock: number): void {
-        const defending = other(attacking)
+        const defending = otherSide(attacking)
         const att = units[attacking]
         const def = units[defending]
         const shotVolume = dial(contexts[attacking].tactics.shotVolume)
@@ -364,11 +464,11 @@ export function createPossessionModel(input: FixtureInput, rng: Rng): Possession
           att.skaters.map(
             (s, i) =>
               (s.attributes.shooting + s.attributes.offPositioning) *
-              (i >= 3 ? DEFENCE_SHOOTER_WEIGHT : 1),
+              (att.defence[i] ? DEFENCE_SHOOTER_WEIGHT : 1),
           ),
         )
         const shooter = att.skaters[shooterIndex]!
-        const pointShot = shooterIndex >= 3
+        const pointShot = att.defence[shooterIndex]!
 
         const dangerLogit =
           DANGER_BASE +
@@ -376,6 +476,7 @@ export function createPossessionModel(input: FixtureInput, rng: Rng): Possession
             centred((shooter.attributes.shooting + shooter.attributes.offPositioning) / 2) +
           DANGER_SUPPORT * att.support -
           DANGER_PRESSURE * def.pressure +
+          ADVANTAGE_DANGER * (box.skaters(attacking) - box.skaters(defending)) +
           (pointShot ? DANGER_POINT_SHOT : 0) -
           SHOT_VOLUME_DANGER * shotVolume +
           DANGER_SPREAD * logisticNoise(rng)
@@ -396,7 +497,7 @@ export function createPossessionModel(input: FixtureInput, rng: Rng): Possession
           events.push({
             type: 'shot',
             clock,
-            ...base,
+            ...at(attacking),
             clubId,
             shooter: shooter.id,
             result: 'block',
@@ -418,7 +519,7 @@ export function createPossessionModel(input: FixtureInput, rng: Rng): Possession
         clock: number,
         rebound: boolean,
       ): void {
-        const defending = other(attacking)
+        const defending = otherSide(attacking)
         const clubId = contexts[attacking].clubId
         const goalie = contexts[defending].goalie
 
@@ -426,7 +527,7 @@ export function createPossessionModel(input: FixtureInput, rng: Rng): Possession
           events.push({
             type: 'shot',
             clock,
-            ...base,
+            ...at(attacking),
             clubId,
             shooter: shooter.id,
             result: 'miss',
@@ -450,7 +551,7 @@ export function createPossessionModel(input: FixtureInput, rng: Rng): Possession
           events.push({
             type: 'shot',
             clock,
-            ...base,
+            ...at(attacking),
             clubId,
             shooter: shooter.id,
             result: 'goal',
@@ -459,13 +560,14 @@ export function createPossessionModel(input: FixtureInput, rng: Rng): Possession
           events.push({
             type: 'goal',
             clock,
-            ...base,
+            ...at(attacking),
             clubId,
             scorer: shooter.id,
             assists: assists(units[attacking], shooter),
             goalieBeaten: goalie.id,
             emptyNet: false,
           })
+          box.goal(attacking, clock, period, events)
           puck = null
           return
         }
@@ -478,7 +580,7 @@ export function createPossessionModel(input: FixtureInput, rng: Rng): Possession
         events.push({
           type: 'shot',
           clock,
-          ...base,
+          ...at(attacking),
           clubId,
           shooter: shooter.id,
           result: 'save',
@@ -488,7 +590,7 @@ export function createPossessionModel(input: FixtureInput, rng: Rng): Possession
         events.push({
           type: 'save',
           clock,
-          ...base,
+          ...at(defending),
           clubId: contexts[defending].clubId,
           goalie: goalie.id,
           shooter: shooter.id,
@@ -497,11 +599,16 @@ export function createPossessionModel(input: FixtureInput, rng: Rng): Possession
 
         if (live) {
           const att = units[attacking]
+          const forwardsOnly = att.skaters.map((s, i) =>
+            att.defence[i] ? 0 : s.attributes.offPositioning,
+          )
           const crasher =
             att.skaters[
               weightedIndex(
                 rng,
-                att.skaters.map((s, i) => (i < 3 ? s.attributes.offPositioning : 0)),
+                forwardsOnly.some((w) => w > 0)
+                  ? forwardsOnly
+                  : att.skaters.map((s) => s.attributes.offPositioning),
               )
             ]!
           resolveOnTarget(attacking, crasher, sigmoid(logit(danger) + REBOUND_DANGER), clock, true)
@@ -523,7 +630,7 @@ export function createPossessionModel(input: FixtureInput, rng: Rng): Possession
         let candidates = unit.skaters.filter((s) => s.id !== scorer.id)
 
         for (const chance of [FIRST_ASSIST, SECOND_ASSIST]) {
-          if (!rng.chance(chance)) break
+          if (candidates.length === 0 || !rng.chance(chance)) break
           const pick =
             candidates[
               weightedIndex(

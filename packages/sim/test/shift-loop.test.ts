@@ -40,20 +40,28 @@ function iceTimeByPlayer(home: Club, away: Club, events: readonly MatchEvent[]):
 }
 
 describe('shift loop', () => {
-  it('fills exactly 3600 seconds of regulation', async () => {
+  it('fills exactly 3600 seconds of regulation, with every on-ice slot accounted for', async () => {
     const [home, away] = await someClubs(2026, 2)
-    const events = play(home!, away!, 1)
-    const iceTime = iceTimeByPlayer(home!, away!, events)
-    // Every dressed Skater's ice time across the match should sum, per Club, to 5 * 3600
-    // (5 on-ice slots at every instant of a 3600s game).
-    const homeIds = new Set([
-      ...buildNaiveLineup(home!).lines.flatMap((l) => [l.leftWing, l.centre, l.rightWing]),
-      ...buildNaiveLineup(home!).pairings.flatMap((p) => [p.leftDefence, p.rightDefence]),
-    ])
-    const homeTotal = [...iceTime.entries()]
-      .filter(([id]) => homeIds.has(id))
-      .reduce((sum, [, seconds]) => sum + seconds, 0)
-    expect(homeTotal).toBe(5 * 3600)
+    for (const seed of [1, 2, 3]) {
+      const events = play(home!, away!, seed)
+      const iceTime = iceTimeByPlayer(home!, away!, events)
+      const homeShifts = shiftChanges(events).filter((e) => e.clubId === home!.id)
+
+      // Shifts tile the clock with no gap, and the fold credits each one's
+      // seconds to everybody it put on the ice - five a side, fewer when short.
+      let covered = 0
+      let slotSeconds = 0
+      homeShifts.forEach((shift, i) => {
+        const seconds = (homeShifts[i + 1]?.clock ?? 3600) - shift.clock
+        covered += seconds
+        slotSeconds += seconds * shift.onIce.length
+      })
+      const homeTotal = home!.skaters.reduce((sum, s) => sum + (iceTime.get(s.id) ?? 0), 0)
+
+      expect(homeShifts[0]!.clock).toBe(0)
+      expect(covered).toBe(3600)
+      expect(homeTotal).toBe(slotSeconds)
+    }
   })
 
   it('starts a Shift at the opening of every Period', async () => {
@@ -62,16 +70,39 @@ describe('shift loop', () => {
     for (const start of [0, 1200, 2400]) expect(clocks.has(start)).toBe(true)
   })
 
-  it('only ever reports even strength (special teams are issue #5)', async () => {
+  it('dresses as many Skaters as the strength says, never fewer than three', async () => {
     const [home, away] = await someClubs(2026, 2)
-    const events = play(home!, away!, 7)
-    expect(events.every((e) => e.strength === 'even')).toBe(true)
+    for (const seed of [1, 2, 3, 4, 5, 6, 7, 8]) {
+      const changes = shiftChanges(play(home!, away!, seed))
+      for (let i = 0; i < changes.length; i += 2) {
+        const [a, b] = [changes[i]!, changes[i + 1]!]
+        expect(a.clock).toBe(b.clock)
+        for (const shift of [a, b]) expect(shift.onIce.length).toBeGreaterThanOrEqual(3)
+
+        const margin = a.onIce.length - b.onIce.length
+        expect(a.strength).toBe(margin > 0 ? 'powerplay' : margin < 0 ? 'penaltykill' : 'even')
+        expect(b.strength).toBe(margin < 0 ? 'powerplay' : margin > 0 ? 'penaltykill' : 'even')
+      }
+    }
   })
 
-  it('dresses exactly 5 skaters per shift_change event', async () => {
+  it('sends the special-teams Units out when the strength changes', async () => {
     const [home, away] = await someClubs(2026, 2)
-    const events = shiftChanges(play(home!, away!, 7))
-    expect(events.every((e) => e.onIce.length === 5)).toBe(true)
+    const lineup = buildNaiveLineup(home!)
+    const powerPlayers = new Set(lineup.powerPlayUnits.flatMap((u) => u.skaters))
+    const killers = new Set(lineup.penaltyKillUnits.flatMap((u) => u.skaters))
+
+    let checked = 0
+    for (const seed of [1, 2, 3, 4, 5, 6, 7, 8]) {
+      for (const shift of shiftChanges(play(home!, away!, seed))) {
+        if (shift.clubId !== home!.id || shift.strength === 'even') continue
+        const unit = shift.strength === 'powerplay' ? powerPlayers : killers
+        // A Unit member in the box is replaced from the bench, so allow one outsider.
+        expect(shift.onIce.filter((id) => !unit.has(id)).length).toBeLessThanOrEqual(1)
+        checked++
+      }
+    }
+    expect(checked).toBeGreaterThan(0)
   })
 })
 
