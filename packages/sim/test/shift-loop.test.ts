@@ -7,6 +7,8 @@ import { buildNaiveLineup, DEFAULT_TACTICS } from '../src/engine/lineup.js'
 import { simulateFixture } from '../src/engine/simulate-fixture.js'
 import { createGeneratedRosterProvider } from '../src/generate/roster.js'
 import { NHL_2026_27, NHL_2026_27_CLUB_SEEDS } from '../src/data/nhl-2026-27.js'
+import { foldMatch } from '../src/stats/match.js'
+import { fixtureBetween } from './support/streams.js'
 
 const REGULATION_SECONDS = 3 * 1200
 
@@ -42,22 +44,9 @@ function shiftChanges(events: readonly MatchEvent[]): ShiftChangeEvent[] {
   return events.filter((e): e is ShiftChangeEvent => e.type === 'shift_change')
 }
 
-/** Mirrors what src/stats will eventually do: fold shift_change events into ice time per Player. */
-function iceTimeByPlayer(events: readonly MatchEvent[]): Map<PlayerId, number> {
-  const shifts = shiftChanges(events)
-  const clocks = [...new Set(shifts.map((e) => e.clock))].sort((a, b) => a - b)
-  const durationByClock = new Map(
-    clocks.map((clock, i) => [clock, (clocks[i + 1] ?? REGULATION_SECONDS) - clock]),
-  )
-
-  const iceTime = new Map<PlayerId, number>()
-  for (const event of shifts) {
-    const duration = durationByClock.get(event.clock)!
-    for (const playerId of event.onIce) {
-      iceTime.set(playerId, (iceTime.get(playerId) ?? 0) + duration)
-    }
-  }
-  return iceTime
+function iceTimeByPlayer(home: Club, away: Club, events: readonly MatchEvent[]): Map<PlayerId, number> {
+  const stats = foldMatch(fixtureBetween(home.id, away.id), events)
+  return new Map([...stats.skaters].map(([id, skater]) => [id, skater.iceTimeSeconds]))
 }
 
 const mean = (values: readonly number[]) => values.reduce((sum, v) => sum + v, 0) / values.length
@@ -67,7 +56,7 @@ describe('shift deployment', () => {
     const [home, away] = await twoClubs(2026)
     const homeLineup = buildNaiveLineup(home)
     const events = simulateFixture(fixtureInput(home, away, homeLineup, buildNaiveLineup(away)), 1)
-    const iceTime = iceTimeByPlayer(events)
+    const iceTime = iceTimeByPlayer(home, away, events)
 
     const homeIds = new Set([
       ...homeLineup.lines.flatMap((l) => [l.leftWing, l.centre, l.rightWing]),
@@ -105,9 +94,8 @@ describe('ice-time distribution (FR-23)', () => {
       const [home, away] = await twoClubs(1000 + i)
       const homeLineup = buildNaiveLineup(home)
       const awayLineup = buildNaiveLineup(away)
-      const iceTime = iceTimeByPlayer(
-        simulateFixture(fixtureInput(home, away, homeLineup, awayLineup), 5000 + i),
-      )
+      const events = simulateFixture(fixtureInput(home, away, homeLineup, awayLineup), 5000 + i)
+      const iceTime = iceTimeByPlayer(home, away, events)
 
       for (const lineup of [homeLineup, awayLineup]) {
         const line1 = lineup.lines[0]
@@ -135,9 +123,8 @@ describe('matchup policy (directional effect)', () => {
         ...buildNaiveLineup(home),
         tactics: { ...DEFAULT_TACTICS, matchup },
       }
-      const iceTime = iceTimeByPlayer(
-        simulateFixture(fixtureInput(home, away, homeLineup, buildNaiveLineup(away)), 3000 + i),
-      )
+      const events = simulateFixture(fixtureInput(home, away, homeLineup, buildNaiveLineup(away)), 3000 + i)
+      const iceTime = iceTimeByPlayer(home, away, events)
 
       const line1 = homeLineup.lines[0]
       const line1Time = [line1.leftWing, line1.centre, line1.rightWing].reduce(

@@ -9,6 +9,11 @@ import type { ClubId, PlayerId } from './player.js'
  * reads in the play-by-play must be exactly what the statistics say.
  */
 
+/**
+ * Shootout attempts are `shot` events in Period 'SO'. They decide the result
+ * and count for nothing else: no Player or Club statistic includes them, as
+ * in the NHL, and the winner's final score gains exactly one goal.
+ */
 export type Period = 1 | 2 | 3 | 'OT' | 'SO'
 
 export type Strength =
@@ -38,6 +43,7 @@ interface EventBase {
   /** Elapsed match time in whole seconds from the opening faceoff. */
   clock: number
   period: Period
+  /** From the perspective of the event's `clubId`, where it has one. */
   strength: Strength
 }
 
@@ -92,6 +98,7 @@ export interface GoalEvent extends EventBase {
 
 export interface SaveEvent extends EventBase {
   type: 'save'
+  /** The Club making the save - the goalie's Club, not the shooter's. */
   clubId: ClubId
   goalie: PlayerId
   shooter: PlayerId
@@ -101,8 +108,13 @@ export interface SaveEvent extends EventBase {
 
 export interface TurnoverEvent extends EventBase {
   type: 'turnover'
+  /** The Club of `player`. */
   clubId: ClubId
   kind: TurnoverKind
+  /**
+   * For `giveaway`, `icing` and `offside`, the Player who lost the puck.
+   * For `takeaway`, the Player who won it.
+   */
   player: PlayerId
 }
 

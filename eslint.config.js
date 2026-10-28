@@ -60,6 +60,26 @@ export default tseslint.config(
   },
 
   {
+    // D-03: stats folds the event stream and nothing else. Importing the
+    // engine would open a second derivation path; the root barrel re-exports
+    // the engine, so it is closed too.
+    files: ['packages/sim/src/stats/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['../*', '!../domain', '!../domain/**'],
+              message: 'src/stats may import from src/domain only (D-03).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  {
     // Repo-root tooling config, plain Node ESM, not part of any tsconfig.
     files: ['eslint.config.js'],
     ...tseslint.configs.disableTypeChecked,
