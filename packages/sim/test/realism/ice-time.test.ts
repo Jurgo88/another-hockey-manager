@@ -1,15 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { Club, Lineup } from '../../src/domain/club.js'
-import type { FixtureInput } from '../../src/domain/fixture.js'
-import type { ClubId, PlayerId } from '../../src/domain/player.js'
-import { NHL_2026_27, NHL_2026_27_CLUB_SEEDS } from '../../src/data/nhl-2026-27.js'
-import { buildNaiveLineup } from '../../src/engine/lineup.js'
-import { generateSchedule } from '../../src/engine/schedule.js'
-import { simulateFixture } from '../../src/engine/simulate-fixture.js'
-import { createGeneratedRosterProvider } from '../../src/generate/roster.js'
-import { createRng } from '../../src/rng/index.js'
-import { foldMatch } from '../../src/stats/match.js'
-import { foldSeason } from '../../src/stats/season.js'
+import type { PlayerId } from '../../src/domain/player.js'
+import { simulateSeason } from '../support/season.js'
 
 /**
  * FR-23 and the ice-time rows of Tier 2 (04-validation-targets.md).
@@ -33,44 +24,10 @@ function mean(values: readonly number[]): number {
 }
 
 async function forwardIceTimePerFixture(): Promise<number[]> {
-  const identities = new Map(
-    NHL_2026_27_CLUB_SEEDS.map((club) => [club.id, { code: club.code, name: club.name }]),
-  )
-  const provider = createGeneratedRosterProvider({
-    structure: NHL_2026_27,
-    seed: SEASON_SEED,
-    clubIdentities: identities,
-  })
-  const { clubs } = await provider.loadCompetition(NHL_2026_27.id)
-
-  const entries = new Map<ClubId, { club: Club; lineup: Lineup }>(
-    clubs.map((club) => [club.id, { club, lineup: buildNaiveLineup(club) }]),
-  )
-
-  const seasonRng = createRng(SEASON_SEED)
-  const fixtures = generateSchedule({
-    structure: NHL_2026_27,
-    seasonId: 's2026',
-    rng: seasonRng.fork('schedule'),
-  })
-
-  const matches = fixtures.map((fixture) => {
-    const home = entries.get(fixture.homeClubId)!
-    const away = entries.get(fixture.awayClubId)!
-    const input: FixtureInput = {
-      fixture,
-      homeClub: home.club,
-      awayClub: away.club,
-      homeLineup: home.lineup,
-      awayLineup: away.lineup,
-    }
-    const seed = seasonRng.fork(`fixture:${fixture.id}`).int(0, 0xffff_ffff)
-    return foldMatch(fixture, simulateFixture(input, seed))
-  })
-  const season = foldSeason(matches)
+  const { lineups, season } = await simulateSeason(SEASON_SEED)
 
   const forwards = new Set<PlayerId>(
-    [...entries.values()].flatMap(({ lineup }) =>
+    [...lineups.values()].flatMap((lineup) =>
       lineup.lines.flatMap((line) => [line.leftWing, line.centre, line.rightWing]),
     ),
   )

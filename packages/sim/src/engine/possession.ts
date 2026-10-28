@@ -1,461 +1,541 @@
-import { ATTRIBUTE_MAX, ATTRIBUTE_MIN } from '../domain/attributes.js'
-import type { Tactics } from '../domain/club.js'
-import type { MatchEvent, Period, TurnoverKind } from '../domain/event.js'
+import type { Lineup, Tactics } from '../domain/club.js'
+import type { MatchEvent, Period } from '../domain/event.js'
+import type { FixtureInput } from '../domain/fixture.js'
 import type { ClubId, Goalie, PlayerId, Skater } from '../domain/player.js'
 import type { Rng } from '../rng/index.js'
+import { logisticNoise, logit, sigmoid, weightedIndex } from './draw.js'
+import { onIce, type ShiftSelection } from './shift-loop.js'
 
 /**
- * Level 2 of the two-level loop (03-sim-engine.md): the possessions inside
- * one Shift, resolved into events.
+ * Level 2 of the two-level loop (03-sim-engine.md): possessions inside a
+ * Shift, resolved to events.
  *
- * The separation that matters here is multiplicative, not additive. A first
- * Line has to out-produce a fourth Line by 2.71 points per minute on the
- * strength of attributes alone (04-validation-targets.md), and that only
- * happens if a better unit wins more possessions AND attempts more shots AND
- * carries more danger per attempt AND collects more assists. Four factors of
- * roughly 1.3 compound to 2.7; four factors added together produce nothing.
+ * Every probability is modelled in log-odds: a base rate plus attribute
+ * edges. Attributes enter centred on the middle of the 1-20 scale, so a
+ * difference of one attribute point moves log-odds by the same amount
+ * anywhere on the scale - which is what lets a first Line compound its edge
+ * over a fourth Line instead of saturating.
  *
- * Every constant below is provisional. Issue #15 calibrates them against the
- * full realism suite; the values here are seeded to land near the measured
- * even-strength rates, since power plays (#5) do not exist yet.
+ * **Every constant below is provisional** and belongs to calibration (#15).
+ * Base rates are set so the league lands on the measured Tier 1 figures;
+ * the slopes are judgement until Tier 2 constrains them. Constants with no
+ * measured target say so.
+ *
+ * Special teams (#5), overtime and the empty net (#6) are not modelled here.
+ * Every event is at even strength.
  */
 
-/** Seconds one possession consumes. A Shift of ~42s therefore holds 2-5 of them. */
-const POSSESSION_SECONDS_MIN = 8
-const POSSESSION_SECONDS_MAX = 20
+// --- Pace ------------------------------------------------------------------
 
-/** Share of possessions that produce a shot attempt for a league-average matchup. */
-const SHOT_ATTEMPT_BASE = 0.343
-/** Share of possessions that end in a whistle rather than a turnover. */
-const STOPPAGE_CHANCE = 0.09
+/** Mean length of one possession in seconds, for two average units. */
+const POSSESSION_SECONDS = 12
+/** How much faster play gets per unit of centred mean `speed` on the ice. */
+const PACE_SPEED = 0.25
+const MIN_POSSESSION_SECONDS = 2
 
-/** How far a unit-strength edge swings possession and attempt rates. */
-const ATTACK_SWING = 0.8
+// --- Outcome of a possession -----------------------------------------------
 
-/**
- * Pre-goalie danger for a league-average attempt. Seeded high relative to the
- * ~10% of shots that become goals because a starting Goalie is the best of
- * three on the Roster, and so sits well above the median Skater on the same
- * 1-20 scale - the two `*_WEIGHT` cuts below take most of this back out.
- */
-const DANGER_BASE = 0.21
-/** How far a shooter/defence quality gap swings danger. */
-const DANGER_SWING = 0.9
+/** Log-odds that a possession between average units ends in a shot attempt. */
+const ATTEMPT_BASE = logit(0.345)
+/** Slope on the attacking unit's offence minus the defending unit's defence. */
+const ATTEMPT_EDGE = 0.45
+/** `shotVolume` at 100 adds this to attempt log-odds (and -this at 0). */
+const SHOT_VOLUME_ATTEMPTS = 0.35
+/** Own `aggression` at 100 adds this to attempts for. */
+const AGGRESSION_FOR = 0.25
+/** Opposition `aggression` at 100 adds this to attempts against it - structure traded away. */
+const AGGRESSION_AGAINST = 0.15
 
-/** Share of unblocked attempts that miss the net. */
-const MISS_CHANCE = 0.27
-/** Share of attempts a league-average defending unit blocks. */
-const BLOCK_BASE = 0.36
+/** Share of non-attempt possessions that end in icing or offside. Unmeasured. */
+const STOPPAGE_SHARE = 0.18
+/** Share of non-attempt possessions recorded as a giveaway or takeaway. Unmeasured. */
+const RECORDED_TURNOVER_SHARE = 0.12
+/** Slope on defending `checking` against attacking `puckControl` for takeaway vs giveaway. */
+const TAKEAWAY_EDGE = 1.0
 
-/** How much a Goalie's positioning and reflexes each cut an attempt down. */
-const POSITIONING_WEIGHT = 0.35
-const REFLEX_WEIGHT = 0.35
-/** Rebound chance off a save by a Goalie with no rebound control at all. */
-const REBOUND_BASE = 0.3
-/** Multiplier applied to danger on a rebound attempt - the goalie is moving. */
-const REBOUND_DANGER_MULTIPLIER = 2.2
+// --- Shot attempt ----------------------------------------------------------
 
-/** Defencemen take fewer shots than forwards. */
-const DEFENCE_SHOOTING_WEIGHT = 0.45
+/** A defenceman's pull on the shooter draw relative to a forward. */
+const DEFENCE_SHOOTER_WEIGHT = 0.5
 
-const ASSIST_PRIMARY_CHANCE = 0.9
-const ASSIST_SECONDARY_CHANCE = 0.88
+/** Log-odds of a goal for a typical attempt against an average goalie. */
+const DANGER_BASE = logit(0.141)
+const DANGER_SHOOTER = 0.55
+const DANGER_SUPPORT = 0.25
+const DANGER_PRESSURE = 0.3
+/** Point shots from the blue line are long and screened, not dangerous. */
+const DANGER_POINT_SHOT = -0.9
+/** `shotVolume` at 100 takes this off danger - more shots from distance. */
+const SHOT_VOLUME_DANGER = 0.35
+/** Spread of shot quality between attempts, in log-odds. */
+const DANGER_SPREAD = 0.55
 
-/** How far the shotVolume dial moves attempt count, and danger the other way. */
-const VOLUME_ATTEMPT_SWING = 0.4
-const VOLUME_DANGER_SWING = 0.35
-/** How far the aggression dial raises attempts, for both Clubs. */
-const AGGRESSION_SWING = 0.3
+const BLOCK_BASE = logit(0.22)
+const BLOCK_SKILL = 0.8
+const BLOCK_POINT_SHOT = 0.6
 
-/** Maps a 1-20 attribute onto 0-1. */
-function norm(value: number): number {
-  return (value - ATTRIBUTE_MIN) / (ATTRIBUTE_MAX - ATTRIBUTE_MIN)
+const MISS_BASE = logit(0.27)
+const MISS_SKILL = 0.8
+
+/** After a block or a miss, chance the attacking Club recovers the loose puck. Unmeasured. */
+const LOOSE_PUCK_RETAINED = 0.35
+
+// --- Goalie ----------------------------------------------------------------
+
+const GOALIE_POSITIONING = 0.55
+const GOALIE_REFLEXES = 0.55
+/** On a rebound the goalie is moving, so `recovery` replaces `positioning`. */
+const GOALIE_RECOVERY = 0.55
+
+const REBOUND_BASE = logit(0.12)
+const REBOUND_CONTROL = 1.0
+/** A rebound is a second look at an out-of-position goalie. */
+const REBOUND_DANGER = 0.9
+
+/** Chance a goalie freezes a save not followed by a rebound. Unmeasured. */
+const FREEZE_SHARE = 0.45
+/** Log-odds the defending Club gets a cleared puck, and the `puckHandling` slope on it. */
+const CLEAR_BASE = logit(0.6)
+const CLEAR_HANDLING = 0.8
+
+// --- Faceoffs and assists --------------------------------------------------
+
+const FACEOFF_EDGE = 1.0
+
+/** Chance a goal has a first assist, and a second given a first. Unmeasured. */
+const FIRST_ASSIST = 0.92
+const SECOND_ASSIST = 0.82
+
+/** An attribute centred on the middle of the 1-20 scale, roughly -1 to 1. */
+function centred(value: number): number {
+  return (value - 10.5) / 9.5
 }
 
-/** Maps a 0-100 tactical dial onto -0.5..+0.5, so 50 is neutral. */
+/** A Tactics dial from 0-100 to -1 to 1. */
 function dial(value: number): number {
-  return value / 100 - 0.5
-}
-
-function clamp01(value: number): number {
-  return Math.max(0, Math.min(1, value))
+  return (value - 50) / 50
 }
 
 function mean(values: readonly number[]): number {
   return values.reduce((sum, v) => sum + v, 0) / values.length
 }
 
-/** One Club's five Skaters and Goalie, as deployed for the current Shift. */
-export interface OnIceUnit {
+type Side = 'home' | 'away'
+
+const other = (side: Side): Side => (side === 'home' ? 'away' : 'home')
+
+interface SideContext {
   clubId: ClubId
-  /** Three forwards then two defencemen, in Line/Pairing order. */
-  skaters: readonly Skater[]
-  goalie: Goalie
   tactics: Tactics
+  goalie: Goalie
+  skaterById: ReadonlyMap<PlayerId, Skater>
 }
 
-export interface ShiftPossessionContext {
-  home: OnIceUnit
-  away: OnIceUnit
-  /** Elapsed match seconds at the start of the Shift. */
-  clock: number
-  /** How long the Shift is meant to last. The possession in progress when it expires is played out. */
-  seconds: number
-  /** Hard stop - the end of the period. No event is ever timestamped past it. */
-  deadline: number
-  period: Period
-  /** Which Club carries the puck into the Shift. */
-  possession: ClubId
-  /** Whether play resumes from a faceoff. */
-  faceoffPending: boolean
+/** One unit's composites, computed once per Shift. Skaters are forwards then defence. */
+interface Unit {
+  skaters: readonly Skater[]
+  centre: Skater
+  offence: number
+  defence: number
+  speed: number
+  support: number
+  pressure: number
+  blocking: number
+  puckControl: number
+  checking: number
 }
 
-export interface ShiftPossessionResult {
-  events: readonly MatchEvent[]
-  /** Where the match clock actually stands afterwards, which may overrun `seconds` slightly. */
-  clock: number
-  possession: ClubId
-  faceoffPending: boolean
-}
+function buildUnit(context: SideContext, ids: readonly PlayerId[]): Unit {
+  const skaters = ids.map((id) => {
+    const skater = context.skaterById.get(id)
+    if (!skater) throw new Error(`Player ${id} is not a Skater of Club ${context.clubId}`)
+    return skater
+  })
+  const avg = (read: (s: Skater) => number) => centred(mean(skaters.map(read)))
 
-function forwards(unit: OnIceUnit): readonly Skater[] {
-  return unit.skaters.slice(0, 3)
-}
-
-function defenders(unit: OnIceUnit): readonly Skater[] {
-  return unit.skaters.slice(3)
-}
-
-/** The centre takes the draw. `playersOf` orders a Line left wing, centre, right wing. */
-function centre(unit: OnIceUnit): Skater {
-  return unit.skaters[1]!
-}
-
-function attackStrength(unit: OnIceUnit): number {
-  return mean(
-    unit.skaters.map(
+  return {
+    skaters,
+    centre: skaters[1]!,
+    offence: avg(
       (s) =>
-        0.4 * norm(s.attributes.puckControl) +
-        0.35 * norm(s.attributes.offPositioning) +
-        0.25 * norm(s.attributes.passing),
+        (s.attributes.passing +
+          s.attributes.puckControl +
+          s.attributes.offPositioning +
+          s.attributes.speed) /
+        4,
     ),
-  )
-}
-
-function defenceStrength(unit: OnIceUnit): number {
-  return mean(
-    unit.skaters.map(
-      (s) => 0.6 * norm(s.attributes.defPositioning) + 0.4 * norm(s.attributes.checking),
+    defence: avg(
+      (s) => (s.attributes.defPositioning + s.attributes.checking + s.attributes.speed) / 3,
     ),
-  )
-}
-
-/** Picks the shooter, weighted by finishing ability and position. */
-function pickShooter(unit: OnIceUnit, rng: Rng): Skater {
-  const weights = unit.skaters.map((s, i) => {
-    const skill = 0.6 * norm(s.attributes.shooting) + 0.4 * norm(s.attributes.offPositioning)
-    const positionWeight = i < 3 ? 1 : DEFENCE_SHOOTING_WEIGHT
-    return (0.35 + skill) * positionWeight
-  })
-  return unit.skaters[weightedIndex(rng, weights)]!
-}
-
-/** Credits up to two assists from the Skaters on the ice other than the scorer. */
-function pickAssists(unit: OnIceUnit, scorer: Skater, rng: Rng): PlayerId[] {
-  const candidates = unit.skaters.filter((s) => s.id !== scorer.id)
-  if (candidates.length === 0) return []
-
-  const weights = candidates.map(
-    (s) => 0.3 + 0.6 * norm(s.attributes.passing) + 0.4 * norm(s.attributes.offPositioning),
-  )
-
-  const assists: PlayerId[] = []
-  if (!rng.chance(ASSIST_PRIMARY_CHANCE)) return assists
-
-  const primaryIdx = weightedIndex(rng, weights)
-  assists.push(candidates[primaryIdx]!.id)
-
-  if (!rng.chance(ASSIST_SECONDARY_CHANCE)) return assists
-
-  const remainingWeights = weights.map((w, i) => (i === primaryIdx ? 0 : w))
-  if (remainingWeights.some((w) => w > 0)) {
-    assists.push(candidates[weightedIndex(rng, remainingWeights)]!.id)
+    speed: avg((s) => s.attributes.speed),
+    support: avg((s) => s.attributes.passing),
+    pressure: avg((s) => s.attributes.defPositioning),
+    blocking: avg((s) => s.attributes.shotBlocking),
+    puckControl: avg((s) => s.attributes.puckControl),
+    checking: avg((s) => s.attributes.checking),
   }
-  return assists
 }
 
-function weightedIndex(rng: Rng, weights: readonly number[]): number {
-  const total = weights.reduce((sum, w) => sum + w, 0)
-  if (total <= 0) throw new Error('weightedIndex: total weight must be positive')
-
-  let draw = rng.next() * total
-  for (let i = 0; i < weights.length; i++) {
-    draw -= weights[i]!
-    if (draw < 0) return i
-  }
-  return weights.length - 1
-}
-
-/**
- * Runs the possessions that fit inside one Shift, appending events and
- * reporting who carries the puck into the next one.
- */
-export function resolveShiftPossessions(
-  ctx: ShiftPossessionContext,
-  rng: Rng,
-): ShiftPossessionResult {
-  const events: MatchEvent[] = []
-  let clock = ctx.clock
-  const end = ctx.clock + ctx.seconds
-  let possession = ctx.possession
-  let faceoffPending = ctx.faceoffPending
-
-  const unitOf = (clubId: ClubId): OnIceUnit => (clubId === ctx.home.clubId ? ctx.home : ctx.away)
-  const opponentOf = (clubId: ClubId): OnIceUnit =>
-    clubId === ctx.home.clubId ? ctx.away : ctx.home
-
-  while (clock < end && clock < ctx.deadline) {
-    const attacking = unitOf(possession)
-    const defending = opponentOf(possession)
-    const base = { period: ctx.period, strength: 'even' as const }
-
-    if (faceoffPending) {
-      const homeCentre = centre(ctx.home)
-      const awayCentre = centre(ctx.away)
-      const homeSkill = 0.2 + norm(homeCentre.attributes.faceoffs)
-      const homeWins = rng.chance(homeSkill / (homeSkill + 0.2 + norm(awayCentre.attributes.faceoffs)))
-
-      events.push({
-        type: 'faceoff',
-        clock,
-        ...base,
-        wonBy: homeWins ? ctx.home.clubId : ctx.away.clubId,
-        winner: homeWins ? homeCentre.id : awayCentre.id,
-        loser: homeWins ? awayCentre.id : homeCentre.id,
-      })
-      possession = homeWins ? ctx.home.clubId : ctx.away.clubId
-      faceoffPending = false
-      continue
-    }
-
-    clock = Math.min(clock + rng.int(POSSESSION_SECONDS_MIN, POSSESSION_SECONDS_MAX), ctx.deadline)
-
-    const edge = attackStrength(attacking) - defenceStrength(defending)
-    const volumeAttempt = 1 + VOLUME_ATTEMPT_SWING * 2 * dial(attacking.tactics.shotVolume)
-    const aggression =
-      1 +
-      AGGRESSION_SWING * 2 * dial(attacking.tactics.aggression) +
-      AGGRESSION_SWING * 2 * dial(defending.tactics.aggression)
-    const shotChance = clamp01(
-      SHOT_ATTEMPT_BASE * (1 + ATTACK_SWING * edge) * volumeAttempt * aggression,
-    )
-
-    const roll = rng.next()
-    if (roll >= shotChance + STOPPAGE_CHANCE) {
-      // Turnover: the attacker coughed it up, or the defender took it.
-      const giveaway = rng.chance(0.55)
-      const player = giveaway
-        ? pickWeakest(attacking.skaters, (s) => norm(s.attributes.puckControl), rng)
-        : pickStrongest(defending.skaters, (s) => norm(s.attributes.checking), rng)
-
-      events.push({
-        type: 'turnover',
-        clock,
-        ...base,
-        clubId: giveaway ? attacking.clubId : defending.clubId,
-        kind: giveaway ? 'giveaway' : ('takeaway' satisfies TurnoverKind),
-        player: player.id,
-      })
-      possession = defending.clubId
-      continue
-    }
-
-    if (roll >= shotChance) {
-      // Whistle: icing or offside, both of which reset to a faceoff.
-      const icing = rng.chance(0.5)
-      events.push({
-        type: 'turnover',
-        clock,
-        ...base,
-        clubId: attacking.clubId,
-        kind: icing ? 'icing' : 'offside',
-        player: rng.pick(attacking.skaters).id,
-      })
-      faceoffPending = true
-      continue
-    }
-
-    const outcome = resolveAttempt(attacking, defending, clock, ctx.period, rng, 1, ctx.deadline)
-    events.push(...outcome.events)
-    clock = outcome.clock
-    if (outcome.endsWithFaceoff) {
-      faceoffPending = true
-    } else {
-      possession = outcome.retained ? attacking.clubId : defending.clubId
-    }
-  }
-
-  return { events, clock, possession, faceoffPending }
-}
-
-function pickWeakest(
+function sideContext(
+  clubId: ClubId,
   skaters: readonly Skater[],
-  score: (s: Skater) => number,
-  rng: Rng,
-): Skater {
-  return skaters[weightedIndex(rng, skaters.map((s) => 1.2 - score(s)))]!
+  goalies: readonly Goalie[],
+  lineup: Lineup,
+): SideContext {
+  const goalie = goalies.find((g) => g.id === lineup.starter)
+  if (!goalie) throw new Error(`Starter ${lineup.starter} is not a Goalie of Club ${clubId}`)
+  return {
+    clubId,
+    tactics: lineup.tactics,
+    goalie,
+    skaterById: new Map(skaters.map((s) => [s.id, s])),
+  }
 }
 
-function pickStrongest(
-  skaters: readonly Skater[],
-  score: (s: Skater) => number,
-  rng: Rng,
-): Skater {
-  return skaters[weightedIndex(rng, skaters.map((s) => 0.2 + score(s)))]!
+export interface PossessionModel {
+  /** The puck is dropped at centre ice: the next possession starts with a faceoff. */
+  startPeriod(): void
+  /** Plays the Shift from `from` to `to`, appending its events. */
+  playShift(
+    shift: ShiftSelection,
+    from: number,
+    to: number,
+    period: Period,
+    events: MatchEvent[],
+  ): void
+  goals(): { home: number; away: number }
 }
 
-interface AttemptOutcome {
-  events: readonly MatchEvent[]
-  clock: number
-  /** True when play stops and the next possession starts from a faceoff. */
-  endsWithFaceoff: boolean
-  /** True when the attacking Club keeps the puck. */
-  retained: boolean
-}
-
-/**
- * One shot attempt, from release to whistle. `dangerMultiplier` is above 1 for
- * a rebound, where the Goalie is out of position and moving.
- */
-function resolveAttempt(
-  attacking: OnIceUnit,
-  defending: OnIceUnit,
-  clock: number,
-  period: Period,
-  rng: Rng,
-  dangerMultiplier: number,
-  deadline: number,
-): AttemptOutcome {
-  const events: MatchEvent[] = []
-  const base = { period, strength: 'even' as const }
-  const shooter = pickShooter(attacking, rng)
-  const goalie = defending.goalie
-
-  const support = mean(forwards(attacking).map((s) => norm(s.attributes.passing)))
-  const pressure = mean(defenders(defending).map((s) => norm(s.attributes.defPositioning)))
-  const shooterQuality =
-    0.6 * norm(shooter.attributes.shooting) + 0.4 * norm(shooter.attributes.offPositioning)
-
-  // shotVolume raises attempt count and lowers mean danger, so it is not the aggression dial.
-  const volumeDanger = 1 - VOLUME_DANGER_SWING * 2 * dial(attacking.tactics.shotVolume)
-  const danger = clamp01(
-    DANGER_BASE *
-      (1 + DANGER_SWING * (0.6 * shooterQuality + 0.4 * support - pressure)) *
-      volumeDanger *
-      dangerMultiplier,
-  )
-
-  const blockChance = BLOCK_BASE * mean(defenders(defending).map((s) => norm(s.attributes.shotBlocking)))
-  if (rng.chance(blockChance)) {
-    const blocker = pickStrongest(defenders(defending), (s) => norm(s.attributes.shotBlocking), rng)
-    events.push({
-      type: 'shot',
-      clock,
-      ...base,
-      clubId: attacking.clubId,
-      shooter: shooter.id,
-      result: 'block',
-      blocker: blocker.id,
-      danger,
-    })
-    return { events, clock, endsWithFaceoff: false, retained: rng.chance(0.4) }
+export function createPossessionModel(input: FixtureInput, rng: Rng): PossessionModel {
+  const contexts: Record<Side, SideContext> = {
+    home: sideContext(
+      input.homeClub.id,
+      input.homeClub.skaters,
+      input.homeClub.goalies,
+      input.homeLineup,
+    ),
+    away: sideContext(
+      input.awayClub.id,
+      input.awayClub.skaters,
+      input.awayClub.goalies,
+      input.awayLineup,
+    ),
   }
+  const score: Record<Side, number> = { home: 0, away: 0 }
+  /** Who has the puck; null when play restarts with a faceoff. */
+  let puck: Side | null = null
 
-  if (rng.chance(MISS_CHANCE)) {
-    events.push({
-      type: 'shot',
-      clock,
-      ...base,
-      clubId: attacking.clubId,
-      shooter: shooter.id,
-      result: 'miss',
-      danger,
-    })
-    return { events, clock, endsWithFaceoff: false, retained: rng.chance(0.35) }
+  return {
+    startPeriod() {
+      puck = null
+    },
+
+    goals() {
+      return { ...score }
+    },
+
+    playShift(shift, from, to, period, events) {
+      const units: Record<Side, Unit> = {
+        home: buildUnit(contexts.home, onIce(shift.homeLine, shift.homePairing)),
+        away: buildUnit(contexts.away, onIce(shift.awayLine, shift.awayPairing)),
+      }
+      const meanPossession =
+        POSSESSION_SECONDS / (1 + PACE_SPEED * mean([units.home.speed, units.away.speed]))
+      const base = { period, strength: 'even' as const }
+
+      let clock = from
+      while (clock < to) {
+        if (puck === null) puck = faceoff(clock)
+
+        const seconds = Math.max(
+          MIN_POSSESSION_SECONDS,
+          Math.round(meanPossession * (0.5 + rng.next())),
+        )
+        // A possession still running at the change carries over to the next
+        // Shift - the puck stays with the same Club, the time is spent.
+        if (clock + seconds > to) break
+        clock += seconds
+        possession(puck, clock)
+      }
+
+      function faceoff(clock: number): Side {
+        const home = units.home.centre
+        const away = units.away.centre
+        const homeWins = rng.chance(
+          sigmoid(
+            FACEOFF_EDGE * (centred(home.attributes.faceoffs) - centred(away.attributes.faceoffs)),
+          ),
+        )
+        const winner: Side = homeWins ? 'home' : 'away'
+        events.push({
+          type: 'faceoff',
+          clock,
+          ...base,
+          wonBy: contexts[winner].clubId,
+          winner: homeWins ? home.id : away.id,
+          loser: homeWins ? away.id : home.id,
+        })
+        return winner
+      }
+
+      function possession(attacking: Side, clock: number): void {
+        const defending = other(attacking)
+        const att = units[attacking]
+        const def = units[defending]
+        const attTactics = contexts[attacking].tactics
+        const defTactics = contexts[defending].tactics
+
+        const attempt = sigmoid(
+          ATTEMPT_BASE +
+            ATTEMPT_EDGE * (att.offence - def.defence) +
+            SHOT_VOLUME_ATTEMPTS * dial(attTactics.shotVolume) +
+            AGGRESSION_FOR * dial(attTactics.aggression) +
+            AGGRESSION_AGAINST * dial(defTactics.aggression),
+        )
+        if (rng.chance(attempt)) {
+          shotAttempt(attacking, clock)
+          return
+        }
+
+        const roll = rng.next()
+        if (roll < STOPPAGE_SHARE) {
+          events.push({
+            type: 'turnover',
+            clock,
+            ...base,
+            clubId: contexts[attacking].clubId,
+            kind: rng.chance(0.5) ? 'icing' : 'offside',
+            player: rng.pick(att.skaters).id,
+          })
+          puck = null
+          return
+        }
+
+        if (roll < STOPPAGE_SHARE + RECORDED_TURNOVER_SHARE) {
+          const takeaway = rng.chance(sigmoid(TAKEAWAY_EDGE * (def.checking - att.puckControl)))
+          if (takeaway) {
+            const taker =
+              def.skaters[
+                weightedIndex(
+                  rng,
+                  def.skaters.map((s) => s.attributes.checking),
+                )
+              ]!
+            events.push({
+              type: 'turnover',
+              clock,
+              ...base,
+              clubId: contexts[defending].clubId,
+              kind: 'takeaway',
+              player: taker.id,
+            })
+          } else {
+            const loser =
+              att.skaters[
+                weightedIndex(
+                  rng,
+                  att.skaters.map((s) => 21 - s.attributes.puckControl),
+                )
+              ]!
+            events.push({
+              type: 'turnover',
+              clock,
+              ...base,
+              clubId: contexts[attacking].clubId,
+              kind: 'giveaway',
+              player: loser.id,
+            })
+          }
+        }
+        // Otherwise a dump-in, a lost race or a loose puck: possession
+        // changes without anything worth recording.
+        puck = defending
+      }
+
+      function shotAttempt(attacking: Side, clock: number): void {
+        const defending = other(attacking)
+        const att = units[attacking]
+        const def = units[defending]
+        const shotVolume = dial(contexts[attacking].tactics.shotVolume)
+        const clubId = contexts[attacking].clubId
+
+        const shooterIndex = weightedIndex(
+          rng,
+          att.skaters.map(
+            (s, i) =>
+              (s.attributes.shooting + s.attributes.offPositioning) *
+              (i >= 3 ? DEFENCE_SHOOTER_WEIGHT : 1),
+          ),
+        )
+        const shooter = att.skaters[shooterIndex]!
+        const pointShot = shooterIndex >= 3
+
+        const dangerLogit =
+          DANGER_BASE +
+          DANGER_SHOOTER *
+            centred((shooter.attributes.shooting + shooter.attributes.offPositioning) / 2) +
+          DANGER_SUPPORT * att.support -
+          DANGER_PRESSURE * def.pressure +
+          (pointShot ? DANGER_POINT_SHOT : 0) -
+          SHOT_VOLUME_DANGER * shotVolume +
+          DANGER_SPREAD * logisticNoise(rng)
+        const danger = sigmoid(dangerLogit)
+
+        if (
+          rng.chance(
+            sigmoid(BLOCK_BASE + BLOCK_SKILL * def.blocking + (pointShot ? BLOCK_POINT_SHOT : 0)),
+          )
+        ) {
+          const blocker =
+            def.skaters[
+              weightedIndex(
+                rng,
+                def.skaters.map((s) => s.attributes.shotBlocking),
+              )
+            ]!
+          events.push({
+            type: 'shot',
+            clock,
+            ...base,
+            clubId,
+            shooter: shooter.id,
+            result: 'block',
+            blocker: blocker.id,
+            danger,
+          })
+          puck = rng.chance(LOOSE_PUCK_RETAINED) ? attacking : defending
+          return
+        }
+
+        resolveOnTarget(attacking, shooter, danger, clock, false)
+      }
+
+      /** A shot that got past the defending unit: miss, goal or save, and a rebound off a save. */
+      function resolveOnTarget(
+        attacking: Side,
+        shooter: Skater,
+        danger: number,
+        clock: number,
+        rebound: boolean,
+      ): void {
+        const defending = other(attacking)
+        const clubId = contexts[attacking].clubId
+        const goalie = contexts[defending].goalie
+
+        if (rng.chance(sigmoid(MISS_BASE - MISS_SKILL * centred(shooter.attributes.shooting)))) {
+          events.push({
+            type: 'shot',
+            clock,
+            ...base,
+            clubId,
+            shooter: shooter.id,
+            result: 'miss',
+            danger,
+          })
+          puck = rng.chance(LOOSE_PUCK_RETAINED) ? attacking : defending
+          return
+        }
+
+        // Positioning cuts the danger before reflexes see it; on a rebound
+        // the goalie is moving, so recovery stands in for positioning.
+        const reading = rebound
+          ? GOALIE_RECOVERY * centred(goalie.attributes.recovery)
+          : GOALIE_POSITIONING * centred(goalie.attributes.positioning)
+        const goalChance = sigmoid(
+          logit(danger) - reading - GOALIE_REFLEXES * centred(goalie.attributes.reflexes),
+        )
+
+        if (rng.chance(goalChance)) {
+          score[attacking]++
+          events.push({
+            type: 'shot',
+            clock,
+            ...base,
+            clubId,
+            shooter: shooter.id,
+            result: 'goal',
+            danger,
+          })
+          events.push({
+            type: 'goal',
+            clock,
+            ...base,
+            clubId,
+            scorer: shooter.id,
+            assists: assists(units[attacking], shooter),
+            goalieBeaten: goalie.id,
+            emptyNet: false,
+          })
+          puck = null
+          return
+        }
+
+        const live =
+          !rebound &&
+          rng.chance(
+            sigmoid(REBOUND_BASE - REBOUND_CONTROL * centred(goalie.attributes.reboundControl)),
+          )
+        events.push({
+          type: 'shot',
+          clock,
+          ...base,
+          clubId,
+          shooter: shooter.id,
+          result: 'save',
+          goalie: goalie.id,
+          danger,
+        })
+        events.push({
+          type: 'save',
+          clock,
+          ...base,
+          clubId: contexts[defending].clubId,
+          goalie: goalie.id,
+          shooter: shooter.id,
+          rebound: live,
+        })
+
+        if (live) {
+          const att = units[attacking]
+          const crasher =
+            att.skaters[
+              weightedIndex(
+                rng,
+                att.skaters.map((s, i) => (i < 3 ? s.attributes.offPositioning : 0)),
+              )
+            ]!
+          resolveOnTarget(attacking, crasher, sigmoid(logit(danger) + REBOUND_DANGER), clock, true)
+          return
+        }
+
+        if (rng.chance(FREEZE_SHARE)) {
+          puck = null
+          return
+        }
+        const cleared = rng.chance(
+          sigmoid(CLEAR_BASE + CLEAR_HANDLING * centred(goalie.attributes.puckHandling)),
+        )
+        puck = cleared ? defending : attacking
+      }
+
+      function assists(unit: Unit, scorer: Skater): PlayerId[] {
+        const credited: PlayerId[] = []
+        let candidates = unit.skaters.filter((s) => s.id !== scorer.id)
+
+        for (const chance of [FIRST_ASSIST, SECOND_ASSIST]) {
+          if (!rng.chance(chance)) break
+          const pick =
+            candidates[
+              weightedIndex(
+                rng,
+                candidates.map((s) => s.attributes.passing + s.attributes.offPositioning),
+              )
+            ]!
+          credited.push(pick.id)
+          candidates = candidates.filter((s) => s.id !== pick.id)
+        }
+        return credited
+      }
+    },
   }
-
-  // Positioning cuts the attempt down first; reflexes resolve what is left.
-  const effective = danger * (1 - POSITIONING_WEIGHT * norm(goalie.attributes.positioning))
-  const beatsGoalie =
-    dangerMultiplier > 1
-      ? effective * (1 - REFLEX_WEIGHT * norm(goalie.attributes.recovery))
-      : effective * (1 - REFLEX_WEIGHT * norm(goalie.attributes.reflexes))
-
-  if (rng.chance(beatsGoalie)) {
-    events.push({
-      type: 'shot',
-      clock,
-      ...base,
-      clubId: attacking.clubId,
-      shooter: shooter.id,
-      result: 'goal',
-      danger,
-    })
-    events.push({
-      type: 'goal',
-      clock,
-      ...base,
-      clubId: attacking.clubId,
-      scorer: shooter.id,
-      assists: pickAssists(attacking, shooter, rng),
-      goalieBeaten: goalie.id,
-      emptyNet: false,
-    })
-    return { events, clock, endsWithFaceoff: true, retained: false }
-  }
-
-  const rebound =
-    dangerMultiplier === 1 &&
-    rng.chance(REBOUND_BASE * (1 - norm(goalie.attributes.reboundControl)))
-
-  events.push({
-    type: 'shot',
-    clock,
-    ...base,
-    clubId: attacking.clubId,
-    shooter: shooter.id,
-    result: 'save',
-    goalie: goalie.id,
-    danger,
-  })
-  events.push({
-    type: 'save',
-    clock,
-    ...base,
-    clubId: defending.clubId,
-    goalie: goalie.id,
-    shooter: shooter.id,
-    rebound,
-  })
-
-  if (rebound) {
-    const followUp = resolveAttempt(
-      attacking,
-      defending,
-      Math.min(clock + 1, deadline),
-      period,
-      rng,
-      REBOUND_DANGER_MULTIPLIER,
-      deadline,
-    )
-    return {
-      events: [...events, ...followUp.events],
-      clock: followUp.clock,
-      endsWithFaceoff: followUp.endsWithFaceoff,
-      retained: followUp.retained,
-    }
-  }
-
-  // A save the Goalie held is a whistle; anything else is a live puck.
-  return { events, clock, endsWithFaceoff: true, retained: false }
 }

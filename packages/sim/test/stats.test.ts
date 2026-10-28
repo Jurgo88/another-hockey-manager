@@ -3,7 +3,7 @@ import type { MatchEvent, Period, Strength } from '../src/domain/event.js'
 import type { PlayerId } from '../src/domain/player.js'
 import { foldMatch, points, savePercentage } from '../src/stats/match.js'
 import { foldSeason } from '../src/stats/season.js'
-import { fixtureBetween } from './support/streams.js'
+import { fixtureBetween } from './support/fixtures.js'
 
 const HOME = 'h'
 const AWAY = 'a'

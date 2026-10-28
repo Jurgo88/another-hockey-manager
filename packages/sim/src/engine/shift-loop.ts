@@ -2,13 +2,16 @@ import { SKATER_ATTRIBUTE_KEYS } from '../domain/attributes.js'
 import type { Club, Line, Lineup, Pairing } from '../domain/club.js'
 import type { PlayerId, Skater } from '../domain/player.js'
 import type { Rng } from '../rng/index.js'
+import { weightedIndex } from './draw.js'
 
 /**
  * Level 1 of the two-level loop (03-sim-engine.md): who is on the ice, and
- * for how long. The match clock itself belongs to `simulateFixture`, which
- * interleaves these selections with Level 2 possession resolution.
+ * for how long. `simulateFixture` drives it one Shift at a time and hands
+ * each Shift to Level 2 (`possession.ts`). Special teams are issue #5.
  *
- * Special teams are issue #5, so every deployment here is even strength.
+ * D-03: nothing here is returned to the caller of the engine. End-of-match
+ * fatigue is derivable from the `shift_change` events (clock deltas plus
+ * `stamina`), the same way `src/stats` derives everything else.
  */
 
 /**
@@ -49,34 +52,17 @@ function skaterQuality(skater: Skater): number {
   return mean(SKATER_ATTRIBUTE_KEYS.map((key) => skater.attributes[key]))
 }
 
-/** Weighted-random index draw. Throws on an empty or all-zero weight array. */
-function weightedIndex(rng: Rng, weights: readonly number[]): number {
-  const total = weights.reduce((sum, w) => sum + w, 0)
-  if (total <= 0) throw new Error('weightedIndex: total weight must be positive')
-
-  let draw = rng.next() * total
-  for (let i = 0; i < weights.length; i++) {
-    draw -= weights[i]!
-    if (draw < 0) return i
-  }
-  return weights.length - 1
-}
-
-/** A Club's live deployment state for one Fixture: who is available and how tired they are. */
-export interface ShiftState {
+interface ClubState {
   club: Club
   lineup: Lineup
   skaterById: Map<PlayerId, Skater>
   fatigue: Map<PlayerId, number>
 }
 
-export function createShiftState(club: Club, lineup: Lineup): ShiftState {
-  return {
-    club,
-    lineup,
-    skaterById: new Map(club.skaters.map((s) => [s.id, s])),
-    fatigue: new Map(club.skaters.map((s) => [s.id, s.fatigue])),
-  }
+function buildClubState(club: Club, lineup: Lineup): ClubState {
+  const skaterById = new Map(club.skaters.map((s) => [s.id, s]))
+  const fatigue = new Map(club.skaters.map((s) => [s.id, s.fatigue]))
+  return { club, lineup, skaterById, fatigue }
 }
 
 function playersOf(line: Line): readonly PlayerId[] {
@@ -87,11 +73,11 @@ function playersOfPairing(pairing: Pairing): readonly PlayerId[] {
   return [pairing.leftDefence, pairing.rightDefence]
 }
 
-function unitQuality(state: ShiftState, playerIds: readonly PlayerId[]): number {
+function unitQuality(state: ClubState, playerIds: readonly PlayerId[]): number {
   return mean(playerIds.map((id) => skaterQuality(state.skaterById.get(id)!)))
 }
 
-function unitFatigue(state: ShiftState, playerIds: readonly PlayerId[]): number {
+function unitFatigue(state: ClubState, playerIds: readonly PlayerId[]): number {
   return mean(playerIds.map((id) => state.fatigue.get(id)!))
 }
 
@@ -101,7 +87,7 @@ function fatigueSelectionWeight(fatigue: number): number {
 
 /** Weights for picking among a Club's own Lines or Pairings, before any matchup bias. */
 function baseWeights(
-  state: ShiftState,
+  state: ClubState,
   count: number,
   tierWeight: readonly number[],
   playersAt: (i: number) => readonly PlayerId[],
@@ -120,85 +106,113 @@ function targetShiftSeconds(shiftLengthDial: number, unitFatigue0to100: number):
   return base * (1 - shorten)
 }
 
+/** One Shift: the units on the ice for each Club, and for how many whole seconds. */
 export interface ShiftSelection {
-  /** Three forwards then two defencemen. */
-  homeOnIce: readonly PlayerId[]
-  awayOnIce: readonly PlayerId[]
-  /** Target duration before the caller clamps it to the period boundary. */
+  homeLine: Line
+  homePairing: Pairing
+  awayLine: Line
+  awayPairing: Pairing
   seconds: number
 }
 
-/**
- * Picks both Clubs' units for the next Shift.
- *
- * The away Club selects blind; the home Club selects with that choice already
- * committed, which is the home-ice last change and the only structural source
- * of home advantage in the engine. The shared Shift lasts as long as whichever
- * Club wants to change sooner.
- */
-export function selectShift(
-  home: ShiftState,
-  away: ShiftState,
-  homeRng: Rng,
-  awayRng: Rng,
-): ShiftSelection {
-  const awayLineIdx = weightedIndex(
-    awayRng,
-    baseWeights(away, 4, LINE_DEPLOYMENT_WEIGHT, (i) => playersOf(away.lineup.lines[i]!)),
-  )
-  const awayPairingIdx = weightedIndex(
-    awayRng,
-    baseWeights(away, 3, PAIRING_DEPLOYMENT_WEIGHT, (i) =>
-      playersOfPairing(away.lineup.pairings[i]!),
-    ),
-  )
-  const awayLine = away.lineup.lines[awayLineIdx]!
-  const awayPairing = away.lineup.pairings[awayPairingIdx]!
-
-  const policy = home.lineup.tactics.matchup
-  const awayLineQuality = unitQuality(away, playersOf(awayLine))
-  const awayPairingQuality = unitQuality(away, playersOfPairing(awayPairing))
-  const awayLineAvg = mean(away.lineup.lines.map((l) => unitQuality(away, playersOf(l))))
-  const awayPairingAvg = mean(
-    away.lineup.pairings.map((p) => unitQuality(away, playersOfPairing(p))),
-  )
-
-  const homeLineWeights = baseWeights(home, 4, LINE_DEPLOYMENT_WEIGHT, (i) =>
-    playersOf(home.lineup.lines[i]!),
-  )
-  const homePairingWeights = baseWeights(home, 3, PAIRING_DEPLOYMENT_WEIGHT, (i) =>
-    playersOfPairing(home.lineup.pairings[i]!),
-  )
-
-  // exploit: away's committed Pairing is weaker than its own average -> favour home's top Line.
-  if (policy === 'exploit' && awayPairingQuality < awayPairingAvg) {
-    homeLineWeights[0] = homeLineWeights[0]! * MATCHUP_BIAS_MULTIPLIER
-  }
-  // shutdown: away's committed Line is stronger than its own average -> favour home's top Pairing.
-  if (policy === 'shutdown' && awayLineQuality > awayLineAvg) {
-    homePairingWeights[0] = homePairingWeights[0]! * MATCHUP_BIAS_MULTIPLIER
-  }
-
-  const homeLine = home.lineup.lines[weightedIndex(homeRng, homeLineWeights)]!
-  const homePairing = home.lineup.pairings[weightedIndex(homeRng, homePairingWeights)]!
-
-  const homeOnIce = [...playersOf(homeLine), ...playersOfPairing(homePairing)]
-  const awayOnIce = [...playersOf(awayLine), ...playersOfPairing(awayPairing)]
-
-  const seconds = Math.min(
-    targetShiftSeconds(home.lineup.tactics.shiftLength, unitFatigue(home, homeOnIce)),
-    targetShiftSeconds(away.lineup.tactics.shiftLength, unitFatigue(away, awayOnIce)),
-  )
-
-  return { homeOnIce, awayOnIce, seconds }
+export interface ShiftLoop {
+  /**
+   * Selects the next Shift, at most `maxSeconds` long, and applies its
+   * fatigue. Seconds are whole, because event clocks are.
+   */
+  next(maxSeconds: number): ShiftSelection
 }
 
-/** Accrues fatigue for the Skaters on the ice and recovers it for those on the bench. */
-export function applyShiftFatigue(
-  state: ShiftState,
-  onIce: readonly PlayerId[],
-  seconds: number,
-): void {
+/** Player ids on the ice, forwards then defence - the `shift_change` order. */
+export function onIce(line: Line, pairing: Pairing): readonly PlayerId[] {
+  return [...playersOf(line), ...playersOfPairing(pairing)]
+}
+
+/**
+ * The shift loop for one Fixture. Stateful only within the Fixture that
+ * created it - fatigue carries from Shift to Shift and Period to Period.
+ * Overtime (#6) and special teams (#5) are not modelled here.
+ */
+export function createShiftLoop(
+  home: { club: Club; lineup: Lineup },
+  away: { club: Club; lineup: Lineup },
+  rng: Rng,
+): ShiftLoop {
+  const homeState = buildClubState(home.club, home.lineup)
+  const awayState = buildClubState(away.club, away.lineup)
+  const homeRng = rng.fork('home')
+  const awayRng = rng.fork('away')
+
+  return { next }
+
+  function next(maxSeconds: number): ShiftSelection {
+    // Away always selects first, blind (spec: home has last change).
+    const awayLineIdx = weightedIndex(
+      awayRng,
+      baseWeights(awayState, 4, LINE_DEPLOYMENT_WEIGHT, (i) => playersOf(awayState.lineup.lines[i]!)),
+    )
+    const awayPairingIdx = weightedIndex(
+      awayRng,
+      baseWeights(awayState, 3, PAIRING_DEPLOYMENT_WEIGHT, (i) =>
+        playersOfPairing(awayState.lineup.pairings[i]!),
+      ),
+    )
+    const awayLine = awayState.lineup.lines[awayLineIdx]!
+    const awayPairing = awayState.lineup.pairings[awayPairingIdx]!
+
+    // Home selects with the away unit already committed.
+    const policy = home.lineup.tactics.matchup
+    const awayLineQuality = unitQuality(awayState, playersOf(awayLine))
+    const awayPairingQuality = unitQuality(awayState, playersOfPairing(awayPairing))
+    const awayLineAvg = mean(
+      awayState.lineup.lines.map((l) => unitQuality(awayState, playersOf(l))),
+    )
+    const awayPairingAvg = mean(
+      awayState.lineup.pairings.map((p) => unitQuality(awayState, playersOfPairing(p))),
+    )
+
+    const homeLineWeights = baseWeights(homeState, 4, LINE_DEPLOYMENT_WEIGHT, (i) =>
+      playersOf(homeState.lineup.lines[i]!),
+    )
+    const homePairingWeights = baseWeights(homeState, 3, PAIRING_DEPLOYMENT_WEIGHT, (i) =>
+      playersOfPairing(homeState.lineup.pairings[i]!),
+    )
+
+    // exploit: away's committed Pairing is weaker than its own average -> favour home's top Line.
+    if (policy === 'exploit' && awayPairingQuality < awayPairingAvg) {
+      homeLineWeights[0] = homeLineWeights[0]! * MATCHUP_BIAS_MULTIPLIER
+    }
+    // shutdown: away's committed Line is stronger than its own average -> favour home's top Pairing.
+    if (policy === 'shutdown' && awayLineQuality > awayLineAvg) {
+      homePairingWeights[0] = homePairingWeights[0]! * MATCHUP_BIAS_MULTIPLIER
+    }
+
+    const homeLineIdx = weightedIndex(homeRng, homeLineWeights)
+    const homePairingIdx = weightedIndex(homeRng, homePairingWeights)
+    const homeLine = homeState.lineup.lines[homeLineIdx]!
+    const homePairing = homeState.lineup.pairings[homePairingIdx]!
+
+    const homeOnIce = onIce(homeLine, homePairing)
+    const awayOnIce = onIce(awayLine, awayPairing)
+
+    const homeTarget = targetShiftSeconds(
+      home.lineup.tactics.shiftLength,
+      unitFatigue(homeState, homeOnIce),
+    )
+    const awayTarget = targetShiftSeconds(
+      away.lineup.tactics.shiftLength,
+      unitFatigue(awayState, awayOnIce),
+    )
+    const seconds = Math.min(Math.max(1, Math.round(Math.min(homeTarget, awayTarget))), maxSeconds)
+
+    applyFatigue(homeState, homeOnIce, seconds)
+    applyFatigue(awayState, awayOnIce, seconds)
+
+    return { homeLine, homePairing, awayLine, awayPairing, seconds }
+  }
+}
+
+function applyFatigue(state: ClubState, onIce: readonly PlayerId[], seconds: number): void {
   const onIceSet = new Set(onIce)
   for (const skater of state.club.skaters) {
     const current = state.fatigue.get(skater.id)!
