@@ -180,10 +180,13 @@ catch up. Shootout attempts produce no `goal` or `save` events.
 ## Pulling the goalie
 
 A trailing Club replaces its Goalie with an extra attacker late in a Fixture.
-This is a Manager decision with a threshold - how far behind, and how early -
-and it is the only source of `emptyNet` goals, which are a real and
-non-trivial share of league scoring. It raises the trailing Club's scoring
-rate and the leading Club's much more.
+This is a Manager decision made in advance, as a list of rules in the Tactics:
+each names a deficit, how early to pull at that deficit, and optionally that
+it applies only on a power play - so a Club can pull at two minutes when one
+goal down, at three when two down, and at four when three down with a man
+advantage. Any matching rule pulls. It is the only source of `emptyNet`
+goals, which are a real and non-trivial share of league scoring. It raises
+the trailing Club's scoring rate and the leading Club's much more.
 
 Never applies in playoff overtime, where a goal ends the Fixture and there is
 nothing to chase. The engine pulls only in the third Period.
