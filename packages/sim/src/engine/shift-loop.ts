@@ -1,23 +1,18 @@
 import { SKATER_ATTRIBUTE_KEYS } from '../domain/attributes.js'
 import type { Club, Line, Lineup, Pairing } from '../domain/club.js'
-import type { Period, ShiftChangeEvent } from '../domain/event.js'
 import type { PlayerId, Skater } from '../domain/player.js'
 import type { Rng } from '../rng/index.js'
+import { weightedIndex } from './draw.js'
 
 /**
  * Level 1 of the two-level loop (03-sim-engine.md): who is on the ice, and
- * for how long. Level 2 (possession resolution, issue #4) does not exist
- * yet, so this only produces `shift_change` events - no shots, no goals, no
- * stoppages. `strength` is always 'even': special teams are issue #5.
+ * for how long. `simulateFixture` drives it one Shift at a time and hands
+ * each Shift to Level 2 (`possession.ts`). Special teams are issue #5.
  *
- * D-03: the only output is the event stream. Ending-of-match fatigue is not
- * returned separately - it is derivable from the `shift_change` events
- * themselves (clock deltas plus `stamina`), the same way `src/stats` will
- * derive everything else.
+ * D-03: nothing here is returned to the caller of the engine. End-of-match
+ * fatigue is derivable from the `shift_change` events (clock deltas plus
+ * `stamina`), the same way `src/stats` derives everything else.
  */
-
-const REGULATION_SECONDS = 3 * 1200
-const PERIOD_LENGTH = 1200
 
 /**
  * Deployment weight by tier, most-used first. Provisional - #15 calibrates
@@ -49,31 +44,12 @@ function clampFatigue(value: number): number {
   return Math.max(0, Math.min(100, value))
 }
 
-function periodFor(clock: number): Period {
-  if (clock < PERIOD_LENGTH) return 1
-  if (clock < 2 * PERIOD_LENGTH) return 2
-  return 3
-}
-
 function mean(values: readonly number[]): number {
   return values.reduce((sum, v) => sum + v, 0) / values.length
 }
 
 function skaterQuality(skater: Skater): number {
   return mean(SKATER_ATTRIBUTE_KEYS.map((key) => skater.attributes[key]))
-}
-
-/** Weighted-random index draw. Throws on an empty or all-zero weight array. */
-function weightedIndex(rng: Rng, weights: readonly number[]): number {
-  const total = weights.reduce((sum, w) => sum + w, 0)
-  if (total <= 0) throw new Error('weightedIndex: total weight must be positive')
-
-  let draw = rng.next() * total
-  for (let i = 0; i < weights.length; i++) {
-    draw -= weights[i]!
-    if (draw < 0) return i
-  }
-  return weights.length - 1
 }
 
 interface ClubState {
@@ -130,24 +106,46 @@ function targetShiftSeconds(shiftLengthDial: number, unitFatigue0to100: number):
   return base * (1 - shorten)
 }
 
+/** One Shift: the units on the ice for each Club, and for how many whole seconds. */
+export interface ShiftSelection {
+  homeLine: Line
+  homePairing: Pairing
+  awayLine: Line
+  awayPairing: Pairing
+  seconds: number
+}
+
+export interface ShiftLoop {
+  /**
+   * Selects the next Shift, at most `maxSeconds` long, and applies its
+   * fatigue. Seconds are whole, because event clocks are.
+   */
+  next(maxSeconds: number): ShiftSelection
+}
+
+/** Player ids on the ice, forwards then defence - the `shift_change` order. */
+export function onIce(line: Line, pairing: Pairing): readonly PlayerId[] {
+  return [...playersOf(line), ...playersOfPairing(pairing)]
+}
+
 /**
- * Runs the shift loop for one Fixture's regulation time (3 x 1200s).
+ * The shift loop for one Fixture. Stateful only within the Fixture that
+ * created it - fatigue carries from Shift to Shift and Period to Period.
  * Overtime (#6) and special teams (#5) are not modelled here.
  */
-export function runShiftLoop(
+export function createShiftLoop(
   home: { club: Club; lineup: Lineup },
   away: { club: Club; lineup: Lineup },
   rng: Rng,
-): readonly ShiftChangeEvent[] {
+): ShiftLoop {
   const homeState = buildClubState(home.club, home.lineup)
   const awayState = buildClubState(away.club, away.lineup)
   const homeRng = rng.fork('home')
   const awayRng = rng.fork('away')
 
-  const events: ShiftChangeEvent[] = []
-  let clock = 0
+  return { next }
 
-  while (clock < REGULATION_SECONDS) {
+  function next(maxSeconds: number): ShiftSelection {
     // Away always selects first, blind (spec: home has last change).
     const awayLineIdx = weightedIndex(
       awayRng,
@@ -194,8 +192,8 @@ export function runShiftLoop(
     const homeLine = homeState.lineup.lines[homeLineIdx]!
     const homePairing = homeState.lineup.pairings[homePairingIdx]!
 
-    const homeOnIce = [...playersOf(homeLine), ...playersOfPairing(homePairing)]
-    const awayOnIce = [...playersOf(awayLine), ...playersOfPairing(awayPairing)]
+    const homeOnIce = onIce(homeLine, homePairing)
+    const awayOnIce = onIce(awayLine, awayPairing)
 
     const homeTarget = targetShiftSeconds(
       home.lineup.tactics.shiftLength,
@@ -205,20 +203,13 @@ export function runShiftLoop(
       away.lineup.tactics.shiftLength,
       unitFatigue(awayState, awayOnIce),
     )
-    const remaining = REGULATION_SECONDS - clock
-    const shiftSeconds = Math.min(homeTarget, awayTarget, remaining)
+    const seconds = Math.min(Math.max(1, Math.round(Math.min(homeTarget, awayTarget))), maxSeconds)
 
-    const period = periodFor(clock)
-    events.push({ type: 'shift_change', clock, period, strength: 'even', clubId: home.club.id, onIce: homeOnIce })
-    events.push({ type: 'shift_change', clock, period, strength: 'even', clubId: away.club.id, onIce: awayOnIce })
+    applyFatigue(homeState, homeOnIce, seconds)
+    applyFatigue(awayState, awayOnIce, seconds)
 
-    applyFatigue(homeState, homeOnIce, shiftSeconds)
-    applyFatigue(awayState, awayOnIce, shiftSeconds)
-
-    clock += shiftSeconds
+    return { homeLine, homePairing, awayLine, awayPairing, seconds }
   }
-
-  return events
 }
 
 function applyFatigue(state: ClubState, onIce: readonly PlayerId[], seconds: number): void {

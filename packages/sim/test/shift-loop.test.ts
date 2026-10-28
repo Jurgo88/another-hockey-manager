@@ -1,14 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import type { Club } from '../src/domain/club.js'
-import type { ShiftChangeEvent } from '../src/domain/event.js'
+import type { Club, Lineup } from '../src/domain/club.js'
+import type { MatchEvent, ShiftChangeEvent } from '../src/domain/event.js'
 import type { PlayerId } from '../src/domain/player.js'
 import { buildNaiveLineup, DEFAULT_TACTICS } from '../src/engine/lineup.js'
-import { runShiftLoop } from '../src/engine/shift-loop.js'
+import { simulateFixture } from '../src/engine/simulate.js'
 import { createGeneratedRosterProvider } from '../src/generate/roster.js'
-import { createRng } from '../src/rng/index.js'
 import { NHL_2026_27, NHL_2026_27_CLUB_SEEDS } from '../src/data/nhl-2026-27.js'
 import { foldMatch } from '../src/stats/match.js'
-import { fixtureBetween, inRegulationPeriods } from './support/streams.js'
+import { fixtureBetween } from './support/fixtures.js'
 
 const IDENTITIES = new Map(
   NHL_2026_27_CLUB_SEEDS.map((club) => [club.id, { code: club.code, name: club.name }]),
@@ -20,23 +19,30 @@ async function someClubs(seed: number, count: number): Promise<Club[]> {
   return clubs.slice(0, count)
 }
 
-function iceTimeByPlayer(
+function play(
   home: Club,
   away: Club,
-  events: readonly ShiftChangeEvent[],
-): Map<PlayerId, number> {
-  const stats = foldMatch(fixtureBetween(home.id, away.id), inRegulationPeriods(events))
+  seed: number,
+  homeLineup: Lineup = buildNaiveLineup(home),
+  awayLineup: Lineup = buildNaiveLineup(away),
+): MatchEvent[] {
+  const fixture = fixtureBetween(home.id, away.id)
+  return simulateFixture({ fixture, homeClub: home, awayClub: away, homeLineup, awayLineup }, seed)
+}
+
+function shiftChanges(events: readonly MatchEvent[]): ShiftChangeEvent[] {
+  return events.filter((e): e is ShiftChangeEvent => e.type === 'shift_change')
+}
+
+function iceTimeByPlayer(home: Club, away: Club, events: readonly MatchEvent[]): Map<PlayerId, number> {
+  const stats = foldMatch(fixtureBetween(home.id, away.id), events)
   return new Map([...stats.skaters].map(([id, skater]) => [id, skater.iceTimeSeconds]))
 }
 
-describe('runShiftLoop', () => {
-  it('advances the match clock to exactly 3600 seconds of regulation', async () => {
+describe('shift loop', () => {
+  it('fills exactly 3600 seconds of regulation', async () => {
     const [home, away] = await someClubs(2026, 2)
-    const events = runShiftLoop(
-      { club: home!, lineup: buildNaiveLineup(home!) },
-      { club: away!, lineup: buildNaiveLineup(away!) },
-      createRng(1),
-    )
+    const events = play(home!, away!, 1)
     const iceTime = iceTimeByPlayer(home!, away!, events)
     // Every dressed Skater's ice time across the match should sum, per Club, to 5 * 3600
     // (5 on-ice slots at every instant of a 3600s game).
@@ -47,37 +53,24 @@ describe('runShiftLoop', () => {
     const homeTotal = [...iceTime.entries()]
       .filter(([id]) => homeIds.has(id))
       .reduce((sum, [, seconds]) => sum + seconds, 0)
-    expect(homeTotal).toBeCloseTo(5 * 3600, 0)
+    expect(homeTotal).toBe(5 * 3600)
   })
 
-  it('is deterministic for the same seed', async () => {
+  it('starts a Shift at the opening of every Period', async () => {
     const [home, away] = await someClubs(2026, 2)
-    const run = () =>
-      runShiftLoop(
-        { club: home!, lineup: buildNaiveLineup(home!) },
-        { club: away!, lineup: buildNaiveLineup(away!) },
-        createRng(42),
-      )
-    expect(run()).toEqual(run())
+    const clocks = new Set(shiftChanges(play(home!, away!, 1)).map((e) => e.clock))
+    for (const start of [0, 1200, 2400]) expect(clocks.has(start)).toBe(true)
   })
 
   it('only ever reports even strength (special teams are issue #5)', async () => {
     const [home, away] = await someClubs(2026, 2)
-    const events = runShiftLoop(
-      { club: home!, lineup: buildNaiveLineup(home!) },
-      { club: away!, lineup: buildNaiveLineup(away!) },
-      createRng(7),
-    )
+    const events = play(home!, away!, 7)
     expect(events.every((e) => e.strength === 'even')).toBe(true)
   })
 
   it('dresses exactly 5 skaters per shift_change event', async () => {
     const [home, away] = await someClubs(2026, 2)
-    const events = runShiftLoop(
-      { club: home!, lineup: buildNaiveLineup(home!) },
-      { club: away!, lineup: buildNaiveLineup(away!) },
-      createRng(7),
-    )
+    const events = shiftChanges(play(home!, away!, 7))
     expect(events.every((e) => e.onIce.length === 5)).toBe(true)
   })
 })
@@ -85,6 +78,7 @@ describe('runShiftLoop', () => {
 describe('ice-time distribution (FR-23)', () => {
   // Averaged across many independent Fixtures, each Club's Line 1 and Line 4 (per
   // buildNaiveLineup's quality ordering) stand in for the measured NHL forward tiers.
+  // The measured bands are held by test/realism/ice-time.test.ts.
   const FIXTURE_COUNT = 24
 
   async function simulateMany(matchup: 'none' | 'exploit' | 'shutdown' = 'none') {
@@ -98,11 +92,7 @@ describe('ice-time distribution (FR-23)', () => {
         tactics: { ...DEFAULT_TACTICS, matchup },
       }
       const awayLineup = buildNaiveLineup(away!)
-      const events = runShiftLoop(
-        { club: home!, lineup: homeLineup },
-        { club: away!, lineup: awayLineup },
-        createRng(5000 + i),
-      )
+      const events = play(home!, away!, 5000 + i, homeLineup, awayLineup)
       const iceTime = iceTimeByPlayer(home!, away!, events)
 
       for (const lineup of [homeLineup, awayLineup]) {
@@ -125,10 +115,6 @@ describe('ice-time distribution (FR-23)', () => {
     const tier1Mean = mean(tier1)
     const tier4Mean = mean(tier4)
 
-    // FR-23: measured means are 19:34 (1174s) and 12:03 (723s), ratio 1.62.
-    // This is issue #3's shift loop alone, with no possession resolution yet
-    // and provisional deployment-weight constants (#15 calibrates the shape),
-    // so this checks direction and rough magnitude, not the exact bands.
     expect(tier1Mean).toBeGreaterThan(tier4Mean)
     const ratio = tier1Mean / tier4Mean
     expect(ratio).toBeGreaterThan(1.1)
@@ -143,12 +129,7 @@ describe('matchup policy (directional effect)', () => {
       for (let i = 0; i < 16; i++) {
         const [home, away] = await someClubs(2000 + i, 2)
         const homeLineup = { ...buildNaiveLineup(home!), tactics: { ...DEFAULT_TACTICS, matchup } }
-        const awayLineup = buildNaiveLineup(away!)
-        const events = runShiftLoop(
-          { club: home!, lineup: homeLineup },
-          { club: away!, lineup: awayLineup },
-          createRng(3000 + i),
-        )
+        const events = play(home!, away!, 3000 + i, homeLineup)
         const iceTime = iceTimeByPlayer(home!, away!, events)
         const line1 = homeLineup.lines[0]
         const line1Time = [line1.leftWing, line1.centre, line1.rightWing].reduce(
