@@ -20,16 +20,20 @@ import { weightedIndex } from './draw.js'
  */
 
 /**
- * Deployment weight by tier, most-used first. Provisional - #15 calibrates
- * the shape. The Line ratio is seeded from FR-23's measured tier-1/tier-4
- * ice-time ratio (1.62); Pairings have no equivalent measured target yet.
+ * Even-strength deployment weight by tier, most-used first. Provisional - #15
+ * calibrates the shape. Nearly flat on purpose: the best forwards also carry
+ * the power play and the kill, and FR-23's measured 1.62 tier-1/tier-4 ratio
+ * is for all situations together. Pairings have no measured target yet.
  */
-const LINE_DEPLOYMENT_WEIGHT: readonly number[] = [1.45, 1.1, 1.02, 1.0]
+const LINE_DEPLOYMENT_WEIGHT: readonly number[] = [1.1, 1.03, 1.0, 1.0]
 const PAIRING_DEPLOYMENT_WEIGHT: readonly number[] = [1.4, 1.15, 1.0]
 
-/** Deployment weight of the first and second special-teams Units. Provisional, unmeasured. */
-const POWER_PLAY_UNIT_WEIGHT: readonly number[] = [2.0, 1.0]
-const PENALTY_KILL_UNIT_WEIGHT: readonly number[] = [1.2, 1.0]
+/**
+ * Deployment weight of the first and second special-teams Units - the first
+ * power play takes about three quarters of the time. Provisional, unmeasured.
+ */
+const POWER_PLAY_UNIT_WEIGHT: readonly number[] = [3.0, 1.0]
+const PENALTY_KILL_UNIT_WEIGHT: readonly number[] = [1.8, 1.0]
 
 /** Target shift length in seconds at shiftLength=0 and shiftLength=100. Higher dial, shorter shifts. */
 const BASE_SHIFT_SECONDS_LONG = 60

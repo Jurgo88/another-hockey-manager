@@ -229,8 +229,8 @@ export function buildNaiveLineup(club: Club, tactics: Tactics = DEFAULT_TACTICS)
     bestBy((s) => s.attributes.shooting + s.attributes.offPositioning + s.attributes.passing),
   )
   const powerPlayDefence = [...ld, ...rd].sort(bestBy((s) => s.attributes.shooting + s.attributes.passing))
-  // The checking Lines kill penalties; the top six carry the power play.
-  const killForwards = [...lw.slice(2), ...centres.slice(2), ...rw.slice(2)].sort(
+  // The best defensive forwards kill penalties, whichever Line they play on.
+  const killForwards = [...lw, ...centres, ...rw].sort(
     bestBy((s) => s.attributes.defPositioning + s.attributes.checking),
   )
   const killDefence = [...ld, ...rd].sort(bestBy((s) => s.attributes.defPositioning + s.attributes.shotBlocking))

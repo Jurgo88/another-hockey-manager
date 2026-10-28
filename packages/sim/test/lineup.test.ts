@@ -154,14 +154,21 @@ describe('validateLineup', () => {
     expect(rulesOf(validateLineup(fourOnThePowerPlay, bruins))).toContain('special-teams-unit-invalid')
   })
 
-  it('builds a naive kill with its defencemen listed first, from the checking Lines', () => {
+  it('builds a naive kill from the best defenders, defencemen listed first', () => {
     const lineup = buildNaiveLineup(bruins)
     const defence = new Set(lineup.pairings.flatMap((p) => [p.leftDefence, p.rightDefence]))
-    const topSix = new Set(lineup.lines.slice(0, 2).flatMap((l) => [l.leftWing, l.centre, l.rightWing]))
+    const forwards = lineup.lines.flatMap((l) => [l.leftWing, l.centre, l.rightWing])
+    const defending = (id: string) => {
+      const { defPositioning, checking } = bruins.skaters.find((s) => s.id === id)!.attributes
+      return defPositioning + checking
+    }
+    const killers = lineup.penaltyKillUnits.flatMap((unit) => unit.skaters.slice(2))
+    const bestFour = [...forwards].sort((a, b) => defending(b) - defending(a)).slice(0, 4)
+
     for (const unit of lineup.penaltyKillUnits) {
       expect(unit.skaters.map((id) => defence.has(id))).toEqual([true, true, false, false])
-      expect(unit.skaters.some((id) => topSix.has(id))).toBe(false)
     }
+    expect(killers.map(defending)).toEqual(bestFour.map(defending))
   })
 
   it('builds a naive power play of four forwards and a defenceman, the fourth forward last', () => {

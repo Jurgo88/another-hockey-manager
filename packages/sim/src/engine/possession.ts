@@ -58,7 +58,7 @@ const TAKEAWAY_EDGE = 1.0
 /** Per Skater of advantage, added to the attacking Club's attempt log-odds. */
 const ADVANTAGE_ATTEMPT = 0.8
 /** Per Skater of advantage, added to danger log-odds - open ice, a free man. */
-const ADVANTAGE_DANGER = 0.22
+const ADVANTAGE_DANGER = 0.42
 
 // --- Penalties -------------------------------------------------------------
 
@@ -97,7 +97,7 @@ const MAJOR_CHANCE: Partial<Record<PenaltyKind, number>> = { boarding: 0.5, cros
 const DEFENCE_SHOOTER_WEIGHT = 0.5
 
 /** Log-odds of a goal for a typical attempt against an average goalie. */
-const DANGER_BASE = logit(0.132)
+const DANGER_BASE = logit(0.134)
 const DANGER_SHOOTER = 0.55
 const DANGER_SUPPORT = 0.25
 const DANGER_PRESSURE = 0.3
