@@ -48,6 +48,10 @@ emits a `powerplay_start` for it; every time it shrinks by one, a
 Club took a penalty of its own), or `period_end` (the Fixture ended). A 5-on-3
 is therefore two nested pairs, and 4-on-4 is none.
 
+The advantage counted is the one the penalties create - the Skaters the rules
+allow each Club. An extra attacker for a pulled Goalie is not a numerical
+advantage: 6-on-5 is even strength, as the NHL counts it, and opens no pair.
+
 ## Rationale
 
 The ordered list is the smallest shape that lets the Manager decide everything
@@ -69,7 +73,8 @@ to emit and would have made 4-on-4 count as power-play time for both Clubs.
 - `powerplay_end.reason` gains `'penalty'`.
 - The Tier 4 identity "power-play time equals penalty minutes served" no
   longer holds at 4-on-4, so it is restated as "power-play time equals the
-  time one Club had more Skaters than the other".
+  time one Club had more Skaters than the other", Skaters meaning those the
+  penalties allow, not counting an extra attacker.
 - Penalties continue across Period breaks, because the match clock is
   continuous. Pairs still open when the Fixture ends close with
   `period_end`.
