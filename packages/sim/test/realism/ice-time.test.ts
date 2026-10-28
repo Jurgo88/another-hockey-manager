@@ -1,15 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import type { Club, Lineup } from '../../src/domain/club.js'
+import type { FixtureInput } from '../../src/domain/fixture.js'
 import type { ClubId, PlayerId } from '../../src/domain/player.js'
 import { NHL_2026_27, NHL_2026_27_CLUB_SEEDS } from '../../src/data/nhl-2026-27.js'
 import { buildNaiveLineup } from '../../src/engine/lineup.js'
 import { generateSchedule } from '../../src/engine/schedule.js'
-import { runShiftLoop } from '../../src/engine/shift-loop.js'
+import { simulateFixture } from '../../src/engine/simulate-fixture.js'
 import { createGeneratedRosterProvider } from '../../src/generate/roster.js'
 import { createRng } from '../../src/rng/index.js'
 import { foldMatch } from '../../src/stats/match.js'
 import { foldSeason } from '../../src/stats/season.js'
-import { inRegulationPeriods } from '../support/streams.js'
 
 /**
  * FR-23 and the ice-time rows of Tier 2 (04-validation-targets.md).
@@ -55,12 +55,17 @@ async function forwardIceTimePerFixture(): Promise<number[]> {
   })
 
   const matches = fixtures.map((fixture) => {
-    const shifts = runShiftLoop(
-      entries.get(fixture.homeClubId)!,
-      entries.get(fixture.awayClubId)!,
-      seasonRng.fork(`fixture:${fixture.id}`),
-    )
-    return foldMatch(fixture, inRegulationPeriods(shifts))
+    const home = entries.get(fixture.homeClubId)!
+    const away = entries.get(fixture.awayClubId)!
+    const input: FixtureInput = {
+      fixture,
+      homeClub: home.club,
+      awayClub: away.club,
+      homeLineup: home.lineup,
+      awayLineup: away.lineup,
+    }
+    const seed = seasonRng.fork(`fixture:${fixture.id}`).int(0, 0xffff_ffff)
+    return foldMatch(fixture, simulateFixture(input, seed))
   })
   const season = foldSeason(matches)
 
