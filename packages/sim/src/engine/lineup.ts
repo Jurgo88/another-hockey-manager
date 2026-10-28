@@ -1,4 +1,5 @@
 import { SKATER_ATTRIBUTE_KEYS } from '../domain/attributes.js'
+import { PENALTY_KILL_UNIT_SIZE, POWER_PLAY_UNIT_SIZE } from '../domain/club.js'
 import type { Club, Lineup, MatchupPolicy, OvertimeTrio, Pairing, Tactics, Unit } from '../domain/club.js'
 import type { Line } from '../domain/club.js'
 import type { PlayerId, Skater, SkaterPosition } from '../domain/player.js'
@@ -121,18 +122,22 @@ export function validateLineup(lineup: Lineup, club: Club): readonly LineupViola
     }
   }
 
-  const checkUnitGroup = (units: readonly Unit[], label: string) => {
-    if (units.length > 2) {
-      violations.push(violation('special-teams-unit-invalid', `${label} declares more than 2 units.`))
+  const checkUnitGroup = (units: readonly Unit[], label: string, size: number) => {
+    if (units.length === 0 || units.length > 2) {
+      violations.push(
+        violation('special-teams-unit-invalid', `${label} declares ${units.length} units; 1 or 2 are required.`),
+      )
     }
     units.forEach((unit, i) => {
-      const memberIds = [
-        unit.line.leftWing,
-        unit.line.centre,
-        unit.line.rightWing,
-        unit.pairing.leftDefence,
-        unit.pairing.rightDefence,
-      ]
+      const memberIds = unit.skaters
+      if (memberIds.length !== size) {
+        violations.push(
+          violation(
+            'special-teams-unit-invalid',
+            `${label} unit ${i + 1} lists ${memberIds.length} Skaters; it needs exactly ${size} (ADR-009).`,
+          ),
+        )
+      }
       const distinct = new Set(memberIds)
       if (distinct.size !== memberIds.length) {
         violations.push(violation('special-teams-unit-invalid', `${label} unit ${i + 1} repeats a Player.`))
@@ -149,8 +154,8 @@ export function validateLineup(lineup: Lineup, club: Club): readonly LineupViola
       }
     })
   }
-  checkUnitGroup(lineup.powerPlayUnits, 'Power play')
-  checkUnitGroup(lineup.penaltyKillUnits, 'Penalty kill')
+  checkUnitGroup(lineup.powerPlayUnits, 'Power play', POWER_PLAY_UNIT_SIZE)
+  checkUnitGroup(lineup.penaltyKillUnits, 'Penalty kill', PENALTY_KILL_UNIT_SIZE)
 
   return violations
 }
@@ -219,6 +224,17 @@ export function buildNaiveLineup(club: Club, tactics: Tactics = DEFAULT_TACTICS)
     throw new Error(`Naive Lineup builder needs 2 Goalies, only ${goalies.length} available on ${club.id}.`)
   }
 
+  const bestBy = (score: (s: Skater) => number) => (a: Skater, b: Skater) => score(b) - score(a)
+  const powerPlayForwards = [...lw, ...centres, ...rw].sort(
+    bestBy((s) => s.attributes.shooting + s.attributes.offPositioning + s.attributes.passing),
+  )
+  const powerPlayDefence = [...ld, ...rd].sort(bestBy((s) => s.attributes.shooting + s.attributes.passing))
+  // The best defensive forwards kill penalties, whichever Line they play on.
+  const killForwards = [...lw, ...centres, ...rw].sort(
+    bestBy((s) => s.attributes.defPositioning + s.attributes.checking),
+  )
+  const killDefence = [...ld, ...rd].sort(bestBy((s) => s.attributes.defPositioning + s.attributes.shotBlocking))
+
   const dressedSkaters = [...lw, ...centres, ...rw, ...ld, ...rd]
   const overallByQuality = [...dressedSkaters].sort(byQualityDesc)
   const overtimeRotation: OvertimeTrio[] = [0, 1].map((i): OvertimeTrio => {
@@ -232,15 +248,22 @@ export function buildNaiveLineup(club: Club, tactics: Tactics = DEFAULT_TACTICS)
     pairings: [pairings[0]!, pairings[1]!, pairings[2]!],
     starter: goalies[0]!.id,
     backup: goalies[1]!.id,
-    // Naive: top two Line/Pairing combos on the power play, bottom two shorthanded.
-    powerPlayUnits: [
-      { line: lines[0]!, pairing: pairings[0]! },
-      { line: lines[1]!, pairing: pairings[1]! },
-    ],
-    penaltyKillUnits: [
-      { line: lines[3]!, pairing: pairings[2]! },
-      { line: lines[2]!, pairing: pairings[1]! },
-    ],
+    // Naive: four forwards and a defenceman on each power play, the fourth
+    // forward listed last so a 4-on-3 keeps three forwards and the point. The
+    // kill takes the most defensive forwards and defencemen, defencemen
+    // listed first so a 5-on-3 kill keeps both of them (ADR-009).
+    powerPlayUnits: [0, 1].map((i) => ({
+      skaters: [
+        powerPlayForwards[4 * i]!.id,
+        powerPlayForwards[4 * i + 1]!.id,
+        powerPlayForwards[4 * i + 2]!.id,
+        powerPlayDefence[i]!.id,
+        powerPlayForwards[4 * i + 3]!.id,
+      ],
+    })),
+    penaltyKillUnits: [0, 1].map((i) => ({
+      skaters: [killDefence[2 * i]!.id, killDefence[2 * i + 1]!.id, killForwards[2 * i]!.id, killForwards[2 * i + 1]!.id],
+    })),
     overtimeRotation: [overtimeRotation[0]!, overtimeRotation[1]!],
     tactics,
   }

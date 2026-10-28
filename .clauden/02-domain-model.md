@@ -16,7 +16,7 @@ The vocabulary below resolves it and is enforced, not merely recommended.
 | `Lineup` | A Club's declared configuration for one Fixture. |
 | `Line` | A forward unit of three: LW, C, RW. |
 | `Pairing` | A defensive unit of two: LD, RD. |
-| `Unit` | A special-teams formation - a Line and a Pairing declared together. |
+| `Unit` | A special-teams formation - an ordered list of Skaters: five on a power play, four on a penalty kill (ADR-009). |
 | `Tactics` | Manager-set dials that shape how a Lineup plays. |
 | `Fixture` | A scheduled match, an entry in the schedule. |
 | `Match` | A played Fixture: its seed plus its event stream. |

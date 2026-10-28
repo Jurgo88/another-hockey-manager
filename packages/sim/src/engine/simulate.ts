@@ -1,8 +1,9 @@
 import type { MatchEvent } from '../domain/event.js'
 import type { Fixture, FixtureInput } from '../domain/fixture.js'
 import { createRng, type Rng } from '../rng/index.js'
+import { createPenaltyBox, type Side } from './penalties.js'
 import { createPossessionModel } from './possession.js'
-import { createShiftLoop, onIce } from './shift-loop.js'
+import { createShiftLoop, onIceIds, type SideSituation } from './shift-loop.js'
 
 /**
  * The engine's entry point (03-sim-engine.md).
@@ -12,7 +13,8 @@ import { createShiftLoop, onIce } from './shift-loop.js'
  * (D-03) - no score, no box score, nothing computed alongside it.
  *
  * Regulation only. A level Fixture ends level until overtime and the
- * shootout arrive in #6.
+ * shootout arrive in #6, and penalties still running at the end of the third
+ * Period close with it.
  */
 
 const PERIOD_LENGTH = 1200
@@ -25,40 +27,53 @@ export function simulateFixture(input: FixtureInput, seed: number): MatchEvent[]
     { club: input.awayClub, lineup: input.awayLineup },
     rng.fork('shifts'),
   )
-  const play = createPossessionModel(input, rng.fork('play'))
+  const clubIds = { home: input.homeClub.id, away: input.awayClub.id }
+  const box = createPenaltyBox(clubIds)
+  const play = createPossessionModel(input, box, rng.fork('play'))
   const events: MatchEvent[] = []
+
+  const situation = (side: Side): SideSituation => ({
+    strength: box.strength(side),
+    skaters: box.skaters(side),
+    boxed: box.boxed(side),
+  })
 
   for (const period of REGULATION_PERIODS) {
     const start = (period - 1) * PERIOD_LENGTH
     const end = period * PERIOD_LENGTH
-    events.push({ type: 'period_start', clock: start, period, strength: 'even' })
+    events.push({ type: 'period_start', clock: start, period, strength: box.strength('home') })
     play.startPeriod()
 
     let clock = start
     while (clock < end) {
-      const shift = shifts.next(end - clock)
-      const base = { type: 'shift_change', clock, period, strength: 'even' } as const
-      events.push({
-        ...base,
-        clubId: input.homeClub.id,
-        onIce: onIce(shift.homeLine, shift.homePairing),
-      })
-      events.push({
-        ...base,
-        clubId: input.awayClub.id,
-        onIce: onIce(shift.awayLine, shift.awayPairing),
-      })
+      // A Shift never runs past a penalty expiring: the Units must change.
+      box.expire(clock, period, events)
+      const until = Math.min(end, box.nextExpiry())
+      const shift = shifts.next(until - clock, { home: situation('home'), away: situation('away') })
 
-      play.playShift(shift, clock, clock + shift.seconds, period, events)
-      clock += shift.seconds
+      for (const side of ['home', 'away'] as const) {
+        events.push({
+          type: 'shift_change',
+          clock,
+          period,
+          strength: box.strength(side),
+          clubId: clubIds[side],
+          onIce: onIceIds(shift[side]),
+        })
+      }
+
+      const reached = play.playShift(shift, clock, clock + shift.seconds, period, events)
+      shifts.played(shift, reached - clock)
+      clock = reached
     }
 
+    if (period === REGULATION_PERIODS.at(-1)) box.close(end, period, events)
     const goals = play.goals()
     events.push({
       type: 'period_end',
       clock: end,
       period,
-      strength: 'even',
+      strength: box.strength('home'),
       homeGoals: goals.home,
       awayGoals: goals.away,
     })
