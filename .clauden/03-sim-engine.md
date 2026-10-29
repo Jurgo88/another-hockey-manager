@@ -161,23 +161,41 @@ Fixture can run to four or more extra Periods, which means fatigue accumulates
 far past anything the regular season produces, and the goalie models keep
 running the whole way.
 
-A `PlayoffFormat` therefore implies its overtime rules; `fixture.allowsTie`
-alone is not enough information. The engine must be told which overtime regime
-applies, and the two must not share a code path that assumes five minutes.
+The engine is told which regime applies through `fixture.overtime`, an
+`OvertimeRegime` or `null` when a level score stands. A regular-season Fixture
+takes the regime from its `CompetitionStructure`, a playoff Fixture from its
+`PlayoffFormat` - both data (D-10). The two regimes must not share a code path
+that assumes five minutes.
+
+Penalties carry from regulation into overtime. At 3-on-3 the NHL adds a
+Skater to the Club with the advantage instead of removing one from the Club
+without it: a 5-on-4 carries over as 4-on-3, a 5-on-3 stays 5-on-3. The
+margin, and so the power-play pairs, is unchanged by the switch.
 
 Shootout attempts resolve shooter `shooting` and `puckControl` against goalie
 `reflexes` and `positioning`, and are emitted as `shot` events in Period `SO`.
+Three rounds, then sudden death; a round stops early once one side cannot
+catch up. Shootout attempts produce no `goal` or `save` events.
 
 ## Pulling the goalie
 
 A trailing Club replaces its Goalie with an extra attacker late in a Fixture.
-This is a Manager decision with a threshold - how far behind, and how early -
-and it is the only source of `emptyNet` goals, which are a real and
-non-trivial share of league scoring. It raises the trailing Club's scoring
-rate and the leading Club's much more.
+This is a Manager decision made in advance, as a list of rules in the Tactics:
+each names a deficit, how early to pull at that deficit, and optionally that
+it applies only on a power play - so a Club can pull at two minutes when one
+goal down, at three when two down, and at four when three down with a man
+advantage. Any matching rule pulls. It is the only source of `emptyNet`
+goals, which are a real and non-trivial share of league scoring. It raises
+the trailing Club's scoring rate and the leading Club's much more.
 
 Never applies in playoff overtime, where a goal ends the Fixture and there is
-nothing to chase.
+nothing to chase. The engine pulls only in the third Period.
+
+The stream says who is in net on every `shift_change`: `goalie` is the
+Goalie's id, or `null` while the net is empty. Pulling the Goalie is a change
+of personnel like any other, so it happens on a Shift change, and a Shift ends
+whenever a goal or the clock changes whether the Goalie should be out. The
+extra attacker is not a power play (ADR-009).
 
 ## Output contract
 

@@ -68,16 +68,20 @@ export interface Tactics {
   shiftLength: number
   matchup: MatchupPolicy
   /**
-   * Pulling the Goalie for an extra attacker (FR-22). Applies only when
-   * trailing, and never in playoff overtime where a goal ends the Fixture.
-   * This is the only source of empty-net goals.
+   * When to pull the Goalie for an extra attacker (FR-22): any matching rule
+   * pulls. Third Period only, never in playoff overtime where a goal ends the
+   * Fixture. This is the only source of empty-net goals.
    */
-  pullGoalie: {
-    /** Pull once at most this many seconds remain in the third Period. */
-    secondsRemaining: number
-    /** Pull only when behind by at most this many goals. */
-    maxDeficit: number
-  }
+  pullGoalie: readonly PullGoalieRule[]
+}
+
+export interface PullGoalieRule {
+  /** Goals behind, exactly. */
+  deficit: number
+  /** Pull once at most this many seconds remain in the third Period. */
+  secondsRemaining: number
+  /** Only while the Club has a man advantage - a 6-on-4 to chase a bigger deficit. */
+  powerPlayOnly: boolean
 }
 
 /** Three Skaters for 3-on-3 regular-season overtime (FR-09). */

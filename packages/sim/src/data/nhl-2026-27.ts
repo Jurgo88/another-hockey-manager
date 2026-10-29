@@ -144,4 +144,5 @@ export const NHL_2026_27: CompetitionStructure = {
   conferences: CONFERENCES,
   divisions: DIVISIONS,
   scheduleKey: NHL_2026_27_SCHEDULE_KEY,
+  overtime: 'regular-3on3-then-shootout',
 }

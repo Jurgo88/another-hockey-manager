@@ -154,3 +154,33 @@ describe('penalty box', () => {
     expect(events.at(-1)).toMatchObject({ period: 2, clock: 1220 })
   })
 })
+
+describe('penalty box at 3-on-3 (FR-09)', () => {
+  it('adds a Skater to the advantaged Club instead of removing one, keeping the margin', () => {
+    const b = box()
+    const events: MatchEvent[] = []
+    b.call('home', 'h7', 'tripping', 2, 3550, 3, events)
+    expect([b.skaters('home'), b.skaters('away')]).toEqual([4, 5])
+
+    b.startThreeOnThree()
+    expect([b.skaters('home'), b.skaters('away')]).toEqual([3, 4])
+    expect(b.strength('away')).toBe('powerplay')
+
+    b.call('home', 'h8', 'holding', 2, 3610, 'OT', events)
+    expect([b.skaters('home'), b.skaters('away')]).toEqual([3, 5])
+
+    b.call('away', 'a3', 'hooking', 2, 3620, 'OT', events)
+    expect([b.skaters('home'), b.skaters('away')]).toEqual([3, 4])
+    expect(powerPlays(events)).toEqual(['start:a:5v4', 'start:a:5v3', 'end:a:penalty'])
+  })
+
+  it('plays 3-on-3 when both Clubs are a man short', () => {
+    const b = box()
+    const events: MatchEvent[] = []
+    b.startThreeOnThree()
+    b.call('home', 'h7', 'tripping', 2, 3610, 'OT', events)
+    b.call('away', 'a3', 'hooking', 2, 3620, 'OT', events)
+    expect([b.skaters('home'), b.skaters('away')]).toEqual([3, 3])
+    expect(b.strength('home')).toBe('even')
+  })
+})

@@ -124,12 +124,10 @@ export interface GenerateScheduleOptions {
    * Every Club still plays exactly once per round.
    */
   rng: Rng
-  /** Regular-season Fixtures never end level. */
-  allowsTie?: boolean
 }
 
 export function generateSchedule(options: GenerateScheduleOptions): Fixture[] {
-  const { structure, seasonId, rng, allowsTie = false } = options
+  const { structure, seasonId, rng } = options
 
   const allClubIds = structure.divisions.flatMap((division) => division.clubIds)
 
@@ -171,7 +169,8 @@ export function generateSchedule(options: GenerateScheduleOptions): Fixture[] {
         round: roundIndex,
         homeClubId: meeting.home,
         awayClubId: meeting.away,
-        allowsTie,
+        // The regular-season regime is data on the competition (D-10, FR-09b).
+        overtime: structure.overtime,
       }),
     ),
   )
