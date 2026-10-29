@@ -54,17 +54,18 @@ export const DEFENCE_SLOT_ABILITY: readonly Ability[] = [
 export const GOALIE_SLOT_ABILITY: readonly Ability[] = [0.85, 0.66, 0.47]
 
 /**
- * How much of a Player's ability comes from the quality of his Club.
+ * How much of a Player's ability comes from the quality of their Club.
  *
- * **This is a Tier 2 calibration knob and its value is not yet justified.**
- * The engine amplifies a talent difference into a points difference by a
- * factor nobody knows until the engine exists - measured standings run from
- * 124 points to 59, but the talent gap behind that spread is small. An earlier
- * value of 0.16 put seven attribute points between the best and worst Club,
- * which is absurd on a 1-20 scale and was caught by a test rather than by
- * reasoning. Expect to revisit this during calibration.
+ * **A Tier 2 calibration knob, now calibrated (#9).** Measured standings run
+ * from 124 points to 59 over 84 Fixtures. With the engine in place, a league
+ * with no Club weight at all already spreads 124 to 64: luck over 84
+ * Fixtures, Player noise, goalies and the odd generational Player do most of
+ * the work. 0.02 adds the rest, landing on 126, 58 and a 67-point spread
+ * across eight Seasons. Earlier values were 0.16 - seven attribute points
+ * between best and worst Club, caught by a test - and then 0.06, which
+ * stretched standings to 134 and 52.
  */
-export const CLUB_WEIGHT = 0.06
+export const CLUB_WEIGHT = 0.02
 
 /** Per-Player noise, so a depth chart is not perfectly ordered by slot. */
 export const ABILITY_NOISE = 0.04
