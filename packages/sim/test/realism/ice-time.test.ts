@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { PlayerId } from '../../src/domain/player.js'
-import { simulateSeason } from '../support/season.js'
+import { simulateSeason } from '../../src/cli/season.js'
 
 /**
  * FR-23 and the ice-time rows of Tier 2 (04-validation-targets.md).

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { simulateSeason } from '../support/season.js'
+import { simulateSeason } from '../../src/cli/season.js'
 
 /**
  * Tier 1 aggregate rates (04-validation-targets.md): scoring from possession

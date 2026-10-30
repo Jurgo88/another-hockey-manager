@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { NHL_2026_27 } from '../../src/data/nhl-2026-27.js'
 import { foldStandings } from '../../src/stats/standings.js'
-import { simulateSeason } from '../support/season.js'
+import { simulateSeason } from '../../src/cli/season.js'
 
 /**
  * Standings realism (04-validation-targets.md): the Tier 1 mean, and the
