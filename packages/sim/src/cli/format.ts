@@ -1,0 +1,304 @@
+import type { CompetitionStructure } from '../domain/competition.js'
+import type { MatchEvent } from '../domain/event.js'
+import type { FixtureId } from '../domain/fixture.js'
+import { displayName, type ClubId, type PlayerId } from '../domain/player.js'
+import { goalDifferential, type StandingsRow } from '../domain/standings.js'
+import {
+  points,
+  savePercentage,
+  type GoalieStats,
+  type MatchStats,
+  type SkaterStats,
+} from '../stats/match.js'
+import { conferenceTables, divisionTables, foldStandings } from '../stats/standings.js'
+import type { SimulatedSeason } from './season.js'
+
+/**
+ * Plain-text rendering of a simulated Season. Pure: these functions return
+ * strings, and only the entry point touches the console or the disk.
+ */
+
+/** A Goalie needs this many Fixtures to appear among the leaders. */
+const GOALIE_LEADER_MIN_FIXTURES = 20
+
+export interface Column<T> {
+  header: string
+  /** Numbers right-align by default; names opt in. */
+  align?: 'left'
+  value: (row: T) => string | number
+}
+
+export function renderTable<T>(columns: readonly Column<T>[], rows: readonly T[]): string {
+  const cells = rows.map((row) => columns.map((column) => String(column.value(row))))
+  const widths = columns.map((column, i) =>
+    Math.max(column.header.length, ...cells.map((line) => line[i]!.length)),
+  )
+  const renderLine = (line: readonly string[]) =>
+    line
+      .map((cell, i) =>
+        columns[i]!.align === 'left' ? cell.padEnd(widths[i]!) : cell.padStart(widths[i]!),
+      )
+      .join('  ')
+      .trimEnd()
+
+  const header = renderLine(columns.map((column) => column.header))
+  const rule = '-'.repeat(header.length)
+  return [header, rule, ...cells.map(renderLine)].join('\n')
+}
+
+function signed(value: number): string {
+  return value > 0 ? `+${value}` : String(value)
+}
+
+function minutesSeconds(seconds: number): string {
+  const whole = Math.round(seconds)
+  const minutes = Math.floor(whole / 60)
+  return `${minutes}:${String(whole % 60).padStart(2, '0')}`
+}
+
+/** A rate the way hockey prints it: .912, not 0.912. */
+function rate(value: number): string {
+  return value.toFixed(3).replace(/^0/, '')
+}
+
+function byId<V extends { id: string }>(items: readonly V[]): Map<string, V> {
+  return new Map(items.map((item) => [item.id, item]))
+}
+
+function clubCodes(season: SimulatedSeason): (clubId: ClubId) => string {
+  const clubs = byId(season.clubs)
+  return (clubId) => clubs.get(clubId)?.code ?? clubId
+}
+
+function playerNames(season: SimulatedSeason): (playerId: PlayerId) => string {
+  const players = byId(season.clubs.flatMap((club) => [...club.skaters, ...club.goalies]))
+  return (playerId) => {
+    const player = players.get(playerId)
+    return player ? displayName(player) : playerId
+  }
+}
+
+function standingsColumns(season: SimulatedSeason): Column<StandingsRow>[] {
+  const code = clubCodes(season)
+  return [
+    { header: 'Club', align: 'left', value: (row) => code(row.clubId) },
+    { header: 'GP', value: (row) => row.gamesPlayed },
+    { header: 'W', value: (row) => row.wins },
+    { header: 'L', value: (row) => row.losses },
+    { header: 'OTL', value: (row) => row.otLosses },
+    { header: 'PTS', value: (row) => row.points },
+    { header: 'RW', value: (row) => row.regulationWins },
+    { header: 'GF', value: (row) => row.goalsFor },
+    { header: 'GA', value: (row) => row.goalsAgainst },
+    { header: 'DIFF', value: (row) => signed(goalDifferential(row)) },
+  ]
+}
+
+function section(title: string, body: string): string {
+  return `${title}\n\n${body}`
+}
+
+export function renderStandings(season: SimulatedSeason, structure: CompetitionStructure): string {
+  const rows = foldStandings(structure, season.matches)
+  const columns = standingsColumns(season)
+  const divisions = divisionTables(rows)
+  const conferences = conferenceTables(rows)
+
+  const conferenceBlocks = structure.conferences.flatMap((conference) => [
+    section(
+      `${conference.name} Conference`,
+      renderTable(columns, conferences.get(conference.id) ?? []),
+    ),
+    ...structure.divisions
+      .filter((division) => division.conferenceId === conference.id)
+      .map((division) =>
+        section(
+          `${division.name} Division`,
+          renderTable(columns, divisions.get(division.id) ?? []),
+        ),
+      ),
+  ])
+
+  return conferenceBlocks.join('\n\n')
+}
+
+type Leader<S> = S & { playerId: PlayerId }
+
+function compareSkaters(a: Leader<SkaterStats>, b: Leader<SkaterStats>): number {
+  return (
+    points(b) - points(a) ||
+    b.goals - a.goals ||
+    (a.playerId < b.playerId ? -1 : a.playerId > b.playerId ? 1 : 0)
+  )
+}
+
+export function renderScoringLeaders(season: SimulatedSeason, top: number): string {
+  const name = playerNames(season)
+  const code = clubCodes(season)
+  const positions = new Map(
+    season.clubs.flatMap((club) => club.skaters.map((s) => [s.id, s.preferredPositions[0]])),
+  )
+  const rows = [...season.season.skaters]
+    .map(([playerId, stats]) => ({ ...stats, playerId }))
+    .sort(compareSkaters)
+    .slice(0, top)
+
+  const columns: Column<Leader<SkaterStats>>[] = [
+    { header: 'Player', align: 'left', value: (row) => name(row.playerId) },
+    { header: 'Club', align: 'left', value: (row) => code(row.clubId) },
+    { header: 'Pos', align: 'left', value: (row) => positions.get(row.playerId) ?? '' },
+    { header: 'GP', value: (row) => row.gamesPlayed },
+    { header: 'G', value: (row) => row.goals },
+    { header: 'A', value: (row) => row.assists },
+    { header: 'PTS', value: (row) => points(row) },
+    { header: '+/-', value: (row) => signed(row.plusMinus) },
+    { header: 'SOG', value: (row) => row.shotsOnGoal },
+    { header: 'PPG', value: (row) => row.powerPlayGoals },
+    { header: 'TOI/GP', value: (row) => minutesSeconds(row.iceTimeSeconds / row.gamesPlayed) },
+  ]
+  return renderTable(columns, rows)
+}
+
+export function renderGoalieLeaders(season: SimulatedSeason, top: number): string {
+  const name = playerNames(season)
+  const code = clubCodes(season)
+  const rows = [...season.season.goalies]
+    .map(([playerId, stats]) => ({ ...stats, playerId }))
+    .filter((goalie) => goalie.gamesPlayed >= GOALIE_LEADER_MIN_FIXTURES)
+    .sort(
+      (a, b) =>
+        savePercentage(b) - savePercentage(a) ||
+        (a.playerId < b.playerId ? -1 : a.playerId > b.playerId ? 1 : 0),
+    )
+    .slice(0, top)
+
+  const columns: Column<Leader<GoalieStats>>[] = [
+    { header: 'Goalie', align: 'left', value: (row) => name(row.playerId) },
+    { header: 'Club', align: 'left', value: (row) => code(row.clubId) },
+    { header: 'GP', value: (row) => row.gamesPlayed },
+    { header: 'SA', value: (row) => row.shotsAgainst },
+    { header: 'SV', value: (row) => row.saves },
+    { header: 'GA', value: (row) => row.goalsAgainst },
+    { header: 'SV%', value: (row) => rate(savePercentage(row)) },
+    { header: 'GAA', value: (row) => (row.goalsAgainst / row.gamesPlayed).toFixed(2) },
+  ]
+  return renderTable(columns, rows)
+}
+
+export function renderSeason(
+  season: SimulatedSeason,
+  structure: CompetitionStructure,
+  top: number,
+): string {
+  return [
+    section(`${structure.name} - Season ${season.seed}`, renderStandings(season, structure)),
+    section(`Scoring leaders (top ${top})`, renderScoringLeaders(season, top)),
+    section(
+      `Goalie leaders (top ${top}, ${GOALIE_LEADER_MIN_FIXTURES}+ Fixtures)`,
+      renderGoalieLeaders(season, top),
+    ),
+  ].join('\n\n\n')
+}
+
+function renderBoxScore(match: MatchStats, code: (clubId: ClubId) => string): string {
+  const { result } = match
+  const decided = result.decidedIn === 'regulation' ? '' : ` (${result.decidedIn})`
+  const scoreline = `${code(match.awayClubId)} ${result.awayGoals} at ${code(match.homeClubId)} ${result.homeGoals}${decided}`
+  const columns: Column<MatchStats['periods'][number]>[] = [
+    { header: 'Period', align: 'left', value: (line) => line.period },
+    { header: `${code(match.awayClubId)} G`, value: (line) => line.awayGoals },
+    { header: `${code(match.homeClubId)} G`, value: (line) => line.homeGoals },
+    { header: `${code(match.awayClubId)} SOG`, value: (line) => line.awayShots },
+    { header: `${code(match.homeClubId)} SOG`, value: (line) => line.homeShots },
+  ]
+  return `${scoreline}\n\n${renderTable(columns, match.periods)}`
+}
+
+/** One line per event a reader follows; `null` for the rest, which the box score sums up. */
+function describeEvent(
+  event: MatchEvent,
+  name: (playerId: PlayerId) => string,
+  code: (clubId: ClubId) => string,
+): string | null {
+  switch (event.type) {
+    case 'goal': {
+      if (event.period === 'SO') return null
+      const assists = event.assists.map(name).join(', ')
+      const tags = [
+        ...(event.strength === 'powerplay' ? ['PP'] : []),
+        ...(event.strength === 'penaltykill' ? ['SH'] : []),
+        ...(event.emptyNet ? ['EN'] : []),
+      ]
+      return [
+        `GOAL ${code(event.clubId)} ${name(event.scorer)}`,
+        assists ? ` (${assists})` : ' (unassisted)',
+        tags.length > 0 ? ` [${tags.join(' ')}]` : '',
+      ].join('')
+    }
+    case 'penalty':
+      return `PENALTY ${code(event.clubId)} ${name(event.player)}, ${event.kind}, ${event.minutes} min`
+    case 'powerplay_start':
+      return `POWER PLAY ${code(event.clubId)}, ${event.skatersFor}-on-${event.skatersAgainst}`
+    case 'powerplay_end':
+      return event.reason === 'period_end'
+        ? null
+        : `Power play over for ${code(event.clubId)}: ${event.reason}`
+    case 'shot':
+      return event.period === 'SO'
+        ? `SHOOTOUT ${code(event.clubId)} ${name(event.shooter)}: ${event.result}`
+        : null
+    default:
+      return null
+  }
+}
+
+export function renderPlayByPlay(season: SimulatedSeason, fixtureId: FixtureId): string {
+  const events = season.replay(fixtureId)
+  const match = season.matches.find((m) => m.fixtureId === fixtureId)!
+  const name = playerNames(season)
+  const code = clubCodes(season)
+
+  const lines: string[] = []
+  let periodStart = 0
+  for (const event of events) {
+    if (event.type === 'period_start') {
+      periodStart = event.clock
+      lines.push(
+        '',
+        event.period === 'OT' || event.period === 'SO' ? event.period : `Period ${event.period}`,
+      )
+      continue
+    }
+    const text = describeEvent(event, name, code)
+    if (text === null) continue
+    lines.push(`  ${minutesSeconds(event.clock - periodStart).padStart(5)}  ${text}`)
+  }
+
+  return `${fixtureId}\n${renderBoxScore(match, code)}\n${lines.join('\n')}`
+}
+
+/** Everything worth analysing offline, as plain JSON. Rates are left to the reader (`foldSeason`). */
+export function seasonDump(season: SimulatedSeason, structure: CompetitionStructure): unknown {
+  const name = playerNames(season)
+  return {
+    seed: season.seed,
+    competition: structure.id,
+    standings: foldStandings(structure, season.matches),
+    skaters: [...season.season.skaters].map(([playerId, stats]) => ({
+      playerId,
+      name: name(playerId),
+      ...stats,
+    })),
+    goalies: [...season.season.goalies].map(([playerId, stats]) => ({
+      playerId,
+      name: name(playerId),
+      ...stats,
+    })),
+    fixtures: season.matches.map(({ fixtureId, homeClubId, awayClubId, result }) => ({
+      fixtureId,
+      homeClubId,
+      awayClubId,
+      ...result,
+    })),
+  }
+}
