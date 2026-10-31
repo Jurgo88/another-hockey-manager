@@ -144,8 +144,7 @@ describe('Tier 1 aggregate rates', async () => {
     within(mean(lowestPenalties), 2.4, 0.15)
   })
 
-  // Known red: the mean is 3.49. Calibration (#15) removes the marker; `fails` trips when it lands.
-  it.fails('highest Club penalties per Fixture: 3.24 ±0.15', () => {
+  it('highest Club penalties per Fixture: 3.24 ±0.15', () => {
     within(mean(highestPenalties), 3.24, 0.15)
   })
 

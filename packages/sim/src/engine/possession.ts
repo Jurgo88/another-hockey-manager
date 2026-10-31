@@ -37,7 +37,7 @@ const MIN_POSSESSION_SECONDS = 2
 // --- Outcome of a possession -----------------------------------------------
 
 /** Log-odds that a possession between average units ends in a shot attempt. */
-const ATTEMPT_BASE = logit(0.328)
+const ATTEMPT_BASE = logit(0.35)
 /** Slope on the attacking unit's offence minus the defending unit's defence. */
 const ATTEMPT_EDGE = 0.45
 /** `shotVolume` at 100 adds this to attempt log-odds (and -this at 0). */
@@ -53,6 +53,14 @@ const STOPPAGE_SHARE = 0.18
 const RECORDED_TURNOVER_SHARE = 0.12
 /** Slope on defending `checking` against attacking `puckControl` for takeaway vs giveaway. */
 const TAKEAWAY_EDGE = 1.0
+
+/**
+ * What a fully fatigued (100) unit loses from each composite, on their -1 to
+ * 1 scale. Measured: a back-to-back costs far more goals for (-0.20) than it
+ * adds against (+0.05), so legs go from the attack first (ADR-010).
+ */
+const FATIGUE_OFFENCE = 3
+const FATIGUE_DEFENDING = 0.75
 
 // --- Man advantage ---------------------------------------------------------
 
@@ -207,7 +215,7 @@ interface Unit {
   discipline: number
 }
 
-function buildUnit(context: SideContext, onIce: OnIce): Unit {
+function buildUnit(context: SideContext, onIce: OnIce, fatigue: number): Unit {
   const skaters = [...onIce.forwards, ...onIce.defence].map((id) => {
     const skater = context.skaterById.get(id)
     if (!skater) throw new Error(`Player ${id} is not a Skater of Club ${context.clubId}`)
@@ -218,17 +226,19 @@ function buildUnit(context: SideContext, onIce: OnIce): Unit {
   return {
     skaters,
     defence: skaters.map((_, i) => i >= onIce.forwards.length),
-    offence: avg(
-      (s) =>
-        (s.attributes.passing +
-          s.attributes.puckControl +
-          s.attributes.offPositioning +
-          s.attributes.speed) /
-        4,
-    ),
-    defending: avg(
-      (s) => (s.attributes.defPositioning + s.attributes.checking + s.attributes.speed) / 3,
-    ),
+    offence:
+      avg(
+        (s) =>
+          (s.attributes.passing +
+            s.attributes.puckControl +
+            s.attributes.offPositioning +
+            s.attributes.speed) /
+          4,
+      ) -
+      (FATIGUE_OFFENCE * fatigue) / 100,
+    defending:
+      avg((s) => (s.attributes.defPositioning + s.attributes.checking + s.attributes.speed) / 3) -
+      (FATIGUE_DEFENDING * fatigue) / 100,
     speed: avg((s) => s.attributes.speed),
     support: avg((s) => s.attributes.passing),
     pressure: avg((s) => s.attributes.defPositioning),
@@ -324,8 +334,8 @@ export function createPossessionModel(
     playShift(shift, segment, events) {
       const { from, to, period, emptyNet } = segment
       const units: Record<Side, Unit> = {
-        home: buildUnit(contexts.home, shift.home),
-        away: buildUnit(contexts.away, shift.away),
+        home: buildUnit(contexts.home, shift.home, shift.fatigue.home),
+        away: buildUnit(contexts.away, shift.away, shift.fatigue.away),
       }
       const meanPossession =
         POSSESSION_SECONDS / (1 + PACE_SPEED * mean([units.home.speed, units.away.speed]))

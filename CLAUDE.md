@@ -28,7 +28,7 @@
 | D-05 | Roster acquisition sits behind `RosterProvider`. |
 | D-06 | A Player attribute exists only if `src/engine` reads it. Add the read site in the same change. |
 | D-07 | Banned identifiers: `Team`, `Game`, `User`, `Squad`. |
-| D-08 | Each Fixture draws from its own forked `Rng` stream. |
+| D-08 | Each Fixture draws from its own forked `Rng` stream. Its input may depend on earlier Fixtures, its random numbers may not. |
 | D-10 | Competition and playoff formats are declarative data, not code branches. Adding a league means adding a value. |
 | D-11 | Player identity and ability are separate. Provenance is per attribute, parallel to `attributes`, so engine reads stay plain numbers. Never present a low-confidence value as a fact. |
 

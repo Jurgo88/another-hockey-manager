@@ -4,6 +4,7 @@ import type { Strength } from '../domain/event.js'
 import type { PlayerId, Skater } from '../domain/player.js'
 import type { Rng } from '../rng/index.js'
 import { weightedIndex } from './draw.js'
+import { afterShift } from './fatigue.js'
 
 /**
  * Level 1 of the two-level loop (03-sim-engine.md): who is on the ice, and
@@ -14,9 +15,8 @@ import { weightedIndex } from './draw.js'
  * either way, the special-teams Units do (ADR-009), and nobody in the box is
  * ever selected.
  *
- * D-03: nothing here is returned to the caller of the engine. End-of-match
- * fatigue is derivable from the `shift_change` events (clock deltas plus
- * `stamina`), the same way `src/stats` derives everything else.
+ * D-03: fatigue leaves the engine only through the `match_end` event, so its
+ * formula exists once (ADR-010).
  */
 
 /**
@@ -44,23 +44,11 @@ const BASE_SHIFT_SECONDS_SHORT = 30
 /** Fraction a fully-fatigued (100) unit shortens its own target shift by. */
 const FATIGUE_SHIFT_SHORTEN_MAX = 0.3
 
-/** How strongly fatigue depresses a unit's chance of being picked next. */
-const FATIGUE_SELECTION_SOFTENING = 1.5
-
 /** Multiplier applied to the targeted unit's weight when a matchup policy finds an opening. */
 const MATCHUP_BIAS_MULTIPLIER = 2.5
 
-/** Fatigue points accrued per second on ice, before the stamina adjustment. */
-const FATIGUE_ACCRUAL_PER_SECOND = 100 / (20 * 60)
-/** Fatigue points recovered per second on the bench, before the stamina adjustment. */
-const FATIGUE_RECOVERY_PER_SECOND = 100 / (12 * 60)
-
 /** Below five a side, forwards leave the ice first, down to this many. */
 const MIN_FORWARDS = 2
-
-function clampFatigue(value: number): number {
-  return Math.max(0, Math.min(100, value))
-}
 
 function mean(values: readonly number[]): number {
   return values.reduce((sum, v) => sum + v, 0) / values.length
@@ -99,23 +87,6 @@ function unitFatigue(state: ClubState, playerIds: readonly PlayerId[]): number {
   return mean(playerIds.map((id) => state.fatigue.get(id)!))
 }
 
-function fatigueSelectionWeight(fatigue: number): number {
-  return 1 / (1 + (fatigue / 100) * FATIGUE_SELECTION_SOFTENING)
-}
-
-/** Weights for picking among a Club's own Lines, Pairings or Units, before any matchup bias. */
-function baseWeights(
-  state: ClubState,
-  count: number,
-  tierWeight: readonly number[],
-  playersAt: (i: number) => readonly PlayerId[],
-): number[] {
-  return Array.from({ length: count }, (_, i) => {
-    const fatigue = unitFatigue(state, playersAt(i))
-    return tierWeight[i]! * fatigueSelectionWeight(fatigue)
-  })
-}
-
 function targetShiftSeconds(shiftLengthDial: number, unitFatigue0to100: number): number {
   const base =
     BASE_SHIFT_SECONDS_LONG -
@@ -151,6 +122,8 @@ export interface ShiftSelection {
   home: OnIce
   away: OnIce
   seconds: number
+  /** Mean fatigue of each unit as it takes the ice, 0-100. */
+  fatigue: Readonly<Record<'home' | 'away', number>>
 }
 
 export interface ShiftLoop {
@@ -164,6 +137,8 @@ export interface ShiftLoop {
    * skater counts ends a Shift early, so this can be less than it planned.
    */
   played(selection: ShiftSelection, seconds: number): void
+  /** Every Skater on both Rosters as things stand, to two decimals. */
+  fatigue(): Record<PlayerId, number>
 }
 
 /** Every dressed Skater in Lineup order - Lines, then Pairings - with the role the slot gives. */
@@ -254,39 +229,21 @@ export function createShiftLoop(
   const homeRng = rng.fork('home')
   const awayRng = rng.fork('away')
 
-  return { next, played }
-
-  function lineWeights(state: ClubState): number[] {
-    return baseWeights(state, 4, LINE_DEPLOYMENT_WEIGHT, (i) => playersOf(state.lineup.lines[i]!))
-  }
-
-  function pairingWeights(state: ClubState): number[] {
-    return baseWeights(state, 3, PAIRING_DEPLOYMENT_WEIGHT, (i) =>
-      playersOfPairing(state.lineup.pairings[i]!),
-    )
-  }
+  return { next, played, fatigue }
 
   /** The power-play or penalty-kill Unit for a Club with an advantage either way. */
   function specialUnit(state: ClubState, unitRng: Rng, side: SideSituation): OnIce {
     const powerPlay = side.strength === 'powerplay'
     const units = powerPlay ? state.lineup.powerPlayUnits : state.lineup.penaltyKillUnits
-    const weights = baseWeights(
-      state,
-      units.length,
-      powerPlay ? POWER_PLAY_UNIT_WEIGHT : PENALTY_KILL_UNIT_WEIGHT,
-      (i) => units[i]!.skaters,
-    )
-    return fromUnit(state, units[weightedIndex(unitRng, weights)]!, side)
+    const weights = powerPlay ? POWER_PLAY_UNIT_WEIGHT : PENALTY_KILL_UNIT_WEIGHT
+    const index = weightedIndex(unitRng, weights.slice(0, units.length))
+    return fromUnit(state, units[index]!, side)
   }
 
   /** A trio from the Lineup's overtime rotation, for level 3-on-3 play. */
   function overtimeTrio(state: ClubState, trioRng: Rng, side: SideSituation): OnIce {
     const trios = state.lineup.overtimeRotation
-    const weights = trios.map(
-      (trio, i) =>
-        (i === 0 ? FIRST_OVERTIME_TRIO_WEIGHT : 1) *
-        fatigueSelectionWeight(unitFatigue(state, trio.players)),
-    )
+    const weights = trios.map((_, i) => (i === 0 ? FIRST_OVERTIME_TRIO_WEIGHT : 1))
     return fromUnit(state, { skaters: trios[weightedIndex(trioRng, weights)]!.players }, side)
   }
 
@@ -301,8 +258,8 @@ export function createShiftLoop(
     if (situation.away.strength === 'even' && situation.away.threeOnThree) {
       awayOnIce = overtimeTrio(awayState, awayRng, situation.away)
     } else if (situation.away.strength === 'even') {
-      awayLine = awayState.lineup.lines[weightedIndex(awayRng, lineWeights(awayState))]!
-      awayPairing = awayState.lineup.pairings[weightedIndex(awayRng, pairingWeights(awayState))]!
+      awayLine = awayState.lineup.lines[weightedIndex(awayRng, LINE_DEPLOYMENT_WEIGHT)]!
+      awayPairing = awayState.lineup.pairings[weightedIndex(awayRng, PAIRING_DEPLOYMENT_WEIGHT)]!
       awayOnIce = fromEvenStrength(awayState, awayLine, awayPairing, situation.away)
     } else {
       awayOnIce = specialUnit(awayState, awayRng, situation.away)
@@ -312,8 +269,8 @@ export function createShiftLoop(
     if (situation.home.strength === 'even' && situation.home.threeOnThree) {
       homeOnIce = overtimeTrio(homeState, homeRng, situation.home)
     } else if (situation.home.strength === 'even') {
-      const homeLineWeights = lineWeights(homeState)
-      const homePairingWeights = pairingWeights(homeState)
+      const homeLineWeights = [...LINE_DEPLOYMENT_WEIGHT]
+      const homePairingWeights = [...PAIRING_DEPLOYMENT_WEIGHT]
 
       // Home selects with the away unit already committed. Matchups exist
       // only at even strength - special teams are not chosen to match.
@@ -345,33 +302,33 @@ export function createShiftLoop(
       homeOnIce = specialUnit(homeState, homeRng, situation.home)
     }
 
-    const homeTarget = targetShiftSeconds(
-      home.lineup.tactics.shiftLength,
-      unitFatigue(homeState, onIceIds(homeOnIce)),
-    )
-    const awayTarget = targetShiftSeconds(
-      away.lineup.tactics.shiftLength,
-      unitFatigue(awayState, onIceIds(awayOnIce)),
-    )
+    const fatigue = {
+      home: unitFatigue(homeState, onIceIds(homeOnIce)),
+      away: unitFatigue(awayState, onIceIds(awayOnIce)),
+    }
+    const homeTarget = targetShiftSeconds(home.lineup.tactics.shiftLength, fatigue.home)
+    const awayTarget = targetShiftSeconds(away.lineup.tactics.shiftLength, fatigue.away)
     const seconds = Math.min(Math.max(1, Math.round(Math.min(homeTarget, awayTarget))), maxSeconds)
 
-    return { home: homeOnIce, away: awayOnIce, seconds }
+    return { home: homeOnIce, away: awayOnIce, seconds, fatigue }
   }
 
   function played(selection: ShiftSelection, seconds: number): void {
     applyFatigue(homeState, onIceIds(selection.home), seconds)
     applyFatigue(awayState, onIceIds(selection.away), seconds)
   }
+
+  function fatigue(): Record<PlayerId, number> {
+    const round = (value: number) => Math.round(value * 100) / 100
+    return Object.fromEntries(
+      [...homeState.fatigue, ...awayState.fatigue].map(([id, value]) => [id, round(value)]),
+    )
+  }
 }
 
 function applyFatigue(state: ClubState, onIce: readonly PlayerId[], seconds: number): void {
-  const onIceSet = new Set(onIce)
-  for (const skater of state.club.skaters) {
-    const current = state.fatigue.get(skater.id)!
-    const staminaFactor = (21 - skater.attributes.stamina) / 20
-    const next = onIceSet.has(skater.id)
-      ? current + FATIGUE_ACCRUAL_PER_SECOND * seconds * staminaFactor
-      : current - FATIGUE_RECOVERY_PER_SECOND * seconds * (2 - staminaFactor)
-    state.fatigue.set(skater.id, clampFatigue(next))
+  for (const id of onIce) {
+    const stamina = state.skaterById.get(id)!.attributes.stamina
+    state.fatigue.set(id, afterShift(state.fatigue.get(id)!, seconds, stamina))
   }
 }

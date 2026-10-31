@@ -153,6 +153,15 @@ export interface PowerPlayEndEvent extends EventBase {
   reason: 'expired' | 'goal' | 'penalty' | 'period_end'
 }
 
+/**
+ * The last event of every stream: where the Match left each Skater on both
+ * Rosters, 0-100. What the next Fixture starts from comes from here (ADR-010).
+ */
+export interface MatchEndEvent extends EventBase {
+  type: 'match_end'
+  fatigue: Readonly<Record<PlayerId, number>>
+}
+
 export type MatchEvent =
   | PeriodStartEvent
   | PeriodEndEvent
@@ -165,5 +174,6 @@ export type MatchEvent =
   | PenaltyEvent
   | PowerPlayStartEvent
   | PowerPlayEndEvent
+  | MatchEndEvent
 
 export type MatchEventType = MatchEvent['type']

@@ -13,6 +13,8 @@ export interface Fixture {
   seasonId: SeasonId
   /** Matchday index within the Season, 0-based. */
   round: number
+  /** Calendar day within the Season, 0-based. Rest between Fixtures is the gap in days. */
+  day: number
   homeClubId: ClubId
   awayClubId: ClubId
   /**

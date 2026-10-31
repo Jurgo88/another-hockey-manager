@@ -118,7 +118,7 @@ describe('regular-season overtime (FR-09)', async () => {
         }
       })
       expect(result.shootout!.homeGoals).not.toBe(result.shootout!.awayGoals)
-      expect(events.at(-1)).toMatchObject({ type: 'period_end', period: 'SO' })
+      expect(events.at(-2)).toMatchObject({ type: 'period_end', period: 'SO' })
     }
   })
 })
@@ -159,7 +159,7 @@ describe('playoff overtime (FR-09a)', async () => {
 
       const goal = events.filter((e) => e.type === 'goal' && e.period === 'OT')
       expect(goal).toHaveLength(1)
-      expect(events.at(-1)).toMatchObject({
+      expect(events.at(-2)).toMatchObject({
         type: 'period_end',
         period: 'OT',
         clock: goal[0]!.clock,

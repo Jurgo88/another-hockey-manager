@@ -155,6 +155,20 @@ at once.
 has the right number from the wrong mechanism, and a Manager reading a box
 score will see it immediately.
 
+### Rest
+
+Measured from the NHL 2025-26 schedule and results, 2,592 Club-Fixtures (ADR-010).
+Each cost compares a back-to-back with a two-day gap. They are small against
+the noise of one Season, about ±0.10 goals, which sets the bands.
+
+| Metric | Target | Band | Notes |
+| --- | --- | --- | --- |
+| Share of gaps that are back-to-backs | 16.6% | ±2.0 pp | Measured |
+| Back-to-backs per Club, 84 Fixtures | 13.7 | ±1.5 | Measured 13.4, scaled |
+| Goals for lost on a back-to-back | 0.20 | ±0.15 | Measured: 3.17 against 2.97 |
+| Goals against added on a back-to-back | 0.05 | ±0.15 | Measured: 3.12 against 3.17 |
+| Win rate lost on a back-to-back | 4.7 pp | ±3 pp | Measured: 50.5% against 45.8%. Asserted from #33, because backups played many of these Fixtures |
+
 ### How the tier ratio is defined
 
 The ratio row does **not** compare Lineup assignments. Published statistics

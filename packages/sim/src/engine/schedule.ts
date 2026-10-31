@@ -160,6 +160,11 @@ export function generateSchedule(options: GenerateScheduleOptions): Fixture[] {
 
   const matchdays = rng.shuffle([...layerA, ...layerB, ...layerC, ...layerD])
 
+  // A Club plays once per round. A back-to-back takes the last day of one
+  // round and the first of the next, so three in three days cannot happen.
+  const { daysPerRound, lastDayShare } = structure.calendar
+  const calendarRng = rng.fork('calendar')
+
   return matchdays.flatMap((round, roundIndex) =>
     round.map(
       (meeting, indexInRound): Fixture => ({
@@ -167,6 +172,7 @@ export function generateSchedule(options: GenerateScheduleOptions): Fixture[] {
         competitionId: structure.id,
         seasonId,
         round: roundIndex,
+        day: roundIndex * daysPerRound + (calendarRng.chance(lastDayShare) ? daysPerRound - 1 : 0),
         homeClubId: meeting.home,
         awayClubId: meeting.away,
         // The regular-season regime is data on the competition (D-10, FR-09b).

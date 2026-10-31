@@ -38,7 +38,8 @@ Identifier scheme follows the convention established on HermanTool:
 | FR-22 | A trailing Club may replace its Goalie with an extra attacker late in a Fixture, governed by the Manager's rules: per deficit, how early to pull, and optionally only on a power play. This is the only source of `emptyNet` goals. It never applies in playoff overtime. |
 | FR-23 | Ice-time deployment must match measured NHL distribution: about 19:34 per Fixture for a first-Line forward and 12:03 for a fourth-Line forward. The point gap between tiers must come mostly from scoring rate, not from extra ice time. See `04-validation-targets.md`. |
 | FR-13 | A CLI command simulates a full Season and prints standings plus scoring leaders. |
-| FR-14 | Fatigue accumulates within a Match and carries across a congested schedule, recovering between Fixtures. |
+| FR-14 | Fatigue accumulates within a Match, lowers play, and carries across a congested schedule, recovering between Fixtures. See ADR-010. |
+| FR-24 | A Fixture is scheduled on a calendar day. Gaps between a Club's Fixtures follow the measured NHL shape, about one in six a back-to-back, and no Club plays three days running. See ADR-010. |
 
 ## Non-functional requirements
 
@@ -62,7 +63,7 @@ Identifier scheme follows the convention established on HermanTool:
 | D-05 | The Roster source sits behind an interface. Real and generated Rosters are interchangeable implementations. See ADR-003. |
 | D-06 | A Player attribute may only exist if some code path in `src/engine` reads it. |
 | D-07 | Domain vocabulary is enforced. `Team`, `Game`, `User`, `Squad` are banned identifiers. |
-| D-08 | Each Fixture draws from its own forked `Rng` stream, so adding or removing a Fixture does not change the results of the others. |
+| D-08 | Each Fixture draws from its own forked `Rng` stream, so adding or removing a Fixture does not change the random numbers of the others. Results can still change through a Fixture's input: Skater fatigue carries from one Fixture to the next (ADR-010). |
 | D-09 | Statistical realism targets live in `04-validation-targets.md` and are expressed as executable tests, not prose. |
 | D-10 | Competition and playoff formats are declarative data, not code branches. Supporting another league means declaring a value, not editing the engine. |
 | D-11 | Player identity and Player ability are separate concerns. Provenance is per attribute, stored parallel to the attributes so engine reads stay plain numbers. Real names with generated ability is a valid configuration. |

@@ -97,7 +97,8 @@ return if board battles become a distinct engine step.
 `age`, `potential` (1-20 ceiling, never shown raw - scouting derives from it),
 `handedness`, `preferredPositions[]` (Skater only, first entry is natural),
 `form` (0-100, short-term deviation, resets each Season), `fatigue` (0-100,
-accrues within a Match and across a congested schedule).
+Skaters only in effect: rises within a Match and falls between Fixtures,
+ADR-010).
 
 ### Attribute provenance (ADR-008)
 
