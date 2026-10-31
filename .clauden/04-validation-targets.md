@@ -87,8 +87,14 @@ or the engine could hit every league mean while making all 32 Clubs identical.
 | Metric | Target | Band |
 | --- | --- | --- |
 | SD across Clubs of penalties per Fixture | 0.22 | ±0.10 |
-| Range across Clubs of penalties per Fixture | 2.40 - 3.24 | - |
+| Lowest Club's penalties per Fixture | 2.40 | ±0.15 |
+| Highest Club's penalties per Fixture | 3.24 | ±0.15 |
 | SD across Clubs of home win rate | 10.6 pp | ±4 pp |
+
+The two penalty extremes began as one range row with no band. An extreme of a
+single Season is unstable, and a row with no band could not be asserted, so
+each now carries the band of the league mean and is tested on the mean over
+the suite's Seasons. A single Season may fall outside it.
 
 An earlier draft of this document used 6.5 goals, 30 shots and a 0.900 save
 percentage, taken from a summary page rather than measured. All three were
