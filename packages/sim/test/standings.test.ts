@@ -29,6 +29,7 @@ function played(
     },
     periods: [],
     fatigue: new Map(),
+    injuries: [],
     scoring: [],
     clubs: new Map(),
     skaters: new Map(),

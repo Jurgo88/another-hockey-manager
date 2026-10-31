@@ -40,6 +40,8 @@ Identifier scheme follows the convention established on HermanTool:
 | FR-13 | A CLI command simulates a full Season and prints standings plus scoring leaders. |
 | FR-14 | Fatigue accumulates within a Match, lowers play, and carries across a congested schedule, recovering between Fixtures. See ADR-010. |
 | FR-25 | The backup Goalie starts Fixtures under a rule in Tactics: whoever played yesterday may sit, and whoever has started a set number running may sit the next. The rule is applied before the Fixture, the same for every Manager. See ADR-011. |
+| FR-26 | Players get hurt: mostly in a Match, in proportion to ice time, and some off the ice before the opening faceoff. An injury is an event naming the Fixtures the Player will miss, at measured frequency and length. See ADR-012. |
+| FR-27 | A Lineup answers an injury by itself: the Skater moves to the bottom of their column, everyone below steps up, and a spare fills the slot between Fixtures. The backup Goalie takes the net and the next healthy Goalie dresses. See ADR-012. |
 | FR-24 | A Fixture is scheduled on a calendar day. Gaps between a Club's Fixtures follow the measured NHL shape, about one in six a back-to-back, and no Club plays three days running. See ADR-010. |
 
 ## Non-functional requirements
@@ -96,4 +98,5 @@ Identifier scheme follows the convention established on HermanTool:
 | OQ #8 | Playoff overtime differs from regular-season overtime. | **Resolved:** FR-09, FR-09a, FR-09b. Regular season is 5 minutes of 3-on-3 then a shootout; playoffs are repeated full 20-minute 5-on-5 periods with no shootout. | - |
 | OQ #9 | Dressed Roster size, playoff series venue pattern, and when a Goalie is pulled. | **Resolved:** FR-20, FR-21, FR-22. Active Roster limits stay out until contracts exist in Phase 3. | - |
 | OQ #10 | The rules for pulling the Goalie - deficit, time, power play - are a Tactics decision with no measured target yet - empty-net goals per Fixture would give one. | **Open.** Minor; affects late-Fixture scoring only. | FR-22 |
+| OQ #12 | Can a Manager change a Lineup during a Match, at the intermissions? Real-time coaching remains a non-goal, but intermissions would be turn-based. `simulateFixture` would have to run in parts, so it needs an ADR. | **Open,** for Phase 1. In the meantime a Manager sets rules before the Fixture and changes a Lineup between Fixtures (ADR-012). | - |
 | OQ #11 | What share of regular-season overtimes end before the shootout, and how often a shootout attempt scores. The 3-on-3 and shootout constants have no measured target. | **Open.** Provisional constants, marked unmeasured in the engine. Measurable from NHL game results by decision type. | FR-09 |

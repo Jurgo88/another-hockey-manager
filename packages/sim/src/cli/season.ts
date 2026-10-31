@@ -8,6 +8,7 @@ import {
   afterStart,
   buildNaiveLineup,
   lineupForFixture,
+  withoutInjured,
   type GoalieHistory,
 } from '../engine/lineup.js'
 import { generateSchedule } from '../engine/schedule.js'
@@ -59,6 +60,11 @@ export async function simulateSeason(seed: number): Promise<SimulatedSeason> {
     rng: seasonRng.fork('schedule'),
   }).sort((a, b) => a.day - b.day || a.round - b.round)
 
+  const rosterIds = (clubId: ClubId): PlayerId[] => {
+    const { skaters, goalies } = clubById.get(clubId)!
+    return [...skaters, ...goalies].map((player) => player.id)
+  }
+
   const fatigue = new Map<PlayerId, number>()
   const lastPlayed = new Map<ClubId, number>()
 
@@ -76,8 +82,12 @@ export async function simulateSeason(seed: number): Promise<SimulatedSeason> {
   }
 
   const goalieHistory = new Map<ClubId, GoalieHistory>()
+  /** Fixtures each injured Player still has to miss, folded from the stream. */
+  const absent = new Map<PlayerId, number>()
   const lineupFor = (clubId: ClubId, day: number): Lineup => {
-    const lineup = lineupForFixture(lineups.get(clubId)!, day, goalieHistory.get(clubId) ?? null)
+    const out = new Set(rosterIds(clubId).filter((id) => absent.has(id)))
+    const healthy = withoutInjured(clubById.get(clubId)!, lineups.get(clubId)!, out)
+    const lineup = lineupForFixture(healthy, day, goalieHistory.get(clubId) ?? null)
     goalieHistory.set(clubId, afterStart(goalieHistory.get(clubId) ?? null, lineup.starter, day))
     return lineup
   }
@@ -95,6 +105,17 @@ export async function simulateSeason(seed: number): Promise<SimulatedSeason> {
 
     const match = foldMatch(fixture, simulateFixture(input, fixtureSeed(seasonRng, fixture)))
     for (const [id, value] of match.fatigue) fatigue.set(id, value)
+    for (const clubId of [fixture.homeClubId, fixture.awayClubId]) {
+      for (const id of rosterIds(clubId)) {
+        const left = absent.get(id)
+        if (left === undefined) continue
+        if (left > 1) absent.set(id, left - 1)
+        else absent.delete(id)
+      }
+    }
+    for (const { playerId, fixtures } of match.injuries) {
+      if (fixtures > 0) absent.set(playerId, fixtures)
+    }
     lastPlayed.set(fixture.homeClubId, fixture.day)
     lastPlayed.set(fixture.awayClubId, fixture.day)
     return match

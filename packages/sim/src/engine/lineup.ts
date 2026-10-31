@@ -209,8 +209,101 @@ export const DEFAULT_TACTICS: Tactics = {
   // Measured: the same Goalie starts both ends of a back-to-back 8.1% of the time.
   goalieRotation: {
     restOnBackToBack: true,
-    maxConsecutiveStarts: 3,
+    maxConsecutiveStarts: 2,
   },
+}
+
+/**
+ * Moves a Skater to the bottom of their column, everyone below stepping up a
+ * Line or Pairing in the same position. A Skater not dressed changes nothing.
+ * This is how a Lineup answers an injury, in a Match or between Fixtures, so
+ * a Manager's Lines survive it and come back whole (ADR-012).
+ */
+export function movedToBottom(lineup: Lineup, playerId: PlayerId): Lineup {
+  const lower = <T extends object>(units: readonly T[]): T[] => {
+    const next = [...units]
+    for (const key of Object.keys(next[0]!) as (keyof T)[]) {
+      const from = next.findIndex((unit) => unit[key] === (playerId as T[keyof T]))
+      if (from === -1) continue
+      for (let i = from; i < next.length - 1; i++) {
+        next[i] = { ...next[i]!, [key]: next[i + 1]![key] }
+      }
+      next[next.length - 1] = { ...next.at(-1)!, [key]: playerId }
+    }
+    return next
+  }
+
+  return {
+    ...lineup,
+    lines: lower(lineup.lines) as unknown as Lineup['lines'],
+    pairings: lower(lineup.pairings) as unknown as Lineup['pairings'],
+  }
+}
+
+/**
+ * The Lineup with nobody in `out` in it, for the same Manager and the same
+ * rule whoever that is (D-04). Everyone below moves up, the best healthy spare
+ * for the position takes the empty slot, and the next healthy Goalie on the
+ * Roster dresses. A Roster with nobody left keeps the injured Player.
+ */
+export function withoutInjured(club: Club, lineup: Lineup, out: ReadonlySet<PlayerId>): Lineup {
+  const dressed = (l: Lineup) => [
+    ...l.lines.flatMap((line) => LINE_SLOTS.map(([key]) => line[key])),
+    ...l.pairings.flatMap((pairing) => PAIRING_SLOTS.map(([key]) => pairing[key])),
+  ]
+  const goalieIds = [lineup.starter, lineup.backup, ...club.goalies.map((g) => g.id)]
+  const healthyGoalies = [...new Set(goalieIds)].filter((id) => !out.has(id))
+  const goalies = {
+    starter: healthyGoalies[0] ?? lineup.starter,
+    backup: healthyGoalies[1] ?? lineup.backup,
+  }
+  if (!dressed(lineup).some((id) => out.has(id))) return { ...lineup, ...goalies }
+
+  const moved = dressed(lineup)
+    .filter((id) => out.has(id))
+    .reduce(movedToBottom, lineup)
+
+  const onLineup = new Set(dressed(moved))
+  const spares = club.skaters
+    .filter((s) => !onLineup.has(s.id) && !out.has(s.id))
+    .sort(byQualityDesc)
+
+  const replacement = new Map<PlayerId, PlayerId>()
+  const fill = (playerId: PlayerId, position: SkaterPosition): PlayerId => {
+    if (!out.has(playerId)) return playerId
+    const index = spares.findIndex((s) => s.preferredPositions.includes(position))
+    const spare = spares.splice(Math.max(index, 0), 1)[0]
+    if (!spare) return playerId
+    replacement.set(playerId, spare.id)
+    return spare.id
+  }
+
+  const fillSlots = <T extends object>(
+    unit: T,
+    slots: readonly (readonly [keyof T, SkaterPosition])[],
+  ): T => {
+    const next = { ...unit }
+    for (const [key, position] of slots) {
+      next[key] = fill(unit[key] as PlayerId, position) as T[keyof T]
+    }
+    return next
+  }
+
+  const lines = moved.lines.map((line) => fillSlots(line, LINE_SLOTS))
+  const pairings = moved.pairings.map((pairing) => fillSlots(pairing, PAIRING_SLOTS))
+  const standIn = (id: PlayerId) => replacement.get(id) ?? id
+
+  return {
+    ...moved,
+    ...goalies,
+    lines: lines as unknown as Lineup['lines'],
+    pairings: pairings as unknown as Lineup['pairings'],
+    powerPlayUnits: moved.powerPlayUnits.map((u) => ({ skaters: u.skaters.map(standIn) })),
+    penaltyKillUnits: moved.penaltyKillUnits.map((u) => ({ skaters: u.skaters.map(standIn) })),
+    overtimeRotation: moved.overtimeRotation.map((trio) => ({
+      players: [standIn(trio.players[0]), standIn(trio.players[1]), standIn(trio.players[2])],
+    })),
+  }
 }
 
 /** Who a Club last put in net, and how many Fixtures running they have started. */

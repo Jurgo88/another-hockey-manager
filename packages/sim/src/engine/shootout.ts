@@ -1,7 +1,7 @@
 import type { Lineup } from '../domain/club.js'
 import type { MatchEvent } from '../domain/event.js'
 import type { FixtureInput } from '../domain/fixture.js'
-import type { ClubId, Goalie, Skater } from '../domain/player.js'
+import type { ClubId, Goalie, PlayerId, Skater } from '../domain/player.js'
 import type { Rng } from '../rng/index.js'
 import { logit, sigmoid } from './draw.js'
 import type { Side } from './penalties.js'
@@ -33,18 +33,25 @@ function centred(value: number): number {
 }
 
 /** Dressed Skaters, best at the shootout first. Nobody shoots twice until everybody has. */
-function shooterOrder(lineup: Lineup, skaters: readonly Skater[]): Skater[] {
+function shooterOrder(
+  lineup: Lineup,
+  skaters: readonly Skater[],
+  injured: ReadonlySet<PlayerId>,
+): Skater[] {
   const dressed = new Set([
     ...lineup.lines.flatMap((line) => [line.leftWing, line.centre, line.rightWing]),
     ...lineup.pairings.flatMap((pairing) => [pairing.leftDefence, pairing.rightDefence]),
   ])
   const skill = (s: Skater) => s.attributes.shooting + s.attributes.puckControl
-  return skaters.filter((s) => dressed.has(s.id)).sort((a, b) => skill(b) - skill(a))
+  return skaters
+    .filter((s) => dressed.has(s.id) && !injured.has(s.id))
+    .sort((a, b) => skill(b) - skill(a))
 }
 
 /** Plays the shootout at `clock`, appending its attempts, and returns the winner. */
 export function playShootout(
   input: FixtureInput,
+  injured: ReadonlySet<PlayerId>,
   clock: number,
   rng: Rng,
   events: MatchEvent[],
@@ -52,12 +59,12 @@ export function playShootout(
   const sides = {
     home: {
       clubId: input.homeClub.id,
-      shooters: shooterOrder(input.homeLineup, input.homeClub.skaters),
+      shooters: shooterOrder(input.homeLineup, input.homeClub.skaters, injured),
       goalie: input.homeClub.goalies.find((g) => g.id === input.homeLineup.starter)!,
     },
     away: {
       clubId: input.awayClub.id,
-      shooters: shooterOrder(input.awayLineup, input.awayClub.skaters),
+      shooters: shooterOrder(input.awayLineup, input.awayClub.skaters, injured),
       goalie: input.awayClub.goalies.find((g) => g.id === input.awayLineup.starter)!,
     },
   }

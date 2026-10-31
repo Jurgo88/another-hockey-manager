@@ -5,6 +5,7 @@ import type { PlayerId, Skater } from '../domain/player.js'
 import type { Rng } from '../rng/index.js'
 import { weightedIndex } from './draw.js'
 import { afterShift } from './fatigue.js'
+import { movedToBottom } from './lineup.js'
 
 /**
  * Level 1 of the two-level loop (03-sim-engine.md): who is on the ice, and
@@ -25,7 +26,7 @@ import { afterShift } from './fatigue.js'
  * the power play and the kill, and FR-23's measured 1.62 tier-1/tier-4 ratio
  * is for all situations together. Pairings have no measured target yet.
  */
-const LINE_DEPLOYMENT_WEIGHT: readonly number[] = [1.1, 1.03, 1.0, 1.0]
+const LINE_DEPLOYMENT_WEIGHT: readonly number[] = [1.07, 1.03, 1.0, 1.0]
 const PAIRING_DEPLOYMENT_WEIGHT: readonly number[] = [1.4, 1.15, 1.0]
 
 /**
@@ -63,12 +64,13 @@ interface ClubState {
   lineup: Lineup
   skaterById: Map<PlayerId, Skater>
   fatigue: Map<PlayerId, number>
+  injured: Set<PlayerId>
 }
 
 function buildClubState(club: Club, lineup: Lineup): ClubState {
   const skaterById = new Map(club.skaters.map((s) => [s.id, s]))
   const fatigue = new Map(club.skaters.map((s) => [s.id, s.fatigue]))
-  return { club, lineup, skaterById, fatigue }
+  return { club, lineup, skaterById, fatigue, injured: new Set() }
 }
 
 function playersOf(line: Line): readonly PlayerId[] {
@@ -139,6 +141,12 @@ export interface ShiftLoop {
   played(selection: ShiftSelection, seconds: number): void
   /** Every Skater on both Rosters as things stand, to two decimals. */
   fatigue(): Record<PlayerId, number>
+  /**
+   * Takes a Skater out for the rest of the Fixture. Everyone below moves up,
+   * and the slot left at the bottom fills from the dressed Skaters (ADR-012).
+   */
+  injure(side: 'home' | 'away', playerId: PlayerId): void
+  injured(side: 'home' | 'away'): ReadonlySet<PlayerId>
 }
 
 /** Every dressed Skater in Lineup order - Lines, then Pairings - with the role the slot gives. */
@@ -229,7 +237,7 @@ export function createShiftLoop(
   const homeRng = rng.fork('home')
   const awayRng = rng.fork('away')
 
-  return { next, played, fatigue }
+  return { next, played, fatigue, injure, injured }
 
   /** The power-play or penalty-kill Unit for a Club with an advantage either way. */
   function specialUnit(state: ClubState, unitRng: Rng, side: SideSituation): OnIce {
@@ -316,6 +324,16 @@ export function createShiftLoop(
   function played(selection: ShiftSelection, seconds: number): void {
     applyFatigue(homeState, onIceIds(selection.home), seconds)
     applyFatigue(awayState, onIceIds(selection.away), seconds)
+  }
+
+  function injure(side: 'home' | 'away', playerId: PlayerId): void {
+    const state = side === 'home' ? homeState : awayState
+    state.injured.add(playerId)
+    state.lineup = movedToBottom(state.lineup, playerId)
+  }
+
+  function injured(side: 'home' | 'away'): ReadonlySet<PlayerId> {
+    return (side === 'home' ? homeState : awayState).injured
   }
 
   function fatigue(): Record<PlayerId, number> {

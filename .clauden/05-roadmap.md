@@ -73,6 +73,7 @@ guessed.
 - Fixture list, play-by-play reader, box score
 - Standings, scoring leaders
 - Season advance
+- Decide OQ #12: Lineup changes at intermissions
 - AI Managers setting Lineups through the same API a human uses (D-04)
 
 Architecture constraint carried from HermanTool: no client-to-database access.
