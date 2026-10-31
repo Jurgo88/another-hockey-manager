@@ -73,6 +73,19 @@ export interface Tactics {
    * Fixture. This is the only source of empty-net goals.
    */
   pullGoalie: readonly PullGoalieRule[]
+  /** Who starts when the Lineup's `starter` should sit. */
+  goalieRotation: GoalieRotation
+}
+
+/**
+ * When the Lineup's `backup` starts instead of its `starter`. Either Goalie
+ * sits under these rules, and the `starter` returns as soon as neither does.
+ */
+export interface GoalieRotation {
+  /** Whoever played yesterday sits today. */
+  restOnBackToBack: boolean
+  /** Whoever has started this many Fixtures running sits the next, or null for no limit. */
+  maxConsecutiveStarts: number | null
 }
 
 export interface PullGoalieRule {
@@ -100,7 +113,9 @@ export interface Lineup {
   lines: readonly [Line, Line, Line, Line]
   /** Exactly 3, ordered first to third. */
   pairings: readonly [Pairing, Pairing, Pairing]
+  /** In net for this Fixture. */
   starter: PlayerId
+  /** Dressed, and on the bench. */
   backup: PlayerId
   /** 1 or 2 power-play Units of 5, ordered. */
   powerPlayUnits: readonly Unit[]

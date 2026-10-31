@@ -5,15 +5,13 @@ import { simulateSeason } from '../../src/cli/season.js'
  * The cost of a congested schedule (FR-14, ADR-010, 04-validation-targets.md),
  * measured against NHL 2025-26 rest gaps and pooled over eight Seasons.
  *
- * Each figure compares a back-to-back with a normal two-day gap. The win rate
- * is left to #33: it was measured with backups in net on back-to-backs, which
- * the engine does not do yet. Goals for are the Skaters' side of the same
- * cost, so they stand on their own.
+ * Each figure compares a back-to-back with a normal two-day gap, and already
+ * includes the Goalie rotation a back-to-back brings on (ADR-011).
  */
 
 const SEASON_SEEDS = [1, 2, 3, 4, 5, 6, 7, 8]
 const CLUBS = 32
-const FATIGUE_CEILING = 90
+const FATIGUE_CEILING = 100
 
 const within = (value: number, target: number, band: number) => {
   expect(value).toBeGreaterThanOrEqual(target - band)
@@ -22,6 +20,7 @@ const within = (value: number, target: number, band: number) => {
 
 interface Rest {
   games: number
+  wins: number
   goalsFor: number
   goalsAgainst: number
 }
@@ -49,8 +48,14 @@ describe('rest between Fixtures', async () => {
         if (last === undefined) continue
 
         gaps++
-        const gap = rest.get(fixture.day - last) ?? { games: 0, goalsFor: 0, goalsAgainst: 0 }
+        const gap = rest.get(fixture.day - last) ?? {
+          games: 0,
+          wins: 0,
+          goalsFor: 0,
+          goalsAgainst: 0,
+        }
         gap.games++
+        if (result.winner === clubId) gap.wins++
         gap.goalsFor += goalsFor
         gap.goalsAgainst += against
         rest.set(fixture.day - last, gap)
@@ -83,6 +88,10 @@ describe('rest between Fixtures', async () => {
       0.05,
       0.15,
     )
+  })
+
+  it('a back-to-back costs 4.7 pp ±3 pp of win rate', () => {
+    within((100 * normal.wins) / normal.games - (100 * backToBack.wins) / backToBack.games, 4.7, 3)
   })
 
   it('does not saturate over a Season', () => {

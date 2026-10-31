@@ -9,6 +9,7 @@ import { generateDistinctNames } from './names.js'
 import {
   DEFENCE_SLOT_ABILITY,
   FORWARD_SLOT_ABILITY,
+  GOALIE_ABILITY_NOISE,
   GOALIE_SLOT_ABILITY,
   clubStrengths,
   drawAbility,
@@ -109,7 +110,7 @@ function generateClub(
   })
 
   const goalies: Goalie[] = GOALIE_SLOT_ABILITY.map((slotAbility, index) => {
-    const { ability } = drawAbility(rng, slotAbility, clubStrength)
+    const { ability } = drawAbility(rng, slotAbility, clubStrength, GOALIE_ABILITY_NOISE)
     const { age, potential } = generateAgeAndPotential(rng, ability)
     const person = names[nameIndex++]!
 

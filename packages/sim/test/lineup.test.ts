@@ -1,7 +1,14 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { SKATER_ATTRIBUTE_KEYS } from '../src/domain/attributes.js'
-import type { Club, Lineup } from '../src/domain/club.js'
-import { buildNaiveLineup, validateLineup, type LineupRule } from '../src/engine/lineup.js'
+import type { Club, GoalieRotation, Lineup } from '../src/domain/club.js'
+import {
+  afterStart,
+  buildNaiveLineup,
+  DEFAULT_TACTICS,
+  lineupForFixture,
+  validateLineup,
+  type LineupRule,
+} from '../src/engine/lineup.js'
 import { createGeneratedRosterProvider } from '../src/generate/roster.js'
 import { NHL_2026_27, NHL_2026_27_CLUB_SEEDS } from '../src/data/nhl-2026-27.js'
 
@@ -9,7 +16,11 @@ const IDENTITIES = new Map(
   NHL_2026_27_CLUB_SEEDS.map((club) => [club.id, { code: club.code, name: club.name }]),
 )
 
-const provider = createGeneratedRosterProvider({ structure: NHL_2026_27, seed: 2026, clubIdentities: IDENTITIES })
+const provider = createGeneratedRosterProvider({
+  structure: NHL_2026_27,
+  seed: 2026,
+  clubIdentities: IDENTITIES,
+})
 
 let clubs: readonly Club[]
 let bruins: Club
@@ -21,6 +32,55 @@ beforeAll(async () => {
 })
 
 const rulesOf = (violations: readonly { rule: LineupRule }[]) => violations.map((v) => v.rule)
+
+describe('lineupForFixture (ADR-011)', () => {
+  const lineup = (rotation: GoalieRotation): Lineup => ({
+    ...({} as Lineup),
+    starter: 'first',
+    backup: 'second',
+    tactics: { ...DEFAULT_TACTICS, goalieRotation: rotation },
+  })
+  const rest = lineup({ restOnBackToBack: true, maxConsecutiveStarts: 3 })
+  const ride = lineup({ restOnBackToBack: false, maxConsecutiveStarts: null })
+
+  it('starts the declared starter when nothing has happened yet', () => {
+    expect(lineupForFixture(rest, 0, null)).toBe(rest)
+  })
+
+  it('sits whoever played yesterday', () => {
+    const history = { goalie: 'first', day: 9, consecutiveStarts: 1 }
+    const today = lineupForFixture(rest, 10, history)
+    expect(today.starter).toBe('second')
+    expect(today.backup).toBe('first')
+  })
+
+  it('returns the starter after the backup played yesterday', () => {
+    const history = { goalie: 'second', day: 9, consecutiveStarts: 1 }
+    expect(lineupForFixture(rest, 10, history).starter).toBe('first')
+  })
+
+  it('keeps the starter after a day off', () => {
+    const history = { goalie: 'first', day: 8, consecutiveStarts: 2 }
+    expect(lineupForFixture(rest, 10, history).starter).toBe('first')
+  })
+
+  it('sits the starter after too many starts running', () => {
+    const history = { goalie: 'first', day: 7, consecutiveStarts: 3 }
+    expect(lineupForFixture(rest, 10, history).starter).toBe('second')
+  })
+
+  it('rides the starter with no rule, even on a back-to-back', () => {
+    const history = { goalie: 'first', day: 9, consecutiveStarts: 40 }
+    expect(lineupForFixture(ride, 10, history)).toBe(ride)
+  })
+
+  it('counts starts running, and starts again for a new Goalie', () => {
+    const once = afterStart(null, 'first', 1)
+    const twice = afterStart(once, 'first', 3)
+    expect(twice).toEqual({ goalie: 'first', day: 3, consecutiveStarts: 2 })
+    expect(afterStart(twice, 'second', 4).consecutiveStarts).toBe(1)
+  })
+})
 
 describe('buildNaiveLineup', () => {
   it('produces a valid Lineup for every generated Club', () => {
@@ -89,7 +149,8 @@ describe('validateLineup', () => {
       (s) => s.preferredPositions.length === 1 && s.preferredPositions[0] === 'RD',
     )
     // Fall back to any RD-capable Skater not currently at centre if none is RD-exclusive.
-    const forcedIntoCentre = rightDefenceOnly ?? bruins.skaters.find((s) => s.preferredPositions[0] === 'RD')!
+    const forcedIntoCentre =
+      rightDefenceOnly ?? bruins.skaters.find((s) => s.preferredPositions[0] === 'RD')!
     const broken: Lineup = {
       ...lineup,
       lines: [
@@ -148,10 +209,20 @@ describe('validateLineup', () => {
 
   it('rejects special-teams units of the wrong size (ADR-009)', () => {
     const lineup = buildNaiveLineup(bruins)
-    const fivePenaltyKillers = { ...lineup, penaltyKillUnits: [{ skaters: lineup.powerPlayUnits[0]!.skaters }] }
-    const fourOnThePowerPlay = { ...lineup, powerPlayUnits: [{ skaters: lineup.penaltyKillUnits[0]!.skaters }] }
-    expect(rulesOf(validateLineup(fivePenaltyKillers, bruins))).toContain('special-teams-unit-invalid')
-    expect(rulesOf(validateLineup(fourOnThePowerPlay, bruins))).toContain('special-teams-unit-invalid')
+    const fivePenaltyKillers = {
+      ...lineup,
+      penaltyKillUnits: [{ skaters: lineup.powerPlayUnits[0]!.skaters }],
+    }
+    const fourOnThePowerPlay = {
+      ...lineup,
+      powerPlayUnits: [{ skaters: lineup.penaltyKillUnits[0]!.skaters }],
+    }
+    expect(rulesOf(validateLineup(fivePenaltyKillers, bruins))).toContain(
+      'special-teams-unit-invalid',
+    )
+    expect(rulesOf(validateLineup(fourOnThePowerPlay, bruins))).toContain(
+      'special-teams-unit-invalid',
+    )
   })
 
   it('builds a naive kill from the best defenders, defencemen listed first', () => {
