@@ -179,7 +179,18 @@ which is what the engine counts, since it has no relief appearances yet.
 | --- | --- | --- | --- |
 | Goalies with 20+ starts | 61 | ±8 | Measured |
 | Most-used Goalie out-saves the rest | 0.0065 | ±0.005 | Measured: 0.8985 against 0.8920 |
-| Most-used Goalie, share of starts | 59.0% | ±5 pp | Measured. Asserted from #34, because injuries are part of it |
+| Most-used Goalie, share of starts | 59.0% | ±5 pp | Measured, injuries included |
+
+### Injuries
+
+A proxy, since no injury record is public: Club Fixtures missed by 393 regular
+Skaters, 2025-26 (ADR-012). The engine figure uses the Skaters of the regular
+Lineups with 15 or more minutes a Fixture.
+
+| Metric | Target | Band | Notes |
+| --- | --- | --- | --- |
+| Fixtures missed by regular Skaters | 12.8% | ±3 pp | Measured proxy |
+| Absences per Club per Fixture | 0.46 | ±0.08 | Measured proxy, for 18 dressed |
 
 ### How the tier ratio is defined
 

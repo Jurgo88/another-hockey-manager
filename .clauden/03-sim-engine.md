@@ -217,10 +217,13 @@ single derivation path makes the class impossible.
 ## Event schema
 
 See `packages/sim/src/domain/event.ts`, which is the authoritative definition.
+An `injury` event names a Player and the Fixtures they will miss (ADR-012). One
+from off the ice comes before the first Period; the Player misses that Fixture too.
+
 Every stream ends with `match_end`, the fatigue of each Skater on both Rosters,
 which is what the next Fixture starts from (ADR-010).
 
-Event types: `period_start`, `period_end`, `match_end`, `faceoff`, `shift_change`, `shot`,
+Event types: `period_start`, `period_end`, `injury`, `match_end`, `faceoff`, `shift_change`, `shot`,
 `goal`, `save`, `turnover`, `penalty`, `powerplay_start`, `powerplay_end`.
 
 Every event carries `clock` (elapsed seconds), `period`, and `strength`.

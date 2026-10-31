@@ -59,7 +59,8 @@ Out (deferred, with the phase that owns them in `05-roadmap.md`):
 
 - Real-time in-match coaching. Rejected: high complexity (websockets,
   disconnection handling, clock authority) for worse retention than an
-  asynchronous model.
+  asynchronous model. Turn-based changes at intermissions are a separate
+  question, open as OQ #12.
 - Rink visualisation. The event stream makes it cheap to add later if ever
   wanted, but it is not a goal.
 - Licensed NHL club identity. Names and statistics are factual data; club
@@ -91,3 +92,4 @@ Out (deferred, with the phase that owns them in `05-roadmap.md`):
 | 009 | Special-teams Units are ordered Skater lists; power-play events bracket a numerical advantage |
 | 010 | Fatigue is one rising number, carried through the event stream on a day-based calendar |
 | 011 | Goalie rotation is a Tactics rule applied before the Fixture |
+| 012 | Injuries are events in the stream, and a Lineup answers them by moving up |
