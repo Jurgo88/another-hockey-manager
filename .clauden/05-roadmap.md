@@ -17,8 +17,15 @@ No web application, no database, no authentication. `packages/sim` only.
 8. Season scheduling and standings
 9. CLI: simulate a Season, print standings and scoring leaders
 10. Realism suite
+11. Calendar and fatigue carried between Fixtures (ADR-010)
+12. Goalie rotation across a Season
+13. Injuries and Roster replacement
+14. Calibration
 
 **Gate:** all four tiers in `04-validation-targets.md` are green.
+
+Items 11-13 change how often Players appear and how good they are on the day,
+so they land before calibration, which would otherwise have to run twice.
 
 Tier 2 is the one that will take the time. Expect to iterate on unit strength
 composition and ice-time distribution rather than on the shot model.

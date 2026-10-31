@@ -88,3 +88,5 @@ Out (deferred, with the phase that owns them in `05-roadmap.md`):
 | 006 | Real NHL 2026-27 competition structure and 84-game schedule key |
 | 007 | Playoff formats are declarative data |
 | 008 | Attributes carry provenance and confidence |
+| 009 | Special-teams Units are ordered Skater lists; power-play events bracket a numerical advantage |
+| 010 | Fatigue is one rising number, carried through the event stream on a day-based calendar |

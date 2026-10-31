@@ -88,8 +88,10 @@ Per Shift:
 2. **Strength check.** If a man advantage is active, the appropriate special
    teams `Unit` replaces the even-strength selection.
 3. **Possession sequence.** Level 2 runs.
-4. **Fatigue.** Each Player on the ice accrues fatigue inversely to `stamina`;
-   Players on the bench recover.
+4. **Fatigue.** Each Skater on the ice accrues fatigue inversely to `stamina`,
+   and a long Shift costs more per second than a short one. There is no
+   recovery on the bench: fatigue falls only between Fixtures. A tired unit
+   loses `offence` first and `defending` much less (ADR-010).
 5. Emit `shift_change`.
 
 ### Level 2 - Possession resolution
@@ -215,7 +217,10 @@ single derivation path makes the class impossible.
 ## Event schema
 
 See `packages/sim/src/domain/event.ts`, which is the authoritative definition.
-Event types: `period_start`, `period_end`, `faceoff`, `shift_change`, `shot`,
+Every stream ends with `match_end`, the fatigue of each Skater on both Rosters,
+which is what the next Fixture starts from (ADR-010).
+
+Event types: `period_start`, `period_end`, `match_end`, `faceoff`, `shift_change`, `shot`,
 `goal`, `save`, `turnover`, `penalty`, `powerplay_start`, `powerplay_end`.
 
 Every event carries `clock` (elapsed seconds), `period`, and `strength`.
