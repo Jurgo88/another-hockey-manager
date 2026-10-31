@@ -39,6 +39,7 @@ Identifier scheme follows the convention established on HermanTool:
 | FR-23 | Ice-time deployment must match measured NHL distribution: about 19:34 per Fixture for a first-Line forward and 12:03 for a fourth-Line forward. The point gap between tiers must come mostly from scoring rate, not from extra ice time. See `04-validation-targets.md`. |
 | FR-13 | A CLI command simulates a full Season and prints standings plus scoring leaders. |
 | FR-14 | Fatigue accumulates within a Match, lowers play, and carries across a congested schedule, recovering between Fixtures. See ADR-010. |
+| FR-25 | The backup Goalie starts Fixtures under a rule in Tactics: whoever played yesterday may sit, and whoever has started a set number running may sit the next. The rule is applied before the Fixture, the same for every Manager. See ADR-011. |
 | FR-24 | A Fixture is scheduled on a calendar day. Gaps between a Club's Fixtures follow the measured NHL shape, about one in six a back-to-back, and no Club plays three days running. See ADR-010. |
 
 ## Non-functional requirements

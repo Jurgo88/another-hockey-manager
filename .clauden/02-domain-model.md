@@ -129,6 +129,7 @@ is treated as uniformly generated.
 | --- | --- | --- |
 | `aggression` | 0-100 | Trades defensive structure for offensive pressure. Raises both shot generation and shots allowed, and raises penalty rate. |
 | `shotVolume` | 0-100 | Higher means more attempts from distance and fewer forced plays: more shots, lower average danger. |
+| `goalieRotation` | rule | When the backup starts: whoever played yesterday sits, and a limit on starts running (ADR-011). |
 | `shiftLength` | 0-100 | Higher means shorter shifts - less fatigue, but the Matchup policy gets less traction. |
 | `matchup` | enum | `none`, `exploit` (top Line against weakest Pairing), `shutdown` (best defensive unit against their top Line). |
 

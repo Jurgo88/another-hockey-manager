@@ -167,7 +167,19 @@ the noise of one Season, about ±0.10 goals, which sets the bands.
 | Back-to-backs per Club, 84 Fixtures | 13.7 | ±1.5 | Measured 13.4, scaled |
 | Goals for lost on a back-to-back | 0.20 | ±0.15 | Measured: 3.17 against 2.97 |
 | Goals against added on a back-to-back | 0.05 | ±0.15 | Measured: 3.12 against 3.17 |
-| Win rate lost on a back-to-back | 4.7 pp | ±3 pp | Measured: 50.5% against 45.8%. Asserted from #33, because backups played many of these Fixtures |
+| Win rate lost on a back-to-back | 4.7 pp | ±3 pp | Measured: 50.5% against 45.8% |
+
+### Goalie starts
+
+Measured from the game log of every Goalie, 2,624 starts (ADR-011). The Goalie
+rows above count 66 Goalies with 20 or more appearances. By starts it is 61,
+which is what the engine counts, since it has no relief appearances yet.
+
+| Metric | Target | Band | Notes |
+| --- | --- | --- | --- |
+| Goalies with 20+ starts | 61 | ±8 | Measured |
+| Most-used Goalie out-saves the rest | 0.0065 | ±0.005 | Measured: 0.8985 against 0.8920 |
+| Most-used Goalie, share of starts | 59.0% | ±5 pp | Measured. Asserted from #34, because injuries are part of it |
 
 ### How the tier ratio is defined
 
