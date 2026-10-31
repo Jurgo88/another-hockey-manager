@@ -117,6 +117,14 @@ export interface MatchStats {
   goalies: ReadonlyMap<PlayerId, GoalieStats>
   /** Where the Match left each Skater, 0-100 (ADR-010). A state, not a count: never summed. */
   fatigue: ReadonlyMap<PlayerId, number>
+  injuries: readonly Injury[]
+}
+
+/** Who a Match put out, and for how many of the Club's Fixtures after it (ADR-012). */
+export interface Injury {
+  playerId: PlayerId
+  clubId: ClubId
+  fixtures: number
 }
 
 export function points(skater: SkaterStats): number {
@@ -268,6 +276,7 @@ export function foldMatch(fixture: Fixture, events: readonly MatchEvent[]): Matc
   const shootout = { held: false, homeGoals: 0, awayGoals: 0 }
   let reachedOvertime = false
   let fatigue: ReadonlyMap<PlayerId, number> = new Map()
+  const injuries: Injury[] = []
 
   for (const event of events) {
     if (event.type === 'match_end') {
@@ -290,6 +299,10 @@ export function foldMatch(fixture: Fixture, events: readonly MatchEvent[]): Matc
         break
 
       case 'period_end':
+        break
+
+      case 'injury':
+        injuries.push({ playerId: event.player, clubId: event.clubId, fixtures: event.fixtures })
         break
 
       case 'shift_change':
@@ -459,6 +472,7 @@ export function foldMatch(fixture: Fixture, events: readonly MatchEvent[]): Matc
     },
     periods,
     fatigue,
+    injuries,
     scoring,
     clubs,
     skaters,

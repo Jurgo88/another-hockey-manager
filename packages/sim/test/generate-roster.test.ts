@@ -116,7 +116,7 @@ describe('createGeneratedRosterProvider', () => {
     // A Lineup dresses 18 Skaters and 2 Goalies (FR-20).
     expect(ROSTER_SHAPE.forwards + ROSTER_SHAPE.defence).toBeGreaterThan(18)
     expect(ROSTER_SHAPE.goalies).toBeGreaterThan(2)
-    expect(ROSTER_SIZE).toBe(25)
+    expect(ROSTER_SIZE).toBe(29)
   })
 
   it('gives every Player a unique id and no duplicate names inside a Club', () => {

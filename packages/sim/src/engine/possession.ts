@@ -37,7 +37,7 @@ const MIN_POSSESSION_SECONDS = 2
 // --- Outcome of a possession -----------------------------------------------
 
 /** Log-odds that a possession between average units ends in a shot attempt. */
-const ATTEMPT_BASE = logit(0.35)
+const ATTEMPT_BASE = logit(0.36)
 /** Slope on the attacking unit's offence minus the defending unit's defence. */
 const ATTEMPT_EDGE = 0.45
 /** `shotVolume` at 100 adds this to attempt log-odds (and -this at 0). */
@@ -297,6 +297,8 @@ export interface PossessionModel {
    */
   playShift(shift: ShiftSelection, segment: Segment, events: MatchEvent[]): number
   goals(): { home: number; away: number }
+  /** Puts another Goalie of the Club in net. */
+  changeGoalie(side: Side, goalie: PlayerId): void
 }
 
 export function createPossessionModel(
@@ -329,6 +331,11 @@ export function createPossessionModel(
 
     goals() {
       return { ...score }
+    },
+
+    changeGoalie(side, goalie) {
+      const club = side === 'home' ? input.homeClub : input.awayClub
+      contexts[side].goalie = club.goalies.find((g) => g.id === goalie)!
     },
 
     playShift(shift, segment, events) {

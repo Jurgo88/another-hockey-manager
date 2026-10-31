@@ -154,6 +154,19 @@ export interface PowerPlayEndEvent extends EventBase {
 }
 
 /**
+ * A Player is hurt (ADR-012). Off the ice it comes before the opening faceoff
+ * and the Player misses this Fixture too; `fixtures` counts only the ones after.
+ */
+export interface InjuryEvent extends EventBase {
+  type: 'injury'
+  clubId: ClubId
+  player: PlayerId
+  /** Club Fixtures missed after this one. */
+  fixtures: number
+  offIce: boolean
+}
+
+/**
  * The last event of every stream: where the Match left each Skater on both
  * Rosters, 0-100. What the next Fixture starts from comes from here (ADR-010).
  */
@@ -174,6 +187,7 @@ export type MatchEvent =
   | PenaltyEvent
   | PowerPlayStartEvent
   | PowerPlayEndEvent
+  | InjuryEvent
   | MatchEndEvent
 
 export type MatchEventType = MatchEvent['type']

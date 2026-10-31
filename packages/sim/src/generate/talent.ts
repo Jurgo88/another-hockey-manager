@@ -40,39 +40,30 @@ export type Ability = number
  * how real depth charts look: the difference between a first and second Line
  * is far larger than between a third and a fourth.
  */
+// prettier-ignore
 export const FORWARD_SLOT_ABILITY: readonly Ability[] = [
-  0.88,
-  0.85,
-  0.82, // first Line   - mean 0.850
-  0.74,
-  0.71,
-  0.68, // second       - mean 0.710, a drop of 0.140
-  0.63,
-  0.61,
-  0.59, // third        - mean 0.610, a drop of 0.100
-  0.53,
-  0.51,
-  0.49, // fourth       - mean 0.510, a drop of 0.100
-  0.44,
-  0.42, // spares
+  0.88, 0.85, 0.82, // first Line   - mean 0.850
+  0.74, 0.71, 0.68, // second       - mean 0.710, a drop of 0.140
+  0.63, 0.61, 0.59, // third        - mean 0.610, a drop of 0.100
+  0.53, 0.51, 0.49, // fourth       - mean 0.510, a drop of 0.100
+  0.44, 0.42, // spares
+  0.4, 0.38, // call-ups
 ]
 
+// prettier-ignore
 export const DEFENCE_SLOT_ABILITY: readonly Ability[] = [
-  0.87,
-  0.83, // first pairing - mean 0.850
-  0.72,
-  0.69, // second        - mean 0.705, a drop of 0.145
-  0.61,
-  0.58, // third         - mean 0.595, a drop of 0.110
-  0.48,
-  0.45, // spares
+  0.87, 0.83, // first pairing - mean 0.850
+  0.72, 0.69, // second        - mean 0.705, a drop of 0.145
+  0.61, 0.58, // third         - mean 0.595, a drop of 0.110
+  0.48, 0.45, // spares
+  0.42, 0.4, // call-ups
 ]
 
 /**
  * Close together on purpose. Measured, a Club's second Goalie saves only 0.0065
- * less than its first (ADR-011), and the third is the call-up.
+ * less than its first (ADR-011), and a third-stringer is still an NHL Goalie.
  */
-export const GOALIE_SLOT_ABILITY: readonly Ability[] = [0.84, 0.82, 0.47]
+export const GOALIE_SLOT_ABILITY: readonly Ability[] = [0.84, 0.82, 0.8]
 
 /**
  * How much of a Player's ability comes from the quality of their Club.

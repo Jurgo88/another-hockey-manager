@@ -1,6 +1,15 @@
 import type { MatchEvent, Period } from '../domain/event.js'
+import type { Club, Lineup } from '../domain/club.js'
 import type { Fixture, FixtureInput } from '../domain/fixture.js'
+import type { PlayerId } from '../domain/player.js'
 import { createRng, type Rng } from '../rng/index.js'
+import {
+  absenceLength,
+  goalieInjuryChance,
+  OFF_ICE_INJURY_CHANCE,
+  skaterInjuryChance,
+} from './injury.js'
+import { withoutInjured } from './lineup.js'
 import { createPenaltyBox, otherSide, type Side } from './penalties.js'
 import { createPossessionModel } from './possession.js'
 import { playShootout } from './shootout.js'
@@ -38,8 +47,44 @@ interface PeriodRules {
   pullGoalie: boolean
 }
 
-export function simulateFixture(input: FixtureInput, seed: number): MatchEvent[] {
+export function simulateFixture(declared: FixtureInput, seed: number): MatchEvent[] {
   const rng = createRng(seed)
+  const injuryRng = rng.fork('injuries')
+  const events: MatchEvent[] = []
+
+  /** Anyone hurt away from the ice before this Fixture, and the Lineup without them. */
+  const fitToPlay = (club: Club, lineup: Lineup): Lineup => {
+    const dressed = [
+      lineup.starter,
+      lineup.backup,
+      ...lineup.lines.flatMap((line) => [line.leftWing, line.centre, line.rightWing]),
+      ...lineup.pairings.flatMap((pairing) => [pairing.leftDefence, pairing.rightDefence]),
+    ]
+    const out = new Set<PlayerId>()
+    for (const player of dressed) {
+      if (!injuryRng.chance(OFF_ICE_INJURY_CHANCE)) continue
+      out.add(player)
+      events.push({
+        type: 'injury',
+        clock: 0,
+        period: 1,
+        strength: 'even',
+        clubId: club.id,
+        player,
+        // This Fixture is the first one missed.
+        fixtures: absenceLength(injuryRng) - 1,
+        offIce: true,
+      })
+    }
+    return out.size === 0 ? lineup : withoutInjured(club, lineup, out)
+  }
+
+  const input: FixtureInput = {
+    ...declared,
+    homeLineup: fitToPlay(declared.homeClub, declared.homeLineup),
+    awayLineup: fitToPlay(declared.awayClub, declared.awayLineup),
+  }
+
   const shifts = createShiftLoop(
     { club: input.homeClub, lineup: input.homeLineup },
     { club: input.awayClub, lineup: input.awayLineup },
@@ -47,10 +92,14 @@ export function simulateFixture(input: FixtureInput, seed: number): MatchEvent[]
   )
   const clubIds = { home: input.homeClub.id, away: input.awayClub.id }
   const goalies = { home: input.homeLineup.starter, away: input.awayLineup.starter }
+  /** Who comes in if the Goalie in net is hurt; nobody, once they have. */
+  const backups: Record<Side, PlayerId | null> = {
+    home: input.homeLineup.backup,
+    away: input.awayLineup.backup,
+  }
   const tactics = { home: input.homeLineup.tactics, away: input.awayLineup.tactics }
   const box = createPenaltyBox(clubIds)
   const play = createPossessionModel(input, box, rng.fork('play'))
-  const events: MatchEvent[] = []
 
   const level = () => play.goals().home === play.goals().away
 
@@ -81,6 +130,42 @@ export function simulateFixture(input: FixtureInput, seed: number): MatchEvent[]
       ),
     )
 
+  /** Whoever was on the ice for `seconds` may be hurt. Play goes on, so this falls between Shifts. */
+  const injuries = (
+    side: Side,
+    onIce: readonly PlayerId[],
+    netEmpty: boolean,
+    seconds: number,
+    clock: number,
+    period: Period,
+  ): void => {
+    const hurt = (player: PlayerId) =>
+      events.push({
+        type: 'injury',
+        clock,
+        period,
+        strength: box.strength(side),
+        clubId: clubIds[side],
+        player,
+        fixtures: absenceLength(injuryRng),
+        offIce: false,
+      })
+
+    for (const player of onIce) {
+      if (!injuryRng.chance(skaterInjuryChance(seconds))) continue
+      hurt(player)
+      shifts.injure(side, player)
+    }
+
+    const backup = backups[side]
+    if (backup !== null && !netEmpty && injuryRng.chance(goalieInjuryChance(seconds))) {
+      hurt(goalies[side])
+      goalies[side] = backup
+      backups[side] = null
+      play.changeGoalie(side, backup)
+    }
+  }
+
   /**
    * Plays one Period from `start`, appending its events, and returns the
    * clock it ended on. `closesFixture` is asked at the end: if this is the
@@ -107,7 +192,7 @@ export function simulateFixture(input: FixtureInput, seed: number): MatchEvent[]
     const sideSituation = (side: Side, emptyNet: boolean): SideSituation => ({
       strength: box.strength(side),
       skaters: box.skaters(side) + (emptyNet ? 1 : 0),
-      boxed: box.boxed(side),
+      boxed: new Set([...box.boxed(side), ...shifts.injured(side)]),
       threeOnThree: rules.threeOnThree,
     })
 
@@ -148,6 +233,9 @@ export function simulateFixture(input: FixtureInput, seed: number): MatchEvent[]
         events,
       )
       shifts.played(shift, reached - clock)
+      for (const side of ['home', 'away'] as const) {
+        injuries(side, onIceIds(shift[side]), emptyNet[side], reached - clock, reached, period)
+      }
       clock = reached
     }
 
@@ -204,7 +292,13 @@ export function simulateFixture(input: FixtureInput, seed: number): MatchEvent[]
     if (!level()) return
 
     events.push({ type: 'period_start', clock: end, period: 'SO', strength: 'even' })
-    const winner = playShootout(input, end, rng.fork('shootout'), events)
+    const inNet: FixtureInput = {
+      ...input,
+      homeLineup: { ...input.homeLineup, starter: goalies.home },
+      awayLineup: { ...input.awayLineup, starter: goalies.away },
+    }
+    const injured = new Set([...shifts.injured('home'), ...shifts.injured('away')])
+    const winner = playShootout(inNet, injured, end, rng.fork('shootout'), events)
     const goals = play.goals()
     events.push({
       type: 'period_end',

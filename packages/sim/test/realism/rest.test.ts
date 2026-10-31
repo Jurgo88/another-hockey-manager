@@ -11,7 +11,9 @@ import { simulateSeason } from '../../src/cli/season.js'
 
 const SEASON_SEEDS = [1, 2, 3, 4, 5, 6, 7, 8]
 const CLUBS = 32
-const FATIGUE_CEILING = 100
+/** No more than this share of Skaters may end a Match worn out. */
+const WORN_OUT_SHARE = 0.001
+const WORN_OUT = 90
 
 const within = (value: number, target: number, band: number) => {
   expect(value).toBeGreaterThanOrEqual(target - band)
@@ -28,15 +30,23 @@ interface Rest {
 describe('rest between Fixtures', async () => {
   const rest = new Map<number, Rest>()
   let gaps = 0
-  let highestFatigue = 0
+  let injuries = 0
+  let clubFixtures = 0
+  let wornOut = 0
+  let skaterMatches = 0
 
   for (const seed of SEASON_SEEDS) {
     const { fixtures, matches } = await simulateSeason(seed)
     const lastDay = new Map<string, number>()
 
     fixtures.forEach((fixture, i) => {
-      const { result, fatigue } = matches[i]!
-      highestFatigue = Math.max(highestFatigue, ...fatigue.values())
+      const { result, fatigue, injuries: hurt } = matches[i]!
+      injuries += hurt.length
+      clubFixtures += 2
+      for (const value of fatigue.values()) {
+        skaterMatches++
+        if (value >= WORN_OUT) wornOut++
+      }
 
       const sides = [
         { clubId: fixture.homeClubId, goalsFor: result.homeGoals, against: result.awayGoals },
@@ -90,11 +100,15 @@ describe('rest between Fixtures', async () => {
     )
   })
 
+  it('loses 0.46 ±0.08 Players per Club per Fixture', () => {
+    within(injuries / clubFixtures, 0.46, 0.08)
+  })
+
   it('a back-to-back costs 4.7 pp ±3 pp of win rate', () => {
     within((100 * normal.wins) / normal.games - (100 * backToBack.wins) / backToBack.games, 4.7, 3)
   })
 
   it('does not saturate over a Season', () => {
-    expect(highestFatigue).toBeLessThan(FATIGUE_CEILING)
+    expect(wornOut / skaterMatches).toBeLessThan(WORN_OUT_SHARE)
   })
 })

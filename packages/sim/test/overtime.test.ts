@@ -75,7 +75,8 @@ describe('regular-season overtime (FR-09)', async () => {
   it('plays level overtime 3-on-3 with the overtime trios', () => {
     const trioPlayers = new Set(buildNaiveLineup(home).overtimeRotation.flatMap((t) => t.players))
     let checked = 0
-    for (const { events } of results) {
+    // An injury changes who is dressed, and so who makes up the trios.
+    for (const { events } of results.filter((r) => !r.events.some((e) => e.type === 'injury'))) {
       for (const shift of events.filter(isShift)) {
         if (shift.period !== 'OT' || shift.strength !== 'even' || shift.clubId !== home.id) continue
         expect(shift.onIce).toHaveLength(3)
