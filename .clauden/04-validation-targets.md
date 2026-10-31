@@ -202,6 +202,11 @@ instead:
 - Tier 4: forwards ranked 289-384 - the fourth-line band
 - The ratio is the mean points of tier 1 over the mean points of tier 4
 
+Ranks cover every forward who appeared, spares included, because the measured
+ranks cover all 615 forwards of the league. The test first ranked only the 384
+forwards of the regular Lineups, which put tier 4 at the very bottom of the
+sample and overstated the ratio by about 0.2 (#15). No band moved.
+
 The test must compute it exactly this way. A league-wide rank tier is not the
 same thing as a real first Line: the best 96 forwards cluster on good Clubs, so
 tier 1 sits above the average actual first Line and tier 4 below the average
@@ -240,6 +245,37 @@ plausible, and that is the problem. Measured or marked, never assumed.
 Points use the NHL scheme: 2 for a win, 1 for an overtime or shootout loss, 0
 for a regulation loss. The targets above are only comparable to real standings
 under that scheme, which is why OQ #1 resolved to it.
+
+### Calibration result
+
+Issue #15, over 16 Seasons (seeds 1 to 16). The suite asserts seeds 1 to 8.
+
+| Metric | Target | Band | Engine |
+| --- | --- | --- | --- |
+| League scoring leader, points | 141 | ±25 | 117.8 |
+| Fifth-highest scorer, points | 106 | ±20 | 103.3 |
+| Median Skater with 40+ Fixtures, points | 30 | ±6 | 27.1 |
+| Forward tier-1 to tier-4 points ratio | 4.4 | ±0.8 | 4.86 |
+| Forward tier-1 to tier-4 points-per-minute ratio | 2.71 | ±0.50 | 3.16 |
+| Top-10 goalscorers' share of league goals | 5.7% | ±1.5 pp | 6.74% |
+| Most-used Goalie out-saves the rest | 0.0065 | ±0.005 | 0.0103 |
+
+What moved: the third and fourth Lines rose 0.05 and 0.10 in ability, assists
+lean on the best passers on the ice, the backup Goalie slot rose from 0.82 to
+0.83, and `ATTEMPT_BASE` fell from 0.36 to 0.355 to hold the goal rate.
+
+**The leader and the points-per-minute ratio pull against each other, and the
+room between them is narrow.** Stronger assist concentration lifts the leader
+and widens the ratio. Seeds 9 to 16 alone put the leader below its band at about
+115 with an assist exponent of 1.75, the suite's seeds above it, and the mean of
+all 16 at 116.3, so 2 was chosen to centre both rows. Passing on seeds 1 to 8 is
+not a margin.
+
+**The top of the league is still too even.** The leader over the fifth-highest
+scorer is 1.14 against a measured 1.34. No row asserts this. More generational
+Players, a larger bonus or a larger first power-play share did not move it, and
+an exponent on the shooter draw lifts all first-Line forwards together and
+breaks the top-10 share. A single outlying star needs its own mechanism.
 
 ## Tier 3 - Tactics are not placebos
 
