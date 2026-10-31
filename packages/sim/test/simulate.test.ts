@@ -69,7 +69,7 @@ describe('simulateFixture', () => {
     for (const seed of [1, 2, 3, 4, 5]) {
       const events = simulateFixture(input, seed)
       expect(events[0]).toMatchObject({ type: 'period_start', period: 1, clock: 0 })
-      expect(events.at(-1)).toMatchObject({ type: 'period_end', period: 3, clock: 3600 })
+      expect(events.at(-2)).toMatchObject({ type: 'period_end', period: 3, clock: 3600 })
       expect(events.filter((e) => e.type === 'period_start').map((e) => e.clock)).toEqual([
         0, 1200, 2400,
       ])
@@ -152,7 +152,7 @@ describe('simulateFixture', () => {
     const [home, away] = await twoClubs()
     for (const events of playMany(20, (seed) => play(home, away, seed))) {
       const result = foldMatch(fixtureBetween(home.id, away.id), events).result
-      expect(events.at(-1)).toMatchObject({
+      expect(events.at(-2)).toMatchObject({
         homeGoals: result.homeGoals,
         awayGoals: result.awayGoals,
       })

@@ -42,6 +42,55 @@ describe('NHL 2026-27 structure', () => {
   })
 })
 
+describe('the calendar (ADR-010)', () => {
+  const fixtures = generateSchedule({
+    structure: NHL_2026_27,
+    seasonId: 's1',
+    rng: createRng(7),
+  })
+  const daysOf = (clubId: ClubId) =>
+    fixtures
+      .filter((f) => f.homeClubId === clubId || f.awayClubId === clubId)
+      .map((f) => f.day)
+      .sort((a, b) => a - b)
+
+  it('keeps each Fixture inside its round', () => {
+    const { daysPerRound } = NHL_2026_27.calendar
+    for (const fixture of fixtures) {
+      expect(Math.floor(fixture.day / daysPerRound)).toBe(fixture.round)
+    }
+  })
+
+  it('leaves one to three days between two Fixtures of a Club', () => {
+    for (const clubId of CLUB_IDS) {
+      const days = daysOf(clubId)
+      for (let i = 1; i < days.length; i++) {
+        const gap = days[i]! - days[i - 1]!
+        expect(gap).toBeGreaterThanOrEqual(1)
+        expect(gap).toBeLessThanOrEqual(3)
+      }
+    }
+  })
+
+  it('never has a Club play three days running', () => {
+    for (const clubId of CLUB_IDS) {
+      const days = daysOf(clubId)
+      for (let i = 2; i < days.length; i++) {
+        expect(days[i]! - days[i - 2]!).toBeGreaterThan(2)
+      }
+    }
+  })
+
+  it('reads the calendar as data (D-10)', () => {
+    const everyFixtureEarly = generateSchedule({
+      structure: { ...NHL_2026_27, calendar: { daysPerRound: 3, lastDayShare: 0 } },
+      seasonId: 's1',
+      rng: createRng(7),
+    })
+    expect(everyFixtureEarly.every((f) => f.day === f.round * 3)).toBe(true)
+  })
+})
+
 describe('generateSchedule', () => {
   let fixtures: Fixture[]
 

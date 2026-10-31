@@ -20,7 +20,7 @@ export interface Rng {
   /**
    * Derives an independent generator from this one, labelled by `label`.
    * Used to give each fixture its own stream so that adding a fixture to a
-   * season does not shift the results of the others.
+   * season does not shift the random numbers of the others.
    */
   fork(label: string): Rng
 }

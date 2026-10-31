@@ -28,6 +28,7 @@ function played(
       shootout: decidedIn === 'shootout' ? { homeGoals: 1, awayGoals: 0 } : null,
     },
     periods: [],
+    fatigue: new Map(),
     scoring: [],
     clubs: new Map(),
     skaters: new Map(),

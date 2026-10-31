@@ -115,6 +115,8 @@ export interface MatchStats {
   clubs: ReadonlyMap<ClubId, ClubStats>
   skaters: ReadonlyMap<PlayerId, SkaterStats>
   goalies: ReadonlyMap<PlayerId, GoalieStats>
+  /** Where the Match left each Skater, 0-100 (ADR-010). A state, not a count: never summed. */
+  fatigue: ReadonlyMap<PlayerId, number>
 }
 
 export function points(skater: SkaterStats): number {
@@ -265,8 +267,13 @@ export function foldMatch(fixture: Fixture, events: readonly MatchEvent[]): Matc
   let awayGoals = 0
   const shootout = { held: false, homeGoals: 0, awayGoals: 0 }
   let reachedOvertime = false
+  let fatigue: ReadonlyMap<PlayerId, number> = new Map()
 
   for (const event of events) {
+    if (event.type === 'match_end') {
+      fatigue = new Map(Object.entries(event.fatigue))
+      continue
+    }
     if (event.period === 'SO') {
       shootout.held = true
       if (event.type === 'shot' && event.result === 'goal') {
@@ -451,6 +458,7 @@ export function foldMatch(fixture: Fixture, events: readonly MatchEvent[]): Matc
         : null,
     },
     periods,
+    fatigue,
     scoring,
     clubs,
     skaters,

@@ -181,6 +181,15 @@ export function simulateFixture(input: FixtureInput, seed: number): MatchEvent[]
     playoffOvertime(clock)
   }
 
+  const last = events.at(-1)!
+  events.push({
+    type: 'match_end',
+    clock: last.clock,
+    period: last.period,
+    strength: 'even',
+    fatigue: shifts.fatigue(),
+  })
+
   return events
 
   /** Five minutes of sudden-death 3-on-3, then a shootout (FR-09). */
@@ -229,7 +238,7 @@ export function simulateFixture(input: FixtureInput, seed: number): MatchEvent[]
 /**
  * The seed a Season gives one Fixture (D-08). Derived from the Fixture's id,
  * not its position, so re-scheduling or adding a Club does not perturb the
- * other Fixtures. Stored on the `Match` so any Fixture can be replayed alone.
+ * random numbers of the others. With its input, it replays the Fixture alone.
  */
 export function fixtureSeed(seasonRng: Rng, fixture: Fixture): number {
   return seasonRng.fork(`fixture:${fixture.id}`).int(0, 0xffffffff)

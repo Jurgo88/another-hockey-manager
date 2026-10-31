@@ -34,6 +34,14 @@ export interface ScheduleKey {
   interConference: { games: number; home: number }
 }
 
+/** How the rounds of a schedule spread over the calendar (ADR-010). */
+export interface ScheduleCalendar {
+  /** Days one round spans. */
+  daysPerRound: number
+  /** Chance a Fixture falls on the last day of its round rather than the first. */
+  lastDayShare: number
+}
+
 export interface CompetitionStructure {
   id: CompetitionId
   name: string
@@ -42,6 +50,7 @@ export interface CompetitionStructure {
   conferences: readonly Conference[]
   divisions: readonly Division[]
   scheduleKey: ScheduleKey
+  calendar: ScheduleCalendar
   /** How a level regular-season Fixture is decided, or null when ties stand (FR-09b). */
   overtime: OvertimeRegime | null
 }

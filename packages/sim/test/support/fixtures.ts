@@ -7,6 +7,7 @@ export function fixtureBetween(homeClubId: ClubId, awayClubId: ClubId, id = 'f1'
     competitionId: 'nhl',
     seasonId: 's1',
     round: 0,
+    day: 0,
     homeClubId,
     awayClubId,
     overtime: 'regular-3on3-then-shootout',
