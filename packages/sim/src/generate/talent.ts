@@ -1,4 +1,8 @@
-import { clampAttribute, type GoalieAttributes, type SkaterAttributes } from '../domain/attributes.js'
+import {
+  clampAttribute,
+  type GoalieAttributes,
+  type SkaterAttributes,
+} from '../domain/attributes.js'
 import type { SkaterPosition } from '../domain/player.js'
 import type { Rng } from '../rng/index.js'
 
@@ -37,21 +41,38 @@ export type Ability = number
  * is far larger than between a third and a fourth.
  */
 export const FORWARD_SLOT_ABILITY: readonly Ability[] = [
-  0.88, 0.85, 0.82, // first Line   - mean 0.850
-  0.74, 0.71, 0.68, // second       - mean 0.710, a drop of 0.140
-  0.63, 0.61, 0.59, // third        - mean 0.610, a drop of 0.100
-  0.53, 0.51, 0.49, // fourth       - mean 0.510, a drop of 0.100
-  0.44, 0.42, // spares
+  0.88,
+  0.85,
+  0.82, // first Line   - mean 0.850
+  0.74,
+  0.71,
+  0.68, // second       - mean 0.710, a drop of 0.140
+  0.63,
+  0.61,
+  0.59, // third        - mean 0.610, a drop of 0.100
+  0.53,
+  0.51,
+  0.49, // fourth       - mean 0.510, a drop of 0.100
+  0.44,
+  0.42, // spares
 ]
 
 export const DEFENCE_SLOT_ABILITY: readonly Ability[] = [
-  0.87, 0.83, // first pairing - mean 0.850
-  0.72, 0.69, // second        - mean 0.705, a drop of 0.145
-  0.61, 0.58, // third         - mean 0.595, a drop of 0.110
-  0.48, 0.45, // spares
+  0.87,
+  0.83, // first pairing - mean 0.850
+  0.72,
+  0.69, // second        - mean 0.705, a drop of 0.145
+  0.61,
+  0.58, // third         - mean 0.595, a drop of 0.110
+  0.48,
+  0.45, // spares
 ]
 
-export const GOALIE_SLOT_ABILITY: readonly Ability[] = [0.85, 0.66, 0.47]
+/**
+ * Close together on purpose. Measured, a Club's second Goalie saves only 0.0065
+ * less than its first (ADR-011), and the third is the call-up.
+ */
+export const GOALIE_SLOT_ABILITY: readonly Ability[] = [0.84, 0.82, 0.47]
 
 /**
  * How much of a Player's ability comes from the quality of their Club.
@@ -69,6 +90,11 @@ export const CLUB_WEIGHT = 0.02
 
 /** Per-Player noise, so a depth chart is not perfectly ordered by slot. */
 export const ABILITY_NOISE = 0.04
+/**
+ * Smaller for Goalies. The better of two becomes the starter, so noise alone
+ * opens a gap between them, and it is what spreads league save percentages.
+ */
+export const GOALIE_ABILITY_NOISE = 0.02
 
 /** Chance a Skater is generational, and how far above his slot that puts him. */
 export const GENERATIONAL_CHANCE = 0.012
@@ -102,13 +128,18 @@ export interface AbilityDraw {
   generational: boolean
 }
 
-export function drawAbility(rng: Rng, slotAbility: Ability, clubStrength: number): AbilityDraw {
+export function drawAbility(
+  rng: Rng,
+  slotAbility: Ability,
+  clubStrength: number,
+  noise: number = ABILITY_NOISE,
+): AbilityDraw {
   const generational = rng.chance(GENERATIONAL_CHANCE)
 
   const raw =
     slotAbility +
     clubStrength * CLUB_WEIGHT +
-    gaussian(rng) * ABILITY_NOISE +
+    gaussian(rng) * noise +
     (generational ? GENERATIONAL_BONUS : 0)
 
   return { ability: Math.max(0.05, Math.min(0.99, raw)), generational }
@@ -142,12 +173,14 @@ function toAttribute(ability: Ability, weight: number, rng: Rng): number {
 }
 
 /** Per-position attribute emphasis. 1.0 is neutral; above 1 is a strength. */
-const SKATER_WEIGHTS: Readonly<Record<SkaterPosition, Partial<Record<keyof SkaterAttributes, number>>>> = {
+const SKATER_WEIGHTS: Readonly<
+  Record<SkaterPosition, Partial<Record<keyof SkaterAttributes, number>>>
+> = {
   C: { faceoffs: 1.18, passing: 1.08, defPositioning: 1.04, offPositioning: 1.04 },
-  LW: { shooting: 1.10, offPositioning: 1.06, faceoffs: 0.45, defPositioning: 0.92 },
-  RW: { shooting: 1.10, offPositioning: 1.06, faceoffs: 0.45, defPositioning: 0.92 },
-  LD: { defPositioning: 1.16, shotBlocking: 1.18, checking: 1.10, shooting: 0.82, faceoffs: 0.25 },
-  RD: { defPositioning: 1.16, shotBlocking: 1.18, checking: 1.10, shooting: 0.82, faceoffs: 0.25 },
+  LW: { shooting: 1.1, offPositioning: 1.06, faceoffs: 0.45, defPositioning: 0.92 },
+  RW: { shooting: 1.1, offPositioning: 1.06, faceoffs: 0.45, defPositioning: 0.92 },
+  LD: { defPositioning: 1.16, shotBlocking: 1.18, checking: 1.1, shooting: 0.82, faceoffs: 0.25 },
+  RD: { defPositioning: 1.16, shotBlocking: 1.18, checking: 1.1, shooting: 0.82, faceoffs: 0.25 },
 }
 
 export function generateSkaterAttributes(

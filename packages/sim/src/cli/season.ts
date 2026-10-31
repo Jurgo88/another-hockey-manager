@@ -4,7 +4,12 @@ import type { Fixture, FixtureId, FixtureInput } from '../domain/fixture.js'
 import type { ClubId, PlayerId } from '../domain/player.js'
 import { NHL_2026_27, NHL_2026_27_CLUB_SEEDS } from '../data/nhl-2026-27.js'
 import { afterRest } from '../engine/fatigue.js'
-import { buildNaiveLineup } from '../engine/lineup.js'
+import {
+  afterStart,
+  buildNaiveLineup,
+  lineupForFixture,
+  type GoalieHistory,
+} from '../engine/lineup.js'
 import { generateSchedule } from '../engine/schedule.js'
 import { fixtureSeed, simulateFixture } from '../engine/simulate.js'
 import { createGeneratedRosterProvider } from '../generate/roster.js'
@@ -70,14 +75,21 @@ export async function simulateSeason(seed: number): Promise<SimulatedSeason> {
     }
   }
 
+  const goalieHistory = new Map<ClubId, GoalieHistory>()
+  const lineupFor = (clubId: ClubId, day: number): Lineup => {
+    const lineup = lineupForFixture(lineups.get(clubId)!, day, goalieHistory.get(clubId) ?? null)
+    goalieHistory.set(clubId, afterStart(goalieHistory.get(clubId) ?? null, lineup.starter, day))
+    return lineup
+  }
+
   const inputs = new Map<FixtureId, FixtureInput>()
   const matches = fixtures.map((fixture) => {
     const input: FixtureInput = {
       fixture,
       homeClub: rested(fixture.homeClubId, fixture.day),
       awayClub: rested(fixture.awayClubId, fixture.day),
-      homeLineup: lineups.get(fixture.homeClubId)!,
-      awayLineup: lineups.get(fixture.awayClubId)!,
+      homeLineup: lineupFor(fixture.homeClubId, fixture.day),
+      awayLineup: lineupFor(fixture.awayClubId, fixture.day),
     }
     inputs.set(fixture.id, input)
 

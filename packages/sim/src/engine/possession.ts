@@ -101,7 +101,7 @@ const PENALTY_BASE = logit(0.0154)
 /** The attacking unit takes far fewer - interference, hooking on the forecheck. Unmeasured. */
 const PENALTY_ATTACKING = -1.1
 /** Slope on the unit's indiscipline (centred, so low `discipline` is positive). */
-const PENALTY_DISCIPLINE = 0.5
+const PENALTY_DISCIPLINE = 0.42
 /** Own `aggression` at 100 adds this to penalty log-odds. */
 const PENALTY_AGGRESSION = 0.3
 

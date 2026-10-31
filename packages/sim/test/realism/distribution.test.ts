@@ -41,6 +41,11 @@ describe('Tier 2 distribution', async () => {
   const seasons = await Promise.all(
     SEASON_SEEDS.map(async (seed) => {
       const { lineups, season } = await simulateSeason(seed)
+      const starterIds = new Set<PlayerId>([...lineups.values()].map((lineup) => lineup.starter))
+      const poolSavePercentage = (starters: boolean) => {
+        const goalies = [...season.goalies].filter(([id]) => starterIds.has(id) === starters)
+        return sum(goalies.map(([, g]) => g.saves)) / sum(goalies.map(([, g]) => g.shotsAgainst))
+      }
       const forwardIds = new Set<PlayerId>(
         [...lineups.values()].flatMap((lineup) =>
           lineup.lines.flatMap((line) => [line.leftWing, line.centre, line.rightWing]),
@@ -71,6 +76,8 @@ describe('Tier 2 distribution', async () => {
         topScorersShare: (100 * sum(goals.slice(0, LEADERBOARD_SIZE))) / sum(goals),
         goalieSpread: percentile(savePercentages, 0.9) - percentile(savePercentages, 0.1),
         medianGoalie: percentile(savePercentages, 0.5),
+        regularGoalies: savePercentages.length,
+        startersGap: poolSavePercentage(true) - poolSavePercentage(false),
       }
     }),
   )
@@ -128,8 +135,6 @@ describe('Tier 2 distribution', async () => {
     )
   })
 
-  // Measured over 66 Goalies with 20+ appearances. Until backups play (#33) the
-  // engine's sample is its 32 starters, so these two rows prove less than they seem to.
   it('Goalie save percentage spread, p90 - p10: 0.0335 ±0.010', () => {
     within(
       average((s) => s.goalieSpread),
@@ -143,6 +148,22 @@ describe('Tier 2 distribution', async () => {
       average((s) => s.medianGoalie),
       0.895,
       0.008,
+    )
+  })
+
+  it('Goalies with 20+ Fixtures: 61 ±8', () => {
+    within(
+      average((s) => s.regularGoalies),
+      61,
+      8,
+    )
+  })
+
+  it('a starter out-saves the rest by 0.0065 ±0.005', () => {
+    within(
+      average((s) => s.startersGap),
+      0.0065,
+      0.005,
     )
   })
 })

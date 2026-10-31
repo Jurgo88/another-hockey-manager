@@ -1,6 +1,14 @@
 import { SKATER_ATTRIBUTE_KEYS } from '../domain/attributes.js'
 import { PENALTY_KILL_UNIT_SIZE, POWER_PLAY_UNIT_SIZE } from '../domain/club.js'
-import type { Club, Lineup, MatchupPolicy, OvertimeTrio, Pairing, Tactics, Unit } from '../domain/club.js'
+import type {
+  Club,
+  Lineup,
+  MatchupPolicy,
+  OvertimeTrio,
+  Pairing,
+  Tactics,
+  Unit,
+} from '../domain/club.js'
 import type { Line } from '../domain/club.js'
 import type { PlayerId, Skater, SkaterPosition } from '../domain/player.js'
 
@@ -66,7 +74,9 @@ export function validateLineup(lineup: Lineup, club: Club): readonly LineupViola
 
     const skater = skaterById.get(playerId)
     if (!skater) {
-      violations.push(violation('not-on-roster', `${where}: Player ${playerId} is not a Skater on ${club.id}.`))
+      violations.push(
+        violation('not-on-roster', `${where}: Player ${playerId} is not a Skater on ${club.id}.`),
+      )
       return
     }
     if (!skater.preferredPositions.includes(position)) {
@@ -91,32 +101,47 @@ export function validateLineup(lineup: Lineup, club: Club): readonly LineupViola
   })
 
   for (const playerId of seenTwice) {
-    violations.push(violation('duplicate-player', `Player ${playerId} is dressed in more than one slot.`))
+    violations.push(
+      violation('duplicate-player', `Player ${playerId} is dressed in more than one slot.`),
+    )
   }
 
   if (!goalieById.has(lineup.starter)) {
-    violations.push(violation('not-on-roster', `Starter ${lineup.starter} is not a Goalie on ${club.id}.`))
+    violations.push(
+      violation('not-on-roster', `Starter ${lineup.starter} is not a Goalie on ${club.id}.`),
+    )
   }
   if (!goalieById.has(lineup.backup)) {
-    violations.push(violation('not-on-roster', `Backup ${lineup.backup} is not a Goalie on ${club.id}.`))
+    violations.push(
+      violation('not-on-roster', `Backup ${lineup.backup} is not a Goalie on ${club.id}.`),
+    )
   }
   if (lineup.starter === lineup.backup) {
-    violations.push(violation('goalies-not-distinct', 'Starter and backup Goalie must be different Players.'))
+    violations.push(
+      violation('goalies-not-distinct', 'Starter and backup Goalie must be different Players.'),
+    )
   }
 
   if (lineup.overtimeRotation.length === 0) {
-    violations.push(violation('overtime-rotation-empty', 'At least one overtime trio is required (FR-09).'))
+    violations.push(
+      violation('overtime-rotation-empty', 'At least one overtime trio is required (FR-09).'),
+    )
   }
   for (const [i, trio] of lineup.overtimeRotation.entries()) {
     const ids = trio.players
     const distinct = new Set(ids)
     if (distinct.size !== ids.length) {
-      violations.push(violation('overtime-rotation-invalid', `Overtime trio ${i + 1} repeats a Player.`))
+      violations.push(
+        violation('overtime-rotation-invalid', `Overtime trio ${i + 1} repeats a Player.`),
+      )
     }
     for (const playerId of ids) {
       if (!dressed.has(playerId)) {
         violations.push(
-          violation('overtime-rotation-invalid', `Overtime trio ${i + 1} uses ${playerId}, who is not dressed.`),
+          violation(
+            'overtime-rotation-invalid',
+            `Overtime trio ${i + 1} uses ${playerId}, who is not dressed.`,
+          ),
         )
       }
     }
@@ -125,7 +150,10 @@ export function validateLineup(lineup: Lineup, club: Club): readonly LineupViola
   const checkUnitGroup = (units: readonly Unit[], label: string, size: number) => {
     if (units.length === 0 || units.length > 2) {
       violations.push(
-        violation('special-teams-unit-invalid', `${label} declares ${units.length} units; 1 or 2 are required.`),
+        violation(
+          'special-teams-unit-invalid',
+          `${label} declares ${units.length} units; 1 or 2 are required.`,
+        ),
       )
     }
     units.forEach((unit, i) => {
@@ -140,7 +168,9 @@ export function validateLineup(lineup: Lineup, club: Club): readonly LineupViola
       }
       const distinct = new Set(memberIds)
       if (distinct.size !== memberIds.length) {
-        violations.push(violation('special-teams-unit-invalid', `${label} unit ${i + 1} repeats a Player.`))
+        violations.push(
+          violation('special-teams-unit-invalid', `${label} unit ${i + 1} repeats a Player.`),
+        )
       }
       for (const playerId of memberIds) {
         if (!dressed.has(playerId)) {
@@ -176,6 +206,50 @@ export const DEFAULT_TACTICS: Tactics = {
     { deficit: 2, secondsRemaining: 180, powerPlayOnly: false },
     { deficit: 3, secondsRemaining: 240, powerPlayOnly: true },
   ],
+  // Measured: the same Goalie starts both ends of a back-to-back 8.1% of the time.
+  goalieRotation: {
+    restOnBackToBack: true,
+    maxConsecutiveStarts: 3,
+  },
+}
+
+/** Who a Club last put in net, and how many Fixtures running they have started. */
+export interface GoalieHistory {
+  goalie: PlayerId
+  day: number
+  consecutiveStarts: number
+}
+
+/**
+ * The declared Lineup as it stands for a Fixture on `day`: its `goalieRotation`
+ * applied to its two Goalies, the same for every Manager (D-04). The engine
+ * only ever reads `starter`, so a Manager can also simply set it.
+ */
+export function lineupForFixture(
+  lineup: Lineup,
+  day: number,
+  history: GoalieHistory | null,
+): Lineup {
+  if (history === null) return lineup
+
+  const { restOnBackToBack, maxConsecutiveStarts } = lineup.tactics.goalieRotation
+  const playedYesterday = day - history.day === 1
+  const sits =
+    (restOnBackToBack && playedYesterday) ||
+    (maxConsecutiveStarts !== null && history.consecutiveStarts >= maxConsecutiveStarts)
+  if (!sits || history.goalie === lineup.backup) return lineup
+
+  return { ...lineup, starter: lineup.backup, backup: lineup.starter }
+}
+
+/** The history after a Club puts `goalie` in net on `day`. */
+export function afterStart(
+  history: GoalieHistory | null,
+  goalie: PlayerId,
+  day: number,
+): GoalieHistory {
+  const consecutiveStarts = history?.goalie === goalie ? history.consecutiveStarts + 1 : 1
+  return { goalie, day, consecutiveStarts }
 }
 
 function mean(values: readonly number[]): number {
@@ -191,7 +265,11 @@ function byQualityDesc(a: Skater, b: Skater): number {
   return skaterQuality(b) - skaterQuality(a)
 }
 
-function takeByPosition(skaters: readonly Skater[], position: SkaterPosition, count: number): Skater[] {
+function takeByPosition(
+  skaters: readonly Skater[],
+  position: SkaterPosition,
+  count: number,
+): Skater[] {
   const pool = skaters.filter((s) => s.preferredPositions[0] === position).sort(byQualityDesc)
   if (pool.length < count) {
     throw new Error(
@@ -227,19 +305,25 @@ export function buildNaiveLineup(club: Club, tactics: Tactics = DEFAULT_TACTICS)
     (a, b) => mean(Object.values(b.attributes)) - mean(Object.values(a.attributes)),
   )
   if (goalies.length < 2) {
-    throw new Error(`Naive Lineup builder needs 2 Goalies, only ${goalies.length} available on ${club.id}.`)
+    throw new Error(
+      `Naive Lineup builder needs 2 Goalies, only ${goalies.length} available on ${club.id}.`,
+    )
   }
 
   const bestBy = (score: (s: Skater) => number) => (a: Skater, b: Skater) => score(b) - score(a)
   const powerPlayForwards = [...lw, ...centres, ...rw].sort(
     bestBy((s) => s.attributes.shooting + s.attributes.offPositioning + s.attributes.passing),
   )
-  const powerPlayDefence = [...ld, ...rd].sort(bestBy((s) => s.attributes.shooting + s.attributes.passing))
+  const powerPlayDefence = [...ld, ...rd].sort(
+    bestBy((s) => s.attributes.shooting + s.attributes.passing),
+  )
   // The best defensive forwards kill penalties, whichever Line they play on.
   const killForwards = [...lw, ...centres, ...rw].sort(
     bestBy((s) => s.attributes.defPositioning + s.attributes.checking),
   )
-  const killDefence = [...ld, ...rd].sort(bestBy((s) => s.attributes.defPositioning + s.attributes.shotBlocking))
+  const killDefence = [...ld, ...rd].sort(
+    bestBy((s) => s.attributes.defPositioning + s.attributes.shotBlocking),
+  )
 
   const dressedSkaters = [...lw, ...centres, ...rw, ...ld, ...rd]
   const overallByQuality = [...dressedSkaters].sort(byQualityDesc)
@@ -268,7 +352,12 @@ export function buildNaiveLineup(club: Club, tactics: Tactics = DEFAULT_TACTICS)
       ],
     })),
     penaltyKillUnits: [0, 1].map((i) => ({
-      skaters: [killDefence[2 * i]!.id, killDefence[2 * i + 1]!.id, killForwards[2 * i]!.id, killForwards[2 * i + 1]!.id],
+      skaters: [
+        killDefence[2 * i]!.id,
+        killDefence[2 * i + 1]!.id,
+        killForwards[2 * i]!.id,
+        killForwards[2 * i + 1]!.id,
+      ],
     })),
     overtimeRotation: [overtimeRotation[0]!, overtimeRotation[1]!],
     tactics,
