@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { PlayerId } from '../../src/domain/player.js'
+import type { PlayerId, SkaterPosition } from '../../src/domain/player.js'
 import { simulateSeason } from '../../src/cli/season.js'
 import { points, savePercentage } from '../../src/stats/match.js'
 
@@ -10,10 +10,6 @@ import { points, savePercentage } from '../../src/stats/match.js'
  *
  * Every figure is averaged over eight Seasons, so one Season may fall outside
  * its band while the engine stays on target.
- *
- * `it.fails` marks a row known to be red until calibration (#15). It keeps CI
- * green, and trips when the row lands, so the marker has to come off then.
- * The bands themselves do not move (04-validation-targets.md, Failure protocol).
  */
 
 const SEASON_SEEDS = [1, 2, 3, 4, 5, 6, 7, 8]
@@ -22,6 +18,7 @@ const QUALIFYING_SKATER_FIXTURES = 40
 const QUALIFYING_GOALIE_FIXTURES = 20
 const FIXTURES_PER_CLUB = 84
 const LEADERBOARD_SIZE = 10
+const DEFENCE_POSITIONS: readonly SkaterPosition[] = ['LD', 'RD']
 
 const within = (value: number, target: number, band: number) => {
   expect(value).toBeGreaterThanOrEqual(target - band)
@@ -41,7 +38,7 @@ function percentile(values: readonly number[], share: number): number {
 describe('Tier 2 distribution', async () => {
   const seasons = await Promise.all(
     SEASON_SEEDS.map(async (seed) => {
-      const { lineups, season } = await simulateSeason(seed)
+      const { clubs, lineups, season } = await simulateSeason(seed)
       const starterIds = new Set<PlayerId>([...lineups.values()].map((lineup) => lineup.starter))
       const poolSavePercentage = (starters: boolean) => {
         const goalies = [...season.goalies].filter(([id]) => starterIds.has(id) === starters)
@@ -70,7 +67,17 @@ describe('Tier 2 distribution', async () => {
       const pointTotals = skaters.map(points).sort(descending)
       const qualified = skaters.filter((s) => s.gamesPlayed >= QUALIFYING_SKATER_FIXTURES)
 
-      const forwards = [...season.skaters].filter(([id]) => forwardIds.has(id)).map(([, s]) => s)
+      // Every forward who appeared, spares too: the measured ranks cover the whole league.
+      const appearedForwardIds = new Set<PlayerId>(
+        clubs.flatMap((club) =>
+          club.skaters
+            .filter((s) => !DEFENCE_POSITIONS.includes(s.preferredPositions[0]!))
+            .map((s) => s.id),
+        ),
+      )
+      const forwards = [...season.skaters]
+        .filter(([id]) => appearedForwardIds.has(id))
+        .map(([, s]) => s)
       const byPoints = forwards.map(points).sort(descending)
       const byIceTime = forwards.map((s) => s.iceTimeSeconds / s.gamesPlayed).sort(descending)
       const tierRatio = (ranked: readonly number[]) =>
@@ -125,8 +132,7 @@ describe('Tier 2 distribution', async () => {
     )
   })
 
-  // Known red, mean 5.92 (#15), and no Season is inside the band.
-  it.fails('forward tier-1 to tier-4 point ratio: 4.4 ±0.8', () => {
+  it('forward tier-1 to tier-4 point ratio: 4.4 ±0.8', () => {
     within(
       average((s) => s.pointRatio),
       4.4,
@@ -134,8 +140,7 @@ describe('Tier 2 distribution', async () => {
     )
   })
 
-  // Known red, mean 3.65 (#15). Ice time is on target, so the gap is in the scoring rate.
-  it.fails('forward tier-1 to tier-4 points-per-minute ratio: 2.71 ±0.50', () => {
+  it('forward tier-1 to tier-4 points-per-minute ratio: 2.71 ±0.50', () => {
     within(
       average((s) => s.pointsPerMinuteRatio),
       2.71,
@@ -143,8 +148,7 @@ describe('Tier 2 distribution', async () => {
     )
   })
 
-  // Known red, mean 7.22 against a limit of 7.2 (#15): over by a hair, and it moves with any change.
-  it.fails("top-10 goalscorers' share of league goals: 5.7% ±1.5 pp", () => {
+  it("top-10 goalscorers' share of league goals: 5.7% ±1.5 pp", () => {
     within(
       average((s) => s.topScorersShare),
       5.7,

@@ -37,7 +37,7 @@ const MIN_POSSESSION_SECONDS = 2
 // --- Outcome of a possession -----------------------------------------------
 
 /** Log-odds that a possession between average units ends in a shot attempt. */
-const ATTEMPT_BASE = logit(0.36)
+const ATTEMPT_BASE = logit(0.355)
 /** Slope on the attacking unit's offence minus the defending unit's defence. */
 const ATTEMPT_EDGE = 0.45
 /** `shotVolume` at 100 adds this to attempt log-odds (and -this at 0). */
@@ -129,6 +129,13 @@ const MAJOR_CHANCE: Partial<Record<PenaltyKind, number>> = { boarding: 0.5, cros
 
 /** A defenceman's pull on the shooter draw relative to a forward. */
 const DEFENCE_SHOOTER_WEIGHT = 0.5
+/**
+ * Exponent on the assist draw: above 1, the best passers on the ice are credited
+ * more than their attributes alone would say. Calibrated on the league scoring
+ * leader (#15). The shooter draw stays linear, because an exponent there also
+ * pushes up the top-10 share of goals.
+ */
+const ASSIST_PULL = 2
 
 /** Log-odds of a goal for a typical attempt against an average goalie. */
 const DANGER_BASE = logit(0.1255)
@@ -702,7 +709,9 @@ export function createPossessionModel(
             candidates[
               weightedIndex(
                 rng,
-                candidates.map((s) => s.attributes.passing + s.attributes.offPositioning),
+                candidates.map((s) =>
+                  Math.pow(s.attributes.passing + s.attributes.offPositioning, ASSIST_PULL),
+                ),
               )
             ]!
           credited.push(pick.id)
