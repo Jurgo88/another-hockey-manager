@@ -85,6 +85,16 @@ function unitQuality(state: ClubState, playerIds: readonly PlayerId[]): number {
   return mean(playerIds.map((id) => skaterQuality(state.skaterById.get(id)!)))
 }
 
+/** How well a unit defends, from the same attributes possession resolution reads. */
+function unitDefence(state: ClubState, playerIds: readonly PlayerId[]): number {
+  return mean(
+    playerIds.map((id) => {
+      const { defPositioning, checking, speed } = state.skaterById.get(id)!.attributes
+      return (defPositioning + checking + speed) / 3
+    }),
+  )
+}
+
 function unitFatigue(state: ClubState, playerIds: readonly PlayerId[]): number {
   return mean(playerIds.map((id) => state.fatigue.get(id)!))
 }
@@ -284,11 +294,11 @@ export function createShiftLoop(
       // only at even strength - special teams are not chosen to match.
       if (awayLine && awayPairing) {
         const policy = home.lineup.tactics.matchup
-        const awayLineQuality = unitQuality(awayState, playersOf(awayLine))
         const awayPairingQuality = unitQuality(awayState, playersOfPairing(awayPairing))
-        const awayLineAvg = mean(
-          awayState.lineup.lines.map((l) => unitQuality(awayState, playersOf(l))),
+        const awayLineQualities = awayState.lineup.lines.map((l) =>
+          unitQuality(awayState, playersOf(l)),
         )
+        const awayLineQuality = unitQuality(awayState, playersOf(awayLine))
         const awayPairingAvg = mean(
           awayState.lineup.pairings.map((p) => unitQuality(awayState, playersOfPairing(p))),
         )
@@ -297,9 +307,13 @@ export function createShiftLoop(
         if (policy === 'exploit' && awayPairingQuality < awayPairingAvg) {
           homeLineWeights[0] = homeLineWeights[0]! * MATCHUP_BIAS_MULTIPLIER
         }
-        // shutdown: away's committed Line is stronger than its own average -> favour home's top Pairing.
-        if (policy === 'shutdown' && awayLineQuality > awayLineAvg) {
+        // shutdown: away's best Line is out -> favour home's best defensive Line and top
+        // Pairing. Only that Line: chasing every above-average one shuts down nobody.
+        if (policy === 'shutdown' && awayLineQuality >= Math.max(...awayLineQualities)) {
           homePairingWeights[0] = homePairingWeights[0]! * MATCHUP_BIAS_MULTIPLIER
+          const lineDefence = homeState.lineup.lines.map((l) => unitDefence(homeState, playersOf(l)))
+          const best = lineDefence.indexOf(Math.max(...lineDefence))
+          homeLineWeights[best] = homeLineWeights[best]! * MATCHUP_BIAS_MULTIPLIER
         }
       }
 

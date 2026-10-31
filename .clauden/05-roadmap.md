@@ -30,40 +30,9 @@ so they land before calibration, which would otherwise have to run twice.
 Tier 2 is the one that will take the time. Expect to iterate on unit strength
 composition and ice-time distribution rather than on the shot model.
 
-## Phase 0.5 - Real roster import
-
-A separate phase because it is a separate modelling project, not a ticket.
-Runs after the Phase 0 gate and before Phase 1.
-
-- Roster file format, with import and export (ADR-003 amendment)
-- Attribute estimator from public data (ADR-008): NHL EDGE tracking for
-  `speed`, `shooting`, `stamina`; published rates for `faceoffs` and
-  `discipline`; deployment-adjusted performance statistics for the inferable
-  group; generated values, honestly marked, for the rest
-- Provenance and confidence populated per attribute, per Player
-- Generated Players for everyone outside the tracked population - prospects,
-  minor leagues, juniors, Europe
-
-**Why it comes after Phase 0, and not before.** The engine is calibrated
-against distributions, and a generator gives exact control over the
-distribution it is fed. Feed real estimated attributes into an unvalidated
-engine and a wrong result has two possible causes - a bad engine or bad
-ratings - with no way to tell them apart. Two unknowns, one equation.
-
-**Why it comes before Phase 1, and the payoff.** Once the engine is trusted,
-importing real Rosters becomes the test for the estimator: import the real
-NHL, simulate the Season, and check whether the standings and the scoring race
-resemble what actually happened. That validation loop only exists in this
-order. It is not caution about sequencing - it is the only sequence in which
-either piece can be verified at all.
-
-**Gate:** a simulated Season from imported real Rosters produces standings and
-a scoring leaderboard recognisably close to the real Season, and every
-attribute carries a source and a confidence rather than an unmarked guess.
-
 ## Phase 1 - One Club, one Season, playable
 
-Adds `apps/web` (Nuxt) and Supabase. Schema is designed after Phase 0, when
+Plays on generated Rosters. Adds `apps/web` (Nuxt) and Supabase. Schema is designed after Phase 0, when
 the shape of the data the engine actually produces is known rather than
 guessed.
 
@@ -83,6 +52,40 @@ All domain logic lives in Nitro server routes.
 outcome is interesting - not while testing. If not, the problem is in the
 engine or in the visibility of consequence, and it is fixed there. Adding
 features is not the remedy.
+
+## Phase 0.5 - Real roster import
+
+A separate phase because it is a separate modelling project, not a ticket.
+Runs after Phase 1. It was planned before Phase 1, and the author moved it on
+2026-10-31: the game plays on generated Rosters, and D-05 means real ones can be
+added later without touching the engine, so it should not delay the first
+playable version.
+
+- Roster file format, with import and export (ADR-003 amendment)
+- Attribute estimator from public data (ADR-008): NHL EDGE tracking for
+  `speed`, `shooting`, `stamina`; published rates for `faceoffs` and
+  `discipline`; deployment-adjusted performance statistics for the inferable
+  group; generated values, honestly marked, for the rest
+- Provenance and confidence populated per attribute, per Player
+- Generated Players for everyone outside the tracked population - prospects,
+  minor leagues, juniors, Europe
+
+**Why it comes after Phase 0, and not before.** The engine is calibrated
+against distributions, and a generator gives exact control over the
+distribution it is fed. Feed real estimated attributes into an unvalidated
+engine and a wrong result has two possible causes - a bad engine or bad
+ratings - with no way to tell them apart. Two unknowns, one equation.
+
+**The payoff.** Once the engine is trusted,
+importing real Rosters becomes the test for the estimator: import the real
+NHL, simulate the Season, and check whether the standings and the scoring race
+resemble what actually happened. That validation loop only exists in this
+order. It is not caution about sequencing - it is the only sequence in which
+either piece can be verified at all.
+
+**Gate:** a simulated Season from imported real Rosters produces standings and
+a scoring leaderboard recognisably close to the real Season, and every
+attribute carries a source and a confidence rather than an unmarked guess.
 
 ## Phase 2 - Multiple Seasons
 
