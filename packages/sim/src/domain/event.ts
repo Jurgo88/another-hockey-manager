@@ -166,6 +166,12 @@ export interface InjuryEvent extends EventBase {
   offIce: boolean
 }
 
+/** A Club took up another Lineup or Tactics at this intermission (ADR-016). */
+export interface LineupChangeEvent extends EventBase {
+  type: 'lineup_change'
+  clubId: ClubId
+}
+
 /**
  * The last event of every stream: where the Match left each Skater on both
  * Rosters, 0-100. What the next Fixture starts from comes from here (ADR-010).
@@ -178,6 +184,7 @@ export interface MatchEndEvent extends EventBase {
 export type MatchEvent =
   | PeriodStartEvent
   | PeriodEndEvent
+  | LineupChangeEvent
   | FaceoffEvent
   | ShiftChangeEvent
   | ShotEvent

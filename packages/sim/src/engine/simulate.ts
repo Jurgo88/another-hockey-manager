@@ -98,6 +98,7 @@ export function simulateFixture(declared: FixtureInput, seed: number): MatchEven
     away: input.awayLineup.backup,
   }
   const tactics = { home: input.homeLineup.tactics, away: input.awayLineup.tactics }
+  const lineups = { home: input.homeLineup, away: input.awayLineup }
   const box = createPenaltyBox(clubIds)
   const play = createPossessionModel(input, box, rng.fork('play'))
 
@@ -252,6 +253,36 @@ export function simulateFixture(declared: FixtureInput, seed: number): MatchEven
     return clock
   }
 
+  /**
+   * Takes up what the Clubs chose at this intermission. It draws no random
+   * numbers, so all that came before stays exactly as it was (ADR-016).
+   */
+  const intermission = (period: 1 | 2 | 3, clock: number): void => {
+    for (const change of input.intermissions ?? []) {
+      if (change.afterPeriod !== period) continue
+      const side: Side = change.clubId === clubIds.home ? 'home' : 'away'
+      const { lineup } = change
+
+      shifts.changeLineup(side, lineup)
+      play.changeTactics(side, lineup.tactics)
+      tactics[side] = lineup.tactics
+      lineups[side] = lineup
+      // Only the Goalie on the bench can come in: a hurt one has already left.
+      if (backups[side] === lineup.starter) {
+        backups[side] = goalies[side]
+        goalies[side] = lineup.starter
+        play.changeGoalie(side, lineup.starter)
+      }
+      events.push({
+        type: 'lineup_change',
+        clock,
+        period,
+        strength: box.strength(side),
+        clubId: change.clubId,
+      })
+    }
+  }
+
   let clock = 0
   for (const period of REGULATION_PERIODS) {
     const last = period === REGULATION_PERIODS.at(-1)
@@ -261,6 +292,7 @@ export function simulateFixture(declared: FixtureInput, seed: number): MatchEven
       { length: PERIOD_LENGTH, suddenDeath: false, threeOnThree: false, pullGoalie: last },
       () => last && (input.fixture.overtime === null || !level()),
     )
+    if (!last || (input.fixture.overtime !== null && level())) intermission(period, clock)
   }
 
   if (level() && input.fixture.overtime === 'regular-3on3-then-shootout') {
@@ -294,8 +326,8 @@ export function simulateFixture(declared: FixtureInput, seed: number): MatchEven
     events.push({ type: 'period_start', clock: end, period: 'SO', strength: 'even' })
     const inNet: FixtureInput = {
       ...input,
-      homeLineup: { ...input.homeLineup, starter: goalies.home },
-      awayLineup: { ...input.awayLineup, starter: goalies.away },
+      homeLineup: { ...lineups.home, starter: goalies.home },
+      awayLineup: { ...lineups.away, starter: goalies.away },
     }
     const injured = new Set([...shifts.injured('home'), ...shifts.injured('away')])
     const winner = playShootout(inNet, injured, end, rng.fork('shootout'), events)

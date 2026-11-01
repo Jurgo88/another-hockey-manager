@@ -31,6 +31,7 @@ export type LineupRule =
   | 'overtime-rotation-empty'
   | 'overtime-rotation-invalid'
   | 'special-teams-unit-invalid'
+  | 'not-dressed'
 
 export interface LineupViolation {
   rule: LineupRule

@@ -59,8 +59,8 @@ Out (deferred, with the phase that owns them in `05-roadmap.md`):
 
 - Real-time in-match coaching. Rejected: high complexity (websockets,
   disconnection handling, clock authority) for worse retention than an
-  asynchronous model. Turn-based changes at intermissions are a separate
-  question, open as OQ #12.
+  asynchronous model. Turn-based changes at intermissions are allowed
+  (ADR-016).
 - Rink visualisation. The event stream makes it cheap to add later if ever
   wanted, but it is not a goal.
 - Licensed NHL club identity. Names and statistics are factual data; club
@@ -96,3 +96,4 @@ Out (deferred, with the phase that owns them in `05-roadmap.md`):
 | 013 | A matchup costs fatigue, and shorter Shifts weaken it |
 | 014 | A Season is plain JSON state advanced one day at a time |
 | 015 | Playoffs are Fixtures added to the Season as they become due |
+| 016 | A change at an intermission is part of the Fixture input |

@@ -306,6 +306,8 @@ export interface PossessionModel {
   goals(): { home: number; away: number }
   /** Puts another Goalie of the Club in net. */
   changeGoalie(side: Side, goalie: PlayerId): void
+  /** Tactics taken up at an intermission. */
+  changeTactics(side: Side, tactics: Tactics): void
 }
 
 export function createPossessionModel(
@@ -343,6 +345,10 @@ export function createPossessionModel(
     changeGoalie(side, goalie) {
       const club = side === 'home' ? input.homeClub : input.awayClub
       contexts[side].goalie = club.goalies.find((g) => g.id === goalie)!
+    },
+
+    changeTactics(side, tactics) {
+      contexts[side].tactics = tactics
     },
 
     playShift(shift, segment, events) {

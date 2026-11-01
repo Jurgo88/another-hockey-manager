@@ -173,6 +173,8 @@ export interface ShiftLoop {
    */
   injure(side: 'home' | 'away', playerId: PlayerId): void
   injured(side: 'home' | 'away'): ReadonlySet<PlayerId>
+  /** A Lineup taken up at an intermission. Anyone hurt stays at the bottom and off the ice. */
+  changeLineup(side: 'home' | 'away', lineup: Lineup): void
 }
 
 /** Every dressed Skater in Lineup order - Lines, then Pairings - with the role the slot gives. */
@@ -263,7 +265,7 @@ export function createShiftLoop(
   const homeRng = rng.fork('home')
   const awayRng = rng.fork('away')
 
-  return { next, played, fatigue, injure, injured }
+  return { next, played, fatigue, injure, injured, changeLineup }
 
   /** The power-play or penalty-kill Unit for a Club with an advantage either way. */
   function specialUnit(state: ClubState, unitRng: Rng, side: SideSituation): OnIce {
@@ -312,8 +314,8 @@ export function createShiftLoop(
       // Home selects with the away unit already committed. Matchups exist
       // only at even strength - special teams are not chosen to match.
       if (awayLine && awayPairing) {
-        const policy = home.lineup.tactics.matchup
-        const bias = matchupBias(home.lineup.tactics.shiftLength)
+        const policy = homeState.lineup.tactics.matchup
+        const bias = matchupBias(homeState.lineup.tactics.shiftLength)
         const awayPairingQuality = unitQuality(awayState, playersOfPairing(awayPairing))
         const awayLineQualities = awayState.lineup.lines.map((l) =>
           unitQuality(awayState, playersOf(l)),
@@ -357,8 +359,8 @@ export function createShiftLoop(
       home: unitFatigue(homeState, onIceIds(homeOnIce)),
       away: unitFatigue(awayState, onIceIds(awayOnIce)),
     }
-    const homeTarget = targetShiftSeconds(home.lineup.tactics.shiftLength, fatigue.home)
-    const awayTarget = targetShiftSeconds(away.lineup.tactics.shiftLength, fatigue.away)
+    const homeTarget = targetShiftSeconds(homeState.lineup.tactics.shiftLength, fatigue.home)
+    const awayTarget = targetShiftSeconds(awayState.lineup.tactics.shiftLength, fatigue.away)
     const seconds = Math.min(Math.max(1, Math.round(Math.min(homeTarget, awayTarget))), maxSeconds)
 
     return { home: homeOnIce, away: awayOnIce, seconds, fatigue, matched }
@@ -373,6 +375,11 @@ export function createShiftLoop(
     const state = side === 'home' ? homeState : awayState
     state.injured.add(playerId)
     state.lineup = movedToBottom(state.lineup, playerId)
+  }
+
+  function changeLineup(side: 'home' | 'away', lineup: Lineup): void {
+    const state = side === 'home' ? homeState : awayState
+    state.lineup = [...state.injured].reduce(movedToBottom, lineup)
   }
 
   function injured(side: 'home' | 'away'): ReadonlySet<PlayerId> {
