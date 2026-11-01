@@ -57,10 +57,10 @@ Out (deferred, with the phase that owns them in `05-roadmap.md`):
 
 ## Non-goals, permanently
 
-- Real-time in-match coaching. Rejected: high complexity (websockets,
-  disconnection handling, clock authority) for worse retention than an
-  asynchronous model. Turn-based changes at intermissions are allowed
-  (ADR-016).
+- A real-time server. Rejected: high complexity (websockets, disconnection
+  handling, clock authority) for worse retention than an asynchronous model. A
+  Manager can still coach during a Fixture, because it is revealed in steps
+  (ADR-018).
 - Rink visualisation. The event stream makes it cheap to add later if ever
   wanted, but it is not a goal.
 - Licensed NHL club identity. Names and statistics are factual data; club
@@ -98,3 +98,4 @@ Out (deferred, with the phase that owns them in `05-roadmap.md`):
 | 015 | Playoffs are Fixtures added to the Season as they become due |
 | 016 | A change at an intermission is part of the Fixture input |
 | 017 | Nuxt on Supabase, with the browser kept away from Supabase |
+| 018 | A Fixture is revealed in steps, and a change can come at any of them |

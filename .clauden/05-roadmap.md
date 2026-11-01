@@ -128,7 +128,7 @@ and no manual intervention.
 
 ## What is deliberately absent
 
-Rink visualisation, real-time coaching, mobile applications, club finances
+Rink visualisation, a real-time server, mobile applications, club finances
 beyond wages, stadium management, merchandising, board confidence, press
 conferences. Each is a legitimate feature of the genre and none of them makes
 a bad engine good.
