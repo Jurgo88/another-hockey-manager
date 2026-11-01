@@ -49,6 +49,7 @@ Identifier scheme follows the convention established on HermanTool:
 | FR-31 | A Manager advances a Season one day at a time or up to their next Fixture, stopping before it. The Season state carries regular-Season and playoff Player totals, so leaders need no replay of the Matches. |
 | FR-32 | A Manager is told which Players in their Lineup are out, before a Fixture, and can replace them in one click. A Manager who does nothing is covered by FR-27. A declared Lineup may keep a Skater out of position only when injuries leave no natural replacement. |
 | FR-33 | A Manager receives notices about their Club in an inbox, folded from the Fixtures played: who was hurt and who is fit again. A new kind of notice is one more member of a type and one more line of wording. |
+| FR-34 | A Manager can let an assistant coach propose the best Lineup from the fit Players, using the builder that sets AI Lineups (D-04). Tactics stay, and it counts only once saved. |
 
 ## Non-functional requirements
 
