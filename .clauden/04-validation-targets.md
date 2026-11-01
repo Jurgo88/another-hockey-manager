@@ -277,6 +277,11 @@ Players, a larger bonus or a larger first power-play share did not move it, and
 an exponent on the shooter draw lifts all first-Line forwards together and
 breaks the top-10 share. A single outlying star needs its own mechanism.
 
+**Defencemen score a little too much as a group.** Over 8 Seasons they take 29.1%
+of league points, against 25.3% measured in 2025-26 and 24.8% in 2024-25. The best
+one reaches 88 points against 94 to 97, scaled to 84 Fixtures, and the tenth 69
+against 58 to 62. No row asserts this, and it did not move with calibration.
+
 ## Tier 3 - Tactics are not placebos
 
 Each dial must have a measurable, directionally correct effect. Method: hold
