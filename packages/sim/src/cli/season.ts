@@ -3,7 +3,12 @@ import type { MatchEvent } from '../domain/event.js'
 import type { Fixture, FixtureId } from '../domain/fixture.js'
 import type { ClubId } from '../domain/player.js'
 import { simulateFixture } from '../engine/simulate.js'
-import { advanceDay, isSeasonOver, startSeason, type PlayedFixture } from '../season/index.js'
+import {
+  advanceDay,
+  isRegularSeasonOver,
+  startSeason,
+  type PlayedFixture,
+} from '../season/index.js'
 import type { MatchStats } from '../stats/match.js'
 import { foldSeason, type SeasonStats } from '../stats/season.js'
 
@@ -19,17 +24,19 @@ export interface SimulatedSeason {
   replay(fixtureId: FixtureId): readonly MatchEvent[]
 }
 
-/** One full Season played straight through on the AI Managers' opening Lineups. */
+/** One regular Season played straight through on the AI Managers' opening Lineups. */
 export async function simulateSeason(seed: number): Promise<SimulatedSeason> {
   let state = await startSeason(seed)
 
   const played = new Map<FixtureId, Omit<PlayedFixture, 'events'>>()
+  const fixtures: Fixture[] = []
   const matches: MatchStats[] = []
-  while (!isSeasonOver(state)) {
+  while (!isRegularSeasonOver(state)) {
     const day = advanceDay(state)
     state = day.state
     for (const { fixture, input, seed: fixtureSeed, match } of day.played) {
       played.set(fixture.id, { fixture, input, seed: fixtureSeed, match })
+      fixtures.push(fixture)
       matches.push(match)
     }
   }
@@ -44,7 +51,7 @@ export async function simulateSeason(seed: number): Promise<SimulatedSeason> {
     seed,
     clubs: state.clubs,
     lineups: new Map(Object.entries(state.lineups)),
-    fixtures: state.fixtures,
+    fixtures,
     matches,
     season: foldSeason(matches),
     replay,

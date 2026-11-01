@@ -47,7 +47,7 @@ export type OvertimeRegime =
 export type VenuePattern =
   /** Higher seed at home for games 1, 2, 5 and 7. The NHL pattern (FR-21). */
   | '2-2-1-1-1'
-  /** Higher seed at home for games 1, 2, 5 and 6. */
+  /** Higher seed at home for games 1, 2, 6 and 7. */
   | '2-3-2'
 
 export interface PlayoffFormat {
@@ -70,6 +70,8 @@ export interface PlayoffFormat {
    */
   overtime: OvertimeRegime
   venuePattern: VenuePattern
+  /** Days from one game of a series to the next, and from one round to the next. */
+  daysBetweenFixtures: number
 }
 
 /** A Club that qualified, with the seeding information the bracket needs. */
@@ -104,6 +106,23 @@ export interface PlayoffRound {
 export interface PlayoffBracket {
   formatId: string
   seeds: readonly PlayoffSeed[]
-  /** Only the first round is known up front unless the format reseeds. */
+  /**
+   * Only the first round is known up front; later ones appear as series
+   * resolve. Series are listed in bracket order: the winners of the first two
+   * meet next, then those of the next two, and so on.
+   */
   rounds: readonly PlayoffRound[]
+}
+
+/** Games won so far in one series. */
+export interface SeriesWins {
+  higher: number
+  lower: number
+}
+
+/** The playoffs as they stand. Plain JSON, kept in the Season state (ADR-014). */
+export interface PlayoffState {
+  bracket: PlayoffBracket
+  wins: Readonly<Record<string, SeriesWins>>
+  champion: ClubId | null
 }
