@@ -3,6 +3,9 @@ const { t, locale, locales, setLocale } = useI18n()
 
 const sections = [
   { to: '/', key: 'nav.overview' },
+  { to: '/roster', key: 'nav.roster' },
+  { to: '/lineup', key: 'nav.lineup' },
+  { to: '/tactics', key: 'nav.tactics' },
   { to: '/fixtures', key: 'nav.fixtures' },
   { to: '/standings', key: 'nav.standings' },
   { to: '/leaders', key: 'nav.leaders' },

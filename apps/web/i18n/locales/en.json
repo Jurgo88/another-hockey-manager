@@ -45,7 +45,10 @@
     "noFixture": "That Fixture has no result yet.",
     "seasonMoved": "The Season moved on. Refresh the page.",
     "unknownAdvance": "That is not a way to advance.",
-    "advanceFailed": "The Season did not move on. Refresh the page and try again."
+    "advanceFailed": "The Season did not move on. Refresh the page and try again.",
+    "invalidLineup": "That Lineup breaks the rules.",
+    "fixtureFollowed": "The Lineup is locked while you follow a Fixture.",
+    "saveFailed": "That could not be saved. Refresh the page and try again."
   },
   "nav": {
     "label": "Main menu",
@@ -53,7 +56,10 @@
     "fixtures": "Fixtures",
     "standings": "Standings",
     "leaders": "Leaders",
-    "playoffs": "Playoffs"
+    "playoffs": "Playoffs",
+    "roster": "Roster",
+    "lineup": "Lineup",
+    "tactics": "Tactics"
   },
   "decided": {
     "regulation": "Regulation",
@@ -99,5 +105,69 @@
     "round2": "Division Final",
     "round3": "Conference Final",
     "round4": "Final"
+  },
+  "roster": {
+    "position": "Pos",
+    "place": "Unit",
+    "age": "Age",
+    "fatigue": "Fatigue",
+    "out": "out {fixtures}",
+    "attributes": "Attributes",
+    "notOurs": "That Player is not on your Roster."
+  },
+  "attributes": {
+    "shooting": "Shooting",
+    "passing": "Passing",
+    "puckControl": "Puck control",
+    "offPositioning": "Offensive positioning",
+    "checking": "Checking",
+    "defPositioning": "Defensive positioning",
+    "shotBlocking": "Shot blocking",
+    "faceoffs": "Faceoffs",
+    "speed": "Speed",
+    "stamina": "Stamina",
+    "discipline": "Discipline",
+    "reflexes": "Reflexes",
+    "positioning": "Positioning",
+    "reboundControl": "Rebound control",
+    "recovery": "Recovery",
+    "puckHandling": "Puck handling",
+    "shootingShort": "Sho",
+    "passingShort": "Pas",
+    "speedShort": "Spd",
+    "defPositioningShort": "Def",
+    "staminaShort": "Sta"
+  },
+  "lineup": {
+    "lines": "Lines",
+    "pairings": "Pairings",
+    "powerPlay": "Power play",
+    "penaltyKill": "Penalty kill",
+    "overtime": "Overtime trios",
+    "spares": "Not dressed",
+    "sparesHelp": "Pick a slot above, then a Player here to bring them in.",
+    "help": "Click one Player, then another, and they trade places. Nothing changes until you save.",
+    "reset": "Undo changes",
+    "save": "Save",
+    "saved": "Saved. It counts from your next Fixture."
+  },
+  "tactics": {
+    "style": "Style of play",
+    "aggression": "Aggression",
+    "aggressionHelp": "More shots for and against, and more penalties.",
+    "shotVolume": "Shot volume",
+    "shotVolumeHelp": "More shots, from further out.",
+    "shiftLength": "Shift length",
+    "shiftLengthHelp": "Higher means shorter Shifts: less fatigue, a weaker matchup.",
+    "matchup": "Matchup at home",
+    "none": "None",
+    "noneHelp": "Lines roll in turn.",
+    "exploit": "Exploit",
+    "exploitHelp": "Your first Line hunts their weak Pairing. It costs fatigue.",
+    "shutdown": "Shutdown",
+    "shutdownHelp": "Your best defensive units face their first Line. It costs fatigue.",
+    "rotation": "Goalie rotation",
+    "restOnBackToBack": "Rest the Goalie who played yesterday",
+    "maxStarts": "Starts running before a rest (0 means no limit)"
   }
 }

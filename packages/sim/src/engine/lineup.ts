@@ -32,6 +32,7 @@ export type LineupRule =
   | 'overtime-rotation-invalid'
   | 'special-teams-unit-invalid'
   | 'not-dressed'
+  | 'tactics-invalid'
 
 export interface LineupViolation {
   rule: LineupRule
@@ -187,8 +188,117 @@ export function validateLineup(lineup: Lineup, club: Club): readonly LineupViola
   }
   checkUnitGroup(lineup.powerPlayUnits, 'Power play', POWER_PLAY_UNIT_SIZE)
   checkUnitGroup(lineup.penaltyKillUnits, 'Penalty kill', PENALTY_KILL_UNIT_SIZE)
+  violations.push(...tacticsViolations(lineup.tactics))
 
   return violations
+}
+
+const MATCHUP_POLICIES: readonly MatchupPolicy[] = ['none', 'exploit', 'shutdown']
+
+function tacticsViolations(tactics: Tactics): LineupViolation[] {
+  const { aggression, shotVolume, shiftLength, matchup, goalieRotation } = tactics
+  const found: LineupViolation[] = []
+  for (const [name, value] of Object.entries({ aggression, shotVolume, shiftLength })) {
+    if (!(value >= 0 && value <= 100)) {
+      found.push(violation('tactics-invalid', `${name} must be between 0 and 100.`))
+    }
+  }
+  if (!MATCHUP_POLICIES.includes(matchup)) {
+    found.push(violation('tactics-invalid', `Unknown matchup policy ${matchup}.`))
+  }
+  const { maxConsecutiveStarts } = goalieRotation
+  if (maxConsecutiveStarts !== null && !(maxConsecutiveStarts >= 1)) {
+    found.push(violation('tactics-invalid', 'A limit on starts running must be at least 1.'))
+  }
+  return found
+}
+
+/** One place in a Lineup a Player can stand. */
+export type LineupSlot =
+  | { group: 'line'; index: number; key: keyof Line }
+  | { group: 'pairing'; index: number; key: keyof Pairing }
+  | { group: 'goalie'; key: 'starter' | 'backup' }
+  | { group: 'powerPlay' | 'penaltyKill' | 'overtime'; index: number; position: number }
+
+export function playerAt(lineup: Lineup, slot: LineupSlot): PlayerId {
+  switch (slot.group) {
+    case 'line':
+      return lineup.lines[slot.index]![slot.key]
+    case 'pairing':
+      return lineup.pairings[slot.index]![slot.key]
+    case 'goalie':
+      return lineup[slot.key]
+    case 'powerPlay':
+      return lineup.powerPlayUnits[slot.index]!.skaters[slot.position]!
+    case 'penaltyKill':
+      return lineup.penaltyKillUnits[slot.index]!.skaters[slot.position]!
+    case 'overtime':
+      return lineup.overtimeRotation[slot.index]!.players[slot.position]!
+  }
+}
+
+function withPlayerAt(lineup: Lineup, slot: LineupSlot, player: PlayerId): Lineup {
+  const replaced = <T>(items: readonly T[], index: number, item: T): T[] =>
+    items.map((existing, i) => (i === index ? item : existing))
+  const inUnit = (units: readonly Unit[], index: number, position: number): Unit[] =>
+    replaced(units, index, { skaters: replaced(units[index]!.skaters, position, player) })
+
+  switch (slot.group) {
+    case 'line': {
+      const line = { ...lineup.lines[slot.index]!, [slot.key]: player }
+      return { ...lineup, lines: replaced(lineup.lines, slot.index, line) as unknown as Lineup['lines'] }
+    }
+    case 'pairing': {
+      const pairing = { ...lineup.pairings[slot.index]!, [slot.key]: player }
+      return {
+        ...lineup,
+        pairings: replaced(lineup.pairings, slot.index, pairing) as unknown as Lineup['pairings'],
+      }
+    }
+    case 'goalie':
+      return { ...lineup, [slot.key]: player }
+    case 'powerPlay':
+      return { ...lineup, powerPlayUnits: inUnit(lineup.powerPlayUnits, slot.index, slot.position) }
+    case 'penaltyKill':
+      return {
+        ...lineup,
+        penaltyKillUnits: inUnit(lineup.penaltyKillUnits, slot.index, slot.position),
+      }
+    case 'overtime': {
+      const { players } = lineup.overtimeRotation[slot.index]!
+      const trio: OvertimeTrio = {
+        players: replaced(players, slot.position, player) as unknown as OvertimeTrio['players'],
+      }
+      return { ...lineup, overtimeRotation: replaced(lineup.overtimeRotation, slot.index, trio) }
+    }
+  }
+}
+
+/** Two Players trade places. Only these two slots change: a Unit keeps its own list. */
+export function swapSlots(lineup: Lineup, a: LineupSlot, b: LineupSlot): Lineup {
+  const first = playerAt(lineup, a)
+  const second = playerAt(lineup, b)
+  return withPlayerAt(withPlayerAt(lineup, a, second), b, first)
+}
+
+/**
+ * A Player from outside the Lineup takes a slot, and takes over everywhere
+ * from the one who leaves, since a Unit may only list those dressed.
+ */
+export function bringIn(lineup: Lineup, slot: LineupSlot, player: PlayerId): Lineup {
+  const leaving = playerAt(lineup, slot)
+  const swapped = (id: PlayerId) => (id === leaving ? player : id)
+  const inUnits = (units: readonly Unit[]) =>
+    units.map((unit) => ({ skaters: unit.skaters.map(swapped) }))
+
+  return {
+    ...withPlayerAt(lineup, slot, player),
+    powerPlayUnits: inUnits(lineup.powerPlayUnits),
+    penaltyKillUnits: inUnits(lineup.penaltyKillUnits),
+    overtimeRotation: lineup.overtimeRotation.map((trio) => ({
+      players: trio.players.map(swapped) as unknown as OvertimeTrio['players'],
+    })),
+  }
 }
 
 /**

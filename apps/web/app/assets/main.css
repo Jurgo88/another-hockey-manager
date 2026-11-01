@@ -307,3 +307,69 @@ tr.mine td {
   justify-content: space-between;
   gap: 8px;
 }
+
+.tag-out {
+  color: var(--red-line);
+  font-weight: 700;
+}
+
+.lines {
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+}
+
+.line {
+  display: grid;
+  grid-template-columns: 40px repeat(auto-fit, minmax(150px, 1fr));
+  align-items: center;
+  gap: 6px;
+}
+
+.slot {
+  min-height: 44px;
+  padding: 2px 8px;
+  border: 1px solid var(--rule);
+  background: var(--sheet);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  font: 600 16px var(--display);
+}
+
+.slot:hover {
+  border-color: var(--blue-line);
+}
+
+.slot-picked {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+
+.slot-out {
+  color: var(--red-line);
+}
+
+.dial {
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px;
+}
+
+.dial input[type='range'] {
+  accent-color: var(--blue-line);
+}
+
+.attrs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 4px 16px;
+  padding: 10px;
+}
+
+.attr {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--rule);
+}

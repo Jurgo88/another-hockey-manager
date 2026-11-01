@@ -152,15 +152,19 @@ export async function startSeason(seed: number): Promise<SeasonState> {
 export function setLineup(state: SeasonState, clubId: ClubId, lineup: Lineup): SeasonState {
   // The Fixture so far was played with the Lineup as it stands. Changing that
   // now would replay what the Manager has already seen.
-  const followed = Object.keys(state.live).some((id) => {
-    const fixture = fixtureOf(state, id)
-    return fixture.homeClubId === clubId || fixture.awayClubId === clubId
-  })
-  if (followed) throw new Error(`Club ${clubId} is in a Fixture being followed`)
+  if (isFollowed(state, clubId)) throw new Error(`Club ${clubId} is in a Fixture being followed`)
 
   const violations = validateLineup(lineup, clubOf(state, clubId))
   if (violations.length > 0) throw new InvalidLineupError(clubId, violations)
   return { ...state, lineups: { ...state.lineups, [clubId]: lineup } }
+}
+
+/** Whether a Fixture of this Club is being followed, which locks its Lineup. */
+export function isFollowed(state: SeasonState, clubId: ClubId): boolean {
+  return Object.keys(state.live).some((id) => {
+    const fixture = fixtureOf(state, id)
+    return fixture.homeClubId === clubId || fixture.awayClubId === clubId
+  })
 }
 
 /** Starts following a Fixture of the next day, which shows its first Period. */

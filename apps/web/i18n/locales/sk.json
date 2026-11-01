@@ -45,7 +45,10 @@
     "noFixture": "Tento zápas ešte nemá výsledok.",
     "seasonMoved": "Sezóna sa medzitým posunula. Obnov stránku.",
     "unknownAdvance": "Takýto posun neexistuje.",
-    "advanceFailed": "Sezóna sa neposunula. Obnov stránku a skús to znova."
+    "advanceFailed": "Sezóna sa neposunula. Obnov stránku a skús to znova.",
+    "invalidLineup": "Táto zostava porušuje pravidlá.",
+    "fixtureFollowed": "Počas sledovaného zápasu je zostava zamknutá.",
+    "saveFailed": "Nepodarilo sa to uložiť. Obnov stránku a skús to znova."
   },
   "nav": {
     "label": "Hlavné menu",
@@ -53,7 +56,10 @@
     "fixtures": "Zápasy",
     "standings": "Tabuľky",
     "leaders": "Lídri",
-    "playoffs": "Playoff"
+    "playoffs": "Playoff",
+    "roster": "Roster",
+    "lineup": "Zostava",
+    "tactics": "Taktika"
   },
   "decided": {
     "regulation": "Základná hracia doba",
@@ -99,5 +105,69 @@
     "round2": "Finále divízie",
     "round3": "Finále konferencie",
     "round4": "Finále"
+  },
+  "roster": {
+    "position": "Poz",
+    "place": "Zost",
+    "age": "Vek",
+    "fatigue": "Únava",
+    "out": "mimo {fixtures}",
+    "attributes": "Atribúty",
+    "notOurs": "Tento hráč nie je na tvojom Rosteri."
+  },
+  "attributes": {
+    "shooting": "Streľba",
+    "passing": "Prihrávky",
+    "puckControl": "Kontrola puku",
+    "offPositioning": "Útočné postavenie",
+    "checking": "Bodyček",
+    "defPositioning": "Obranné postavenie",
+    "shotBlocking": "Blokovanie striel",
+    "faceoffs": "Vhadzovania",
+    "speed": "Rýchlosť",
+    "stamina": "Kondícia",
+    "discipline": "Disciplína",
+    "reflexes": "Reflexy",
+    "positioning": "Postavenie",
+    "reboundControl": "Kontrola odrazov",
+    "recovery": "Návrat do pozície",
+    "puckHandling": "Práca s pukom",
+    "shootingShort": "Str",
+    "passingShort": "Pri",
+    "speedShort": "Rýc",
+    "defPositioningShort": "Obr",
+    "staminaShort": "Kon"
+  },
+  "lineup": {
+    "lines": "Formácie",
+    "pairings": "Obranné dvojice",
+    "powerPlay": "Presilovky",
+    "penaltyKill": "Oslabenia",
+    "overtime": "Trojice do predĺženia",
+    "spares": "Mimo zostavy",
+    "sparesHelp": "Vyber miesto vyššie a potom hráča tu, ktorý naň nastúpi.",
+    "help": "Klikni na jedného hráča a potom na druhého a vymenia sa. Nič sa nezmení, kým neuložíš.",
+    "reset": "Zrušiť zmeny",
+    "save": "Uložiť",
+    "saved": "Uložené. Platí od ďalšieho zápasu."
+  },
+  "tactics": {
+    "style": "Štýl hry",
+    "aggression": "Agresivita",
+    "aggressionHelp": "Viac striel pre aj proti a viac trestov.",
+    "shotVolume": "Objem striel",
+    "shotVolumeHelp": "Viac striel, ale z väčšej diaľky.",
+    "shiftLength": "Dĺžka Shiftov",
+    "shiftLengthHelp": "Vyššia hodnota znamená kratšie Shifty: menej únavy, slabší matchup.",
+    "matchup": "Matchup doma",
+    "none": "Žiadny",
+    "noneHelp": "Formácie sa striedajú.",
+    "exploit": "Exploit",
+    "exploitHelp": "Prvá formácia poľuje na ich slabšiu dvojicu. Stojí to únavu.",
+    "shutdown": "Shutdown",
+    "shutdownHelp": "Tvoje najlepšie obranné jednotky idú proti ich prvej formácii. Stojí to únavu.",
+    "rotation": "Rotácia brankárov",
+    "restOnBackToBack": "Oddýchne brankár, ktorý chytal včera",
+    "maxStarts": "Štarty po sebe pred oddychom (0 znamená bez limitu)"
   }
 }
