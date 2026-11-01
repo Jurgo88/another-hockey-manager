@@ -25,10 +25,13 @@ export interface Fixture {
   overtime: OvertimeRegime | null
 }
 
-/** A Lineup and Tactics a Club takes up at an intermission, for the rest of the Fixture. */
-export interface IntermissionChange {
-  /** The Period just ended. After the third it counts only if overtime follows. */
-  afterPeriod: 1 | 2 | 3
+/** A Lineup and Tactics a Club takes up during a Fixture, for the rest of it (ADR-018). */
+export interface FixtureChange {
+  /**
+   * How many events the stream held when the Manager decided. It is taken up
+   * at the first Shift or intermission after that, so those events cannot move.
+   */
+  afterEvent: number
   clubId: ClubId
   lineup: Lineup
 }
@@ -40,8 +43,8 @@ export interface FixtureInput {
   awayClub: Club
   homeLineup: Lineup
   awayLineup: Lineup
-  /** Part of the input, so that a Fixture replays from it like any other (ADR-016). */
-  intermissions?: readonly IntermissionChange[]
+  /** Part of the input, so that a Fixture replays from it like any other (ADR-018). */
+  changes?: readonly FixtureChange[]
 }
 
 /**

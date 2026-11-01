@@ -104,6 +104,30 @@ export function simulateFixture(declared: FixtureInput, seed: number): MatchEven
 
   const level = () => play.goals().home === play.goals().away
 
+  const pendingChanges = [...(input.changes ?? [])]
+  /**
+   * Takes up every change whose moment has passed. It draws no random numbers,
+   * so all the events before it stay exactly as they were (ADR-018).
+   */
+  const takeUpChanges = (clock: number, period: Period): void => {
+    while (pendingChanges[0] && events.length >= pendingChanges[0].afterEvent) {
+      const { clubId, lineup } = pendingChanges.shift()!
+      const side: Side = clubId === clubIds.home ? 'home' : 'away'
+
+      shifts.changeLineup(side, lineup)
+      play.changeTactics(side, lineup.tactics)
+      tactics[side] = lineup.tactics
+      lineups[side] = lineup
+      // Only the Goalie on the bench can come in: a hurt one has already left.
+      if (backups[side] === lineup.starter) {
+        backups[side] = goalies[side]
+        goalies[side] = lineup.starter
+        play.changeGoalie(side, lineup.starter)
+      }
+      events.push({ type: 'lineup_change', clock, period, strength: box.strength(side), clubId })
+    }
+  }
+
   /** Whether `side` should have its Goalie out at `clock`, `end` being the end of the third Period. */
   const pulled = (side: Side, clock: number, end: number): boolean => {
     const goals = play.goals()
@@ -202,6 +226,7 @@ export function simulateFixture(declared: FixtureInput, seed: number): MatchEven
 
     let clock = start
     while (clock < end && !decided()) {
+      takeUpChanges(clock, period)
       // A Shift never runs past a penalty expiring or a Goalie due to be
       // pulled: the people on the ice must change.
       box.expire(clock, period, events)
@@ -253,36 +278,6 @@ export function simulateFixture(declared: FixtureInput, seed: number): MatchEven
     return clock
   }
 
-  /**
-   * Takes up what the Clubs chose at this intermission. It draws no random
-   * numbers, so all that came before stays exactly as it was (ADR-016).
-   */
-  const intermission = (period: 1 | 2 | 3, clock: number): void => {
-    for (const change of input.intermissions ?? []) {
-      if (change.afterPeriod !== period) continue
-      const side: Side = change.clubId === clubIds.home ? 'home' : 'away'
-      const { lineup } = change
-
-      shifts.changeLineup(side, lineup)
-      play.changeTactics(side, lineup.tactics)
-      tactics[side] = lineup.tactics
-      lineups[side] = lineup
-      // Only the Goalie on the bench can come in: a hurt one has already left.
-      if (backups[side] === lineup.starter) {
-        backups[side] = goalies[side]
-        goalies[side] = lineup.starter
-        play.changeGoalie(side, lineup.starter)
-      }
-      events.push({
-        type: 'lineup_change',
-        clock,
-        period,
-        strength: box.strength(side),
-        clubId: change.clubId,
-      })
-    }
-  }
-
   let clock = 0
   for (const period of REGULATION_PERIODS) {
     const last = period === REGULATION_PERIODS.at(-1)
@@ -292,7 +287,7 @@ export function simulateFixture(declared: FixtureInput, seed: number): MatchEven
       { length: PERIOD_LENGTH, suddenDeath: false, threeOnThree: false, pullGoalie: last },
       () => last && (input.fixture.overtime === null || !level()),
     )
-    if (!last || (input.fixture.overtime !== null && level())) intermission(period, clock)
+    if (!last || (input.fixture.overtime !== null && level())) takeUpChanges(clock, period)
   }
 
   if (level() && input.fixture.overtime === 'regular-3on3-then-shootout') {

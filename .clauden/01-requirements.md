@@ -45,7 +45,7 @@ Identifier scheme follows the convention established on HermanTool:
 | FR-24 | A Fixture is scheduled on a calendar day. Gaps between a Club's Fixtures follow the measured NHL shape, about one in six a back-to-back, and no Club plays three days running. See ADR-010. |
 | FR-28 | A Season advances one calendar day at a time from plain stored state. Stopping and reloading between any two days changes no result. See ADR-014. |
 | FR-29 | After the regular Season, playoff series play through the same daily advance until a champion is known. Goalie rotation does not apply in the playoffs. See ADR-015. |
-| FR-30 | A Manager may follow a Fixture Period by Period and change the Lineup and Tactics at each intermission, using only dressed Players. A choice is final once the next Period is shown. With no natural replacement left, an injury can put a Skater out of position; a change may rearrange around that, but may not leave more Skaters out of position than the Fixture already has. See ADR-016. |
+| FR-30 | A Manager may set up before a Fixture, follow it at a chosen speed, pause, and change the Lineup and Tactics at any point, using only dressed Players. A change counts from the next Shift after the revealed part, and nothing revealed can change. With no natural replacement left, an injury can put a Skater out of position; a change may rearrange around that, but may not leave more Skaters out of position than the Fixture already has. See ADR-016 and ADR-018. |
 | FR-31 | A Manager advances a Season one day at a time or up to their next Fixture, stopping before it. The Season state carries regular-Season and playoff Player totals, so leaders need no replay of the Matches. |
 
 ## Non-functional requirements

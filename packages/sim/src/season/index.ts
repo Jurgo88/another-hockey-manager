@@ -1,7 +1,7 @@
 import type { Club, Lineup } from '../domain/club.js'
 import type { CompetitionStructure } from '../domain/competition.js'
 import type { MatchEvent } from '../domain/event.js'
-import type { Fixture, FixtureId, FixtureInput, IntermissionChange } from '../domain/fixture.js'
+import type { Fixture, FixtureChange, FixtureId, FixtureInput } from '../domain/fixture.js'
 import type { ClubId, PlayerId } from '../domain/player.js'
 import type { PlayoffFormat, PlayoffState } from '../domain/playoff.js'
 import type { StandingsRow } from '../domain/standings.js'
@@ -72,16 +72,23 @@ export interface SeasonState {
   live: Readonly<Record<FixtureId, LiveFixture>>
 }
 
-/** How far a Fixture has been followed, and what has been decided at its intermissions. */
+/** How far a Fixture has been followed, and what has been decided along the way. */
 export interface LiveFixture {
-  /** The last Period shown, or null once all of it has been. */
-  throughPeriod: 1 | 2 | 3 | null
-  changes: readonly IntermissionChange[]
+  /** How many events of the stream have been shown. They can no longer change. */
+  shown: number
+  changes: readonly FixtureChange[]
 }
+
+/** Where a followed Fixture stands. */
+export type LivePhase = 'start' | 'running' | 'intermission' | 'ended'
+
+/** How much game time one step of a followed Fixture shows. */
+const REVEAL_SECONDS = 60
 
 /** A Fixture as far as it has been followed. */
 export interface FixtureSoFar {
   events: readonly MatchEvent[]
+  phase: LivePhase
   /** The Lineups in force now, to start a change from. */
   lineups: Readonly<Record<ClubId, Lineup>>
 }
@@ -167,17 +174,17 @@ export function isFollowed(state: SeasonState, clubId: ClubId): boolean {
   })
 }
 
-/** Starts following a Fixture of the next day, which shows its first Period. */
+/** Starts following a Fixture of the next day, with nothing shown yet. */
 export function openFixture(state: SeasonState, fixtureId: FixtureId): SeasonState {
   const fixture = fixtureOf(state, fixtureId)
   if (fixture.day !== state.fixtures[state.nextFixture]?.day) {
     throw new Error(`Fixture ${fixtureId} is not on the next day`)
   }
   if (state.live[fixtureId]) return state
-  return { ...state, live: { ...state.live, [fixtureId]: { throughPeriod: 1, changes: [] } } }
+  return { ...state, live: { ...state.live, [fixtureId]: { shown: 0, changes: [] } } }
 }
 
-/** What a followed Fixture has shown so far. Nothing past the current intermission leaves here. */
+/** What a followed Fixture has shown so far. Nothing past that point leaves here. */
 export function fixtureSoFar(state: SeasonState, fixtureId: FixtureId): FixtureSoFar {
   const live = state.live[fixtureId]
   if (!live) throw new Error(`Fixture ${fixtureId} is not being followed`)
@@ -185,10 +192,6 @@ export function fixtureSoFar(state: SeasonState, fixtureId: FixtureId): FixtureS
   const fixture = fixtureOf(state, fixtureId)
   const input = inputFor(state, fixture)
   const events = simulateFixture(input, seedOf(state, fixture))
-  const { throughPeriod } = live
-  const end = events.findIndex((e) => e.type === 'period_end' && e.period === throughPeriod)
-  const shown = throughPeriod === null ? events : events.slice(0, end + 1)
-
   const inForce = (club: Club, declared: Lineup): Lineup => {
     const out = new Set(
       events.flatMap((e) =>
@@ -199,7 +202,8 @@ export function fixtureSoFar(state: SeasonState, fixtureId: FixtureId): FixtureS
     return changed?.lineup ?? withoutInjured(club, declared, out)
   }
   return {
-    events: shown,
+    events: events.slice(0, live.shown),
+    phase: phaseOf(events, live.shown),
     lineups: {
       [fixture.homeClubId]: inForce(input.homeClub, input.homeLineup),
       [fixture.awayClubId]: inForce(input.awayClub, input.awayLineup),
@@ -207,10 +211,27 @@ export function fixtureSoFar(state: SeasonState, fixtureId: FixtureId): FixtureS
   }
 }
 
+function phaseOf(events: readonly MatchEvent[], shown: number): LivePhase {
+  if (shown === 0) return 'start'
+  if (events[shown]?.type === 'match_end' || shown >= events.length) return 'ended'
+  return events[shown - 1]!.type === 'period_end' ? 'intermission' : 'running'
+}
+
+/** How many events are shown after one more step: a minute, or up to the end of the Period. */
+function revealed(events: readonly MatchEvent[], shown: number): number {
+  const until = (events[shown - 1]?.clock ?? 0) + REVEAL_SECONDS
+  for (let i = shown; i < events.length; i++) {
+    const event = events[i]!
+    if (event.type === 'period_end' || event.type === 'match_end') return i + 1
+    if (event.clock > until) return i
+  }
+  return events.length
+}
+
 /**
- * Plays on to the next intermission, taking up any Lineup a Club chose at this
- * one. The choice is final: there is no going back to it once the next Period
- * has been shown. Only those already dressed can take part.
+ * Shows the next step of a followed Fixture, taking up any Lineup a Club chose
+ * at this point. The choice is final, since what has been shown cannot change.
+ * Only those already dressed can take part.
  */
 export function continueFixture(
   state: SeasonState,
@@ -219,10 +240,9 @@ export function continueFixture(
 ): SeasonState {
   const live = state.live[fixtureId]
   if (!live) throw new Error(`Fixture ${fixtureId} is not being followed`)
-  const { throughPeriod } = live
-  if (throughPeriod === null) throw new Error(`Fixture ${fixtureId} has been shown to its end`)
+  const { lineups, phase } = fixtureSoFar(state, fixtureId)
+  if (phase === 'ended') throw new Error(`Fixture ${fixtureId} has been shown to its end`)
 
-  const { lineups } = fixtureSoFar(state, fixtureId)
   const changes = chosen.map(({ clubId, lineup }) => {
     const before = lineups[clubId]
     if (!before) throw new Error(`Club ${clubId} is not in Fixture ${fixtureId}`)
@@ -232,14 +252,15 @@ export function continueFixture(
       ...notDressed(lineup, before),
     ]
     if (violations.length > 0) throw new InvalidLineupError(clubId, violations)
-    return { afterPeriod: throughPeriod, clubId, lineup }
+    return { afterEvent: live.shown, clubId, lineup }
   })
 
-  const next: LiveFixture = {
-    throughPeriod: throughPeriod === 3 ? null : ((throughPeriod + 1) as 2 | 3),
-    changes: [...live.changes, ...changes],
-  }
-  return { ...state, live: { ...state.live, [fixtureId]: next } }
+  const decided: LiveFixture = { ...live, changes: [...live.changes, ...changes] }
+  const next = { ...state, live: { ...state.live, [fixtureId]: decided } }
+  const fixture = fixtureOf(state, fixtureId)
+  const events = simulateFixture(inputFor(next, fixture), seedOf(state, fixture))
+  const shown = revealed(events, live.shown)
+  return { ...next, live: { ...next.live, [fixtureId]: { ...decided, shown } } }
 }
 
 export function isRegularSeasonOver(state: SeasonState): boolean {
@@ -381,7 +402,7 @@ function inputFor(state: SeasonState, fixture: Fixture): FixtureInput {
     awayClub: rested(state, awayClubId, day),
     homeLineup: lineupFor(state, homeClubId, day),
     awayLineup: lineupFor(state, awayClubId, day),
-    ...(changes.length > 0 ? { intermissions: changes } : {}),
+    ...(changes.length > 0 ? { changes } : {}),
   }
 }
 

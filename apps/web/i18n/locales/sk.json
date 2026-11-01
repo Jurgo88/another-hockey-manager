@@ -51,7 +51,8 @@
     "invalidLineup": "Táto zostava porušuje pravidlá.",
     "fixtureFollowed": "Počas sledovaného zápasu je zostava zamknutá.",
     "saveFailed": "Nepodarilo sa to uložiť. Obnov stránku a skús to znova.",
-    "notFollowing": "Nesleduješ žiadny zápas."
+    "notFollowing": "Nesleduješ žiadny zápas.",
+    "fixtureOver": "Tento zápas sa už dohral."
   },
   "nav": {
     "label": "Hlavné menu",
@@ -209,7 +210,18 @@
     "play": "Hrať ďalej",
     "applyAndPlay": "Použiť a hrať ďalej",
     "finish": "Uložiť výsledok",
-    "help": "Zapojiť sa môžu len nominovaní hráči. Rozhodnutie je konečné, keď hra pokračuje."
+    "help": "Môžeš zmeniť Tactics aj zostavu. Hrať môžu len nominovaní hráči a to, čo sa už odohralo, sa nezmení.",
+    "period": "{period}. perióda",
+    "start": "Začať zápas",
+    "pause": "Pauza",
+    "resume": "Hrať ďalej",
+    "nextPeriod": "Začať ďalšiu periódu",
+    "speed": "Rýchlosť",
+    "skip": "Preskočiť na najbližšiu prestávku",
+    "pressure": "Tlak",
+    "atBreak": "Prestávka",
+    "paused": "Pauza",
+    "pending": "Zmena je pripravená. Platí od ďalšieho Shiftu po pokračovaní hry."
   },
   "plays": {
     "goal": "Gól! {player}, {club}",
@@ -232,5 +244,10 @@
     "highsticking": "vysoká hokejka",
     "crosschecking": "krosček",
     "delayofgame": "zdržiavanie hry"
+  },
+  "prematch": {
+    "title": "Pred zápasom",
+    "start": "Začať zápas",
+    "help": "Nastav si zostavu a Tactics. Začatím zápasu sa uložia."
   }
 }
