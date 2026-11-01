@@ -127,6 +127,32 @@ export interface Injury {
   fixtures: number
 }
 
+/** A Match as plain JSON, for storing a box score. */
+export interface PlainMatchStats extends Omit<
+  MatchStats,
+  'clubs' | 'skaters' | 'goalies' | 'fatigue'
+> {
+  clubs: Readonly<Record<ClubId, ClubStats>>
+  skaters: Readonly<Record<PlayerId, SkaterStats>>
+  goalies: Readonly<Record<PlayerId, GoalieStats>>
+}
+
+export function plainMatchStats(match: MatchStats): PlainMatchStats {
+  const { fixtureId, homeClubId, awayClubId, result, periods, scoring, injuries } = match
+  return {
+    fixtureId,
+    homeClubId,
+    awayClubId,
+    result,
+    periods,
+    scoring,
+    injuries,
+    clubs: Object.fromEntries(match.clubs),
+    skaters: Object.fromEntries(match.skaters),
+    goalies: Object.fromEntries(match.goalies),
+  }
+}
+
 export function points(skater: SkaterStats): number {
   return skater.goals + skater.assists
 }

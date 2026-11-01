@@ -1,5 +1,7 @@
 {
-  "app": { "name": "Another Hockey Manager" },
+  "app": {
+    "name": "Another Hockey Manager"
+  },
   "login": {
     "title": "Sign in",
     "createTitle": "Create an account",
@@ -17,17 +19,85 @@
   },
   "season": {
     "manager": "Manager: {name}",
-    "record": "{fixtures} Fixtures played, {points} points",
+    "record": "{fixtures} Fixtures, {wins}-{losses}-{otLosses}, {points} points",
     "nextHome": "Next: {opponent} at home, day {day}",
     "nextAway": "Next: away at {opponent}, day {day}",
     "newSeason": "Start a new Season",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "nextTitle": "Next up",
+    "playoffsTitle": "Playoffs",
+    "overTitle": "Season over",
+    "champion": "Champion: {club}",
+    "noFixture": "Your Club has no Fixture left.",
+    "missedPlayoffs": "Your Club missed the playoffs.",
+    "toFixture": "Skip to my Fixture",
+    "nextDay": "Next day",
+    "playFixture": "Play my Fixture",
+    "recent": "Recent results"
   },
   "errors": {
     "signedOut": "Please sign in.",
     "invalidLogin": "Wrong email or password.",
     "invalidSignup": "Fill in every field. The password needs at least 8 characters.",
     "signupFailed": "That account could not be created. The email may already be in use.",
-    "unknownClub": "That Club does not exist."
+    "unknownClub": "That Club does not exist.",
+    "noSeason": "You have no Season yet.",
+    "noFixture": "That Fixture has no result yet.",
+    "seasonMoved": "The Season moved on. Refresh the page.",
+    "unknownAdvance": "That is not a way to advance.",
+    "advanceFailed": "The Season did not move on. Refresh the page and try again."
+  },
+  "nav": {
+    "label": "Main menu",
+    "overview": "Overview",
+    "fixtures": "Fixtures",
+    "standings": "Standings",
+    "leaders": "Leaders",
+    "playoffs": "Playoffs"
+  },
+  "decided": {
+    "regulation": "Regulation",
+    "overtime": "Overtime",
+    "shootout": "Shootout"
+  },
+  "fixtures": {
+    "day": "Day",
+    "opponent": "Opponent",
+    "score": "Score",
+    "decided": "Decided"
+  },
+  "box": {
+    "period": "Period",
+    "shots": "Shots",
+    "scoring": "Goals",
+    "player": "Player",
+    "ice": "Ice",
+    "injuries": "Injuries",
+    "injuryLength": "out for {fixtures} Fixtures"
+  },
+  "standings": {
+    "club": "Club",
+    "played": "GP",
+    "wins": "W",
+    "losses": "L",
+    "otLosses": "OTL",
+    "points": "Pts",
+    "goals": "Goals"
+  },
+  "leaders": {
+    "regular": "Regular Season",
+    "playoffs": "Playoffs",
+    "points": "Points",
+    "goals": "Goals",
+    "goalies": "Goalies",
+    "club": "Club",
+    "savePercentage": "Sv%"
+  },
+  "playoffs": {
+    "notYet": "The playoffs start after the regular Season.",
+    "round1": "First Round",
+    "round2": "Division Final",
+    "round3": "Conference Final",
+    "round4": "Final"
   }
 }

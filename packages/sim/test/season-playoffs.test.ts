@@ -110,6 +110,12 @@ describe('a Season to its champion', () => {
     for (const row of end.standings) expect(row.gamesPlayed).toBe(84)
   })
 
+  it('counts playoff scoring apart from the regular Season', () => {
+    const { regular, playoffs } = end.totals
+    expect(regular.matches).toBe(REGULAR_FIXTURES)
+    expect(playoffs.matches).toBe(playoffFixtures.length)
+  })
+
   it('carries fatigue into the playoffs', () => {
     const first = playoffFixtures[0]!.input
     expect(first.homeClub.skaters.some((skater) => skater.fatigue > 0)).toBe(true)

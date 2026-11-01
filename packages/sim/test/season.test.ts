@@ -1,9 +1,13 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import type { MatchEvent } from '../src/domain/event.js'
 import { DEFAULT_TACTICS, validateLineup } from '../src/engine/lineup.js'
+import { plainMatchStats } from '../src/stats/match.js'
+import { foldSeason } from '../src/stats/season.js'
 import {
   advanceDay,
+  advanceToFixtureOf,
   InvalidLineupError,
+  playsNext,
   setLineup,
   startSeason,
   type PlayedFixture,
@@ -86,6 +90,47 @@ describe('advanceDay', () => {
   it('refuses to play past the last Fixture', () => {
     const over = { ...start, fixtures: [] }
     expect(() => advanceDay(over)).toThrow(/no Fixtures left/)
+  })
+})
+
+describe('advanceToFixtureOf', () => {
+  it('stops before the next Fixture of a Club, having played only other days', () => {
+    const clubId = start.fixtures.at(-1)!.homeClubId
+    const days = advanceToFixtureOf(start, clubId)
+    const state = days.at(-1)?.state ?? start
+
+    expect(playsNext(state, clubId)).toBe(true)
+    for (const { played } of days) {
+      for (const { fixture } of played) {
+        expect([fixture.homeClubId, fixture.awayClubId]).not.toContain(clubId)
+      }
+    }
+  })
+
+  it('plays nothing when the Club is already next', () => {
+    const { homeClubId } = start.fixtures[0]!
+    expect(advanceToFixtureOf(start, homeClubId)).toEqual([])
+  })
+})
+
+describe('totals', () => {
+  it('sum the same as folding the Matches', () => {
+    const days = [advanceDay(start)]
+    for (let i = 0; i < 4; i++) days.push(advanceDay(days.at(-1)!.state))
+    const matches = days.flatMap((day) => day.played.map((p) => p.match))
+    const { regular } = days.at(-1)!.state.totals
+
+    expect(regular.matches).toBe(matches.length)
+    expect(new Map(Object.entries(regular.skaters))).toEqual(foldSeason(matches).skaters)
+    expect(new Map(Object.entries(regular.goalies))).toEqual(foldSeason(matches).goalies)
+  })
+
+  it('survive JSON, and a box score is plain JSON too', () => {
+    const { state, played } = advanceDay(start)
+    expect(JSON.parse(JSON.stringify(state.totals))).toEqual(state.totals)
+    const plain = plainMatchStats(played[0]!.match)
+    expect(JSON.parse(JSON.stringify(plain))).toEqual(plain)
+    expect(plain).not.toHaveProperty('fatigue')
   })
 })
 

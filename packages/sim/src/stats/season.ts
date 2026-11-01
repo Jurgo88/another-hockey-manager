@@ -33,6 +33,34 @@ function accumulate<K, T extends { clubId: ClubId }>(
   }
 }
 
+/** Season counts as plain JSON, so stored state can carry them (ADR-014). */
+export interface SeasonTotals {
+  matches: number
+  skaters: Readonly<Record<PlayerId, SkaterStats>>
+  goalies: Readonly<Record<PlayerId, GoalieStats>>
+}
+
+export const NO_TOTALS: SeasonTotals = { matches: 0, skaters: {}, goalies: {} }
+
+/** Carries `totals` on by more Matches, so a Season need not keep them all. */
+export function foldTotals(totals: SeasonTotals, matches: Iterable<MatchStats>): SeasonTotals {
+  const skaters = new Map(Object.entries(totals.skaters))
+  const goalies = new Map(Object.entries(totals.goalies))
+  let count = totals.matches
+
+  for (const match of matches) {
+    count++
+    accumulate(skaters, match.skaters)
+    accumulate(goalies, match.goalies)
+  }
+
+  return {
+    matches: count,
+    skaters: Object.fromEntries(skaters),
+    goalies: Object.fromEntries(goalies),
+  }
+}
+
 /** Accepts any iterable, so a long run can stream Matches through without holding them all. */
 export function foldSeason(matches: Iterable<MatchStats>): SeasonStats {
   const clubs = new Map<ClubId, ClubStats>()

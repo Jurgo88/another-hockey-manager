@@ -1,4 +1,6 @@
 <script setup lang="ts">
+definePageMeta({ layout: 'bare' })
+
 const { t } = useI18n()
 
 const { data: divisions } = await useFetch('/api/clubs', { headers: useRequestHeaders(['cookie']) })
