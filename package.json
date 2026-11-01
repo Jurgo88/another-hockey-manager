@@ -17,6 +17,8 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "sim:season": "pnpm --filter @ahm/sim sim:season",
+    "db:start": "supabase start",
+    "web:dev": "pnpm --filter @ahm/web dev",
     "gh:setup": "node scripts/github/setup-labels-milestones.mjs",
     "gh:setup:dry": "node scripts/github/setup-labels-milestones.mjs --dry-run",
     "gh:issues": "node scripts/github/create-phase-0-issues.mjs",

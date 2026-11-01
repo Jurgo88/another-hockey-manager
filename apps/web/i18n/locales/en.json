@@ -1,0 +1,33 @@
+{
+  "app": { "name": "Another Hockey Manager" },
+  "login": {
+    "title": "Sign in",
+    "createTitle": "Create an account",
+    "name": "Manager name",
+    "email": "Email",
+    "password": "Password (at least 8 characters)",
+    "signIn": "Sign in",
+    "create": "Create account",
+    "needAccount": "New here? Create an account",
+    "haveAccount": "Already have an account? Sign in"
+  },
+  "clubs": {
+    "title": "Choose your Club",
+    "intro": "You manage one Club through a full Season. Choosing replaces any Season you have running."
+  },
+  "season": {
+    "manager": "Manager: {name}",
+    "record": "{fixtures} Fixtures played, {points} points",
+    "nextHome": "Next: {opponent} at home, day {day}",
+    "nextAway": "Next: away at {opponent}, day {day}",
+    "newSeason": "Start a new Season",
+    "signOut": "Sign out"
+  },
+  "errors": {
+    "signedOut": "Please sign in.",
+    "invalidLogin": "Wrong email or password.",
+    "invalidSignup": "Fill in every field. The password needs at least 8 characters.",
+    "signupFailed": "That account could not be created. The email may already be in use.",
+    "unknownClub": "That Club does not exist."
+  }
+}

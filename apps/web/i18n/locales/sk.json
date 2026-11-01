@@ -1,0 +1,33 @@
+{
+  "app": { "name": "Another Hockey Manager" },
+  "login": {
+    "title": "Prihlásenie",
+    "createTitle": "Nový účet",
+    "name": "Meno manažéra",
+    "email": "E-mail",
+    "password": "Heslo (aspoň 8 znakov)",
+    "signIn": "Prihlásiť sa",
+    "create": "Vytvoriť účet",
+    "needAccount": "Si tu prvýkrát? Vytvor si účet",
+    "haveAccount": "Už máš účet? Prihlás sa"
+  },
+  "clubs": {
+    "title": "Vyber si klub",
+    "intro": "Povedieš jeden klub celou sezónou. Výber nahradí sezónu, ktorú máš rozohranú."
+  },
+  "season": {
+    "manager": "Manažér: {name}",
+    "record": "Odohrané zápasy: {fixtures}, body: {points}",
+    "nextHome": "Ďalší zápas: {opponent} doma, deň {day}",
+    "nextAway": "Ďalší zápas: vonku, {opponent}, deň {day}",
+    "newSeason": "Začať novú sezónu",
+    "signOut": "Odhlásiť sa"
+  },
+  "errors": {
+    "signedOut": "Prihlás sa, prosím.",
+    "invalidLogin": "Nesprávny e-mail alebo heslo.",
+    "invalidSignup": "Vyplň všetky polia. Heslo musí mať aspoň 8 znakov.",
+    "signupFailed": "Účet sa nepodarilo vytvoriť. E-mail už môže byť použitý.",
+    "unknownClub": "Taký klub neexistuje."
+  }
+}

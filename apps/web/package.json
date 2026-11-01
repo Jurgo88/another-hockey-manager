@@ -1,0 +1,26 @@
+{
+  "name": "@ahm/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Another Hockey Manager - the Nuxt application.",
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "postinstall": "nuxt prepare",
+    "typecheck": "nuxt typecheck",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@ahm/sim": "workspace:*",
+    "@nuxtjs/i18n": "^10.6.0",
+    "@supabase/supabase-js": "^2.118.0",
+    "nuxt": "^4.6.3",
+    "vue": "^3.5.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.2",
+    "vue-tsc": "^3.0.0"
+  }
+}

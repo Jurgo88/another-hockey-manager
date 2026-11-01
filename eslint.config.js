@@ -21,7 +21,7 @@ const vocabularyRules = BANNED_VOCABULARY.map(({ term, use }) => ({
 }))
 
 export default tseslint.config(
-  { ignores: ['**/dist/**', '**/node_modules/**', '**/coverage/**'] },
+  { ignores: ['**/dist/**', '**/node_modules/**', '**/coverage/**', '**/.nuxt/**', '**/.output/**'] },
 
   js.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
