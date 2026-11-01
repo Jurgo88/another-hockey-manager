@@ -1,7 +1,7 @@
 # 00 - Overview
 
 **Project:** Another Hockey Manager (AHM)
-**Status:** Phase 0 - simulation engine
+**Status:** Phase 1 - one Club, one Season, playable
 **Owner:** Juraj Paluš
 **Last updated:** 2026-09-18
 
@@ -94,3 +94,4 @@ Out (deferred, with the phase that owns them in `05-roadmap.md`):
 | 011 | Goalie rotation is a Tactics rule applied before the Fixture |
 | 012 | Injuries are events in the stream, and a Lineup answers them by moving up |
 | 013 | A matchup costs fatigue, and shorter Shifts weaken it |
+| 014 | A Season is plain JSON state advanced one day at a time |
