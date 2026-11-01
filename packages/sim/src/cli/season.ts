@@ -1,21 +1,10 @@
 import type { Club, Lineup } from '../domain/club.js'
 import type { MatchEvent } from '../domain/event.js'
-import type { Fixture, FixtureId, FixtureInput } from '../domain/fixture.js'
-import type { ClubId, PlayerId } from '../domain/player.js'
-import { NHL_2026_27, NHL_2026_27_CLUB_SEEDS } from '../data/nhl-2026-27.js'
-import { afterRest } from '../engine/fatigue.js'
-import {
-  afterStart,
-  buildNaiveLineup,
-  lineupForFixture,
-  withoutInjured,
-  type GoalieHistory,
-} from '../engine/lineup.js'
-import { generateSchedule } from '../engine/schedule.js'
-import { fixtureSeed, simulateFixture } from '../engine/simulate.js'
-import { createGeneratedRosterProvider } from '../generate/roster.js'
-import { createRng } from '../rng/index.js'
-import { foldMatch, type MatchStats } from '../stats/match.js'
+import type { Fixture, FixtureId } from '../domain/fixture.js'
+import type { ClubId } from '../domain/player.js'
+import { simulateFixture } from '../engine/simulate.js'
+import { advanceDay, isSeasonOver, startSeason, type PlayedFixture } from '../season/index.js'
+import type { MatchStats } from '../stats/match.js'
 import { foldSeason, type SeasonStats } from '../stats/season.js'
 
 export interface SimulatedSeason {
@@ -30,102 +19,34 @@ export interface SimulatedSeason {
   replay(fixtureId: FixtureId): readonly MatchEvent[]
 }
 
-/**
- * One full NHL 2026-27 regular Season - 32 generated Clubs, 1,344 Fixtures,
- * naive Lineups - simulated and folded the way the product will do it.
- *
- * Fixtures play in calendar order, because each Skater carries fatigue from
- * one to the next (FR-14, ADR-010): the fold of a Match, less the rest since,
- * is what the following `FixtureInput` starts from.
- *
- * Lives in `cli/` because it is the one place that needs the generator, the
- * engine and the folds together, which no other module may import.
- */
+/** One full Season played straight through on the AI Managers' opening Lineups. */
 export async function simulateSeason(seed: number): Promise<SimulatedSeason> {
-  const provider = createGeneratedRosterProvider({
-    structure: NHL_2026_27,
-    seed,
-    clubIdentities: new Map(
-      NHL_2026_27_CLUB_SEEDS.map((club) => [club.id, { code: club.code, name: club.name }]),
-    ),
-  })
-  const { clubs } = await provider.loadCompetition(NHL_2026_27.id)
-  const clubById = new Map(clubs.map((club) => [club.id, club]))
-  const lineups = new Map(clubs.map((club) => [club.id, buildNaiveLineup(club)]))
+  let state = await startSeason(seed)
 
-  const seasonRng = createRng(seed)
-  const fixtures = generateSchedule({
-    structure: NHL_2026_27,
-    seasonId: `s${seed}`,
-    rng: seasonRng.fork('schedule'),
-  }).sort((a, b) => a.day - b.day || a.round - b.round)
-
-  const rosterIds = (clubId: ClubId): PlayerId[] => {
-    const { skaters, goalies } = clubById.get(clubId)!
-    return [...skaters, ...goalies].map((player) => player.id)
-  }
-
-  const fatigue = new Map<PlayerId, number>()
-  const lastPlayed = new Map<ClubId, number>()
-
-  const rested = (clubId: ClubId, day: number): Club => {
-    const club = clubById.get(clubId)!
-    const last = lastPlayed.get(clubId)
-    if (last === undefined) return club
-    return {
-      ...club,
-      skaters: club.skaters.map((skater) => ({
-        ...skater,
-        fatigue: afterRest(fatigue.get(skater.id)!, day - last, skater.attributes.stamina),
-      })),
+  const played = new Map<FixtureId, Omit<PlayedFixture, 'events'>>()
+  const matches: MatchStats[] = []
+  while (!isSeasonOver(state)) {
+    const day = advanceDay(state)
+    state = day.state
+    for (const { fixture, input, seed: fixtureSeed, match } of day.played) {
+      played.set(fixture.id, { fixture, input, seed: fixtureSeed, match })
+      matches.push(match)
     }
   }
-
-  const goalieHistory = new Map<ClubId, GoalieHistory>()
-  /** Fixtures each injured Player still has to miss, folded from the stream. */
-  const absent = new Map<PlayerId, number>()
-  const lineupFor = (clubId: ClubId, day: number): Lineup => {
-    const out = new Set(rosterIds(clubId).filter((id) => absent.has(id)))
-    const healthy = withoutInjured(clubById.get(clubId)!, lineups.get(clubId)!, out)
-    const lineup = lineupForFixture(healthy, day, goalieHistory.get(clubId) ?? null)
-    goalieHistory.set(clubId, afterStart(goalieHistory.get(clubId) ?? null, lineup.starter, day))
-    return lineup
-  }
-
-  const inputs = new Map<FixtureId, FixtureInput>()
-  const matches = fixtures.map((fixture) => {
-    const input: FixtureInput = {
-      fixture,
-      homeClub: rested(fixture.homeClubId, fixture.day),
-      awayClub: rested(fixture.awayClubId, fixture.day),
-      homeLineup: lineupFor(fixture.homeClubId, fixture.day),
-      awayLineup: lineupFor(fixture.awayClubId, fixture.day),
-    }
-    inputs.set(fixture.id, input)
-
-    const match = foldMatch(fixture, simulateFixture(input, fixtureSeed(seasonRng, fixture)))
-    for (const [id, value] of match.fatigue) fatigue.set(id, value)
-    for (const clubId of [fixture.homeClubId, fixture.awayClubId]) {
-      for (const id of rosterIds(clubId)) {
-        const left = absent.get(id)
-        if (left === undefined) continue
-        if (left > 1) absent.set(id, left - 1)
-        else absent.delete(id)
-      }
-    }
-    for (const { playerId, fixtures } of match.injuries) {
-      if (fixtures > 0) absent.set(playerId, fixtures)
-    }
-    lastPlayed.set(fixture.homeClubId, fixture.day)
-    lastPlayed.set(fixture.awayClubId, fixture.day)
-    return match
-  })
 
   const replay = (fixtureId: FixtureId): readonly MatchEvent[] => {
-    const input = inputs.get(fixtureId)
-    if (!input) throw new Error(`No Fixture ${fixtureId} in Season s${seed}`)
-    return simulateFixture(input, fixtureSeed(seasonRng, input.fixture))
+    const fixture = played.get(fixtureId)
+    if (!fixture) throw new Error(`No Fixture ${fixtureId} in Season s${seed}`)
+    return simulateFixture(fixture.input, fixture.seed)
   }
 
-  return { seed, clubs, lineups, fixtures, matches, season: foldSeason(matches), replay }
+  return {
+    seed,
+    clubs: state.clubs,
+    lineups: new Map(Object.entries(state.lineups)),
+    fixtures: state.fixtures,
+    matches,
+    season: foldSeason(matches),
+    replay,
+  }
 }
