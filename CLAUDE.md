@@ -70,6 +70,8 @@ pnpm --filter @ahm/sim test:watch
 pnpm --filter @ahm/sim test:realism
 pnpm typecheck
 pnpm sim:season           # simulate a Season, print tables
+pnpm db:start             # local Supabase, needs Docker
+pnpm web:dev              # the application, needs apps/web/.env
 ```
 
 ## Git

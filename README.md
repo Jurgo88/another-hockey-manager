@@ -29,10 +29,11 @@ packages/sim/          simulation engine, zero runtime dependencies
   src/engine/          shift loop, possession resolution
   src/stats/           folds over the event stream
   src/cli/             simulate a Season, print tables
+apps/web/              the application, on Nuxt
+supabase/              local Supabase and migrations
 .clauden/              specification and architecture decision records
 ```
 
-`apps/web` (Nuxt + Supabase) arrives in Phase 1.
 
 ## Getting started
 
@@ -43,6 +44,14 @@ pnpm sim:season
 ```
 
 Requires Node 20.11+ and pnpm 9.
+
+To run the application, with Docker running:
+
+```bash
+pnpm db:start
+cp apps/web/.env.example apps/web/.env    # fill in the keys from `supabase status`
+pnpm web:dev
+```
 
 ## Design principles
 

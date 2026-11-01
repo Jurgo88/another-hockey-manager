@@ -97,3 +97,4 @@ Out (deferred, with the phase that owns them in `05-roadmap.md`):
 | 014 | A Season is plain JSON state advanced one day at a time |
 | 015 | Playoffs are Fixtures added to the Season as they become due |
 | 016 | A change at an intermission is part of the Fixture input |
+| 017 | Nuxt on Supabase, with the browser kept away from Supabase |
