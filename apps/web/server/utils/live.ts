@@ -15,7 +15,7 @@ export function liveFixture(state: SeasonState, clubId: string): Fixture | null 
  * `fixtureSoFar` returned, so nothing past the point reached can leave (ADR-018).
  */
 export function liveView(state: SeasonState, clubId: string, fixture: Fixture) {
-  const { events, lineups, phase } = fixtureSoFar(state, fixture.id)
+  const { events, lineups, phase, fatigue } = fixtureSoFar(state, fixture.id)
   const names = playerNames(state.clubs)
   const name = (id: string) => names.get(id) ?? id
   const isHome = (id: string) => id === fixture.homeClubId
@@ -34,7 +34,14 @@ export function liveView(state: SeasonState, clubId: string, fixture: Fixture) {
   const shiftsOf = (list: readonly MatchEvent[]) =>
     list.flatMap((item) =>
       item.type === 'shift_change'
-        ? [{ clock: item.clock, home: isHome(item.clubId), players: item.onIce.map(name) }]
+        ? [
+            {
+              clock: item.clock,
+              home: isHome(item.clubId),
+              players: item.onIce.map(name),
+              fatigue: item.fatigue,
+            },
+          ]
         : [],
     )
   const attempts = events.flatMap((item) =>
@@ -68,6 +75,7 @@ export function liveView(state: SeasonState, clubId: string, fixture: Fixture) {
         name: displayName(skater),
         positions: skater.preferredPositions,
         out: hurt.has(skater.id) ? 1 : 0,
+        fatigue: fatigue[skater.id] ?? 0,
       })),
       ...club.goalies.map((goalie) => ({
         id: goalie.id,

@@ -45,9 +45,13 @@ const pressure = computed(() => {
   return recent.length === 0 ? 50 : Math.round((100 * home) / recent.length)
 })
 
-const onIce = (home: boolean) =>
+const shiftOf = (home: boolean) =>
   (live.value?.shifts ?? []).filter((s) => s.home === home && s.clock <= shownClock.value).at(-1)
-    ?.players ?? []
+/** Names with the fatigue each took the ice on. */
+const onIce = (home: boolean) => {
+  const shift = shiftOf(home)
+  return shift?.players.map((name, i) => `${name} (${shift.fatigue[i]})`) ?? []
+}
 
 /** A clock exactly on a Period's end still belongs to that Period. */
 const period = computed(() => {

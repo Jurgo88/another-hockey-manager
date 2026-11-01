@@ -22,7 +22,7 @@ function periodEnd(clock: number, period: Period = 1): MatchEvent {
 }
 
 function shift(clock: number, clubId: string, onIce: readonly PlayerId[]): MatchEvent {
-  return { type: 'shift_change', clock, period: 1, strength: 'even', clubId, onIce, goalie: `${clubId}g` }
+  return { type: 'shift_change', clock, period: 1, strength: 'even', clubId, onIce, fatigue: onIce.map(() => 0), goalie: `${clubId}g` }
 }
 
 /** A `shot` with result 'goal' and the `goal` event it produces, at the same clock. */

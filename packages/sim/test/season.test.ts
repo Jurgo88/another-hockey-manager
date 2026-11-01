@@ -7,6 +7,7 @@ import {
   advanceDay,
   advanceToFixtureOf,
   assistantLineup,
+  fatigueBeforeNext,
   InvalidLineupError,
   noticesOf,
   playsNext,
@@ -179,6 +180,19 @@ describe('assistantLineup', () => {
     const state = { ...start, absent: Object.fromEntries(centres.map((s) => [s.id, 5])) }
     const picked = assistantLineup(state, clubId(), DEFAULT_TACTICS)
     expect(() => setLineup(state, clubId(), picked)).not.toThrow()
+  })
+})
+
+describe('fatigueBeforeNext', () => {
+  it('is nothing before a Season, and below the last Match after rest', () => {
+    const clubId = start.fixtures[0]!.homeClubId
+    expect(Object.values(fatigueBeforeNext(start, clubId)).every((v) => v === 0)).toBe(true)
+
+    const { state } = advanceDay(start)
+    const before = fatigueBeforeNext(state, clubId)
+    const raw = Object.entries(before).filter(([id]) => (state.fatigue[id] ?? 0) > 5)
+    expect(raw.length).toBeGreaterThan(0)
+    for (const [id, value] of raw) expect(value).toBeLessThan(state.fatigue[id]!)
   })
 })
 

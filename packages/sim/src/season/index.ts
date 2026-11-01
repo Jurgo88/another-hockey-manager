@@ -89,6 +89,8 @@ const REVEAL_SECONDS = 60
 export interface FixtureSoFar {
   events: readonly MatchEvent[]
   phase: LivePhase
+  /** Each Skater's fatigue as last seen, 0-100: at their last Shift, or at the opening faceoff. */
+  fatigue: Readonly<Record<PlayerId, number>>
   /** The Lineups in force now, to start a change from. */
   lineups: Readonly<Record<ClubId, Lineup>>
 }
@@ -206,6 +208,18 @@ export function assistantLineup(state: SeasonState, clubId: ClubId, tactics: Tac
   }
 }
 
+/** Each Skater's fatigue as it will stand for the Club's next Fixture, after the rest until then. */
+export function fatigueBeforeNext(
+  state: SeasonState,
+  clubId: ClubId,
+): Readonly<Record<PlayerId, number>> {
+  const next = state.fixtures
+    .slice(state.nextFixture)
+    .find((fixture) => fixture.homeClubId === clubId || fixture.awayClubId === clubId)
+  const { skaters } = next ? rested(state, clubId, next.day) : clubOf(state, clubId)
+  return Object.fromEntries(skaters.map((skater) => [skater.id, Math.round(skater.fatigue)]))
+}
+
 /** Whether a Fixture of this Club is being followed, which locks its Lineup. */
 export function isFollowed(state: SeasonState, clubId: ClubId): boolean {
   return Object.keys(state.live).some((id) => {
@@ -241,9 +255,23 @@ export function fixtureSoFar(state: SeasonState, fixtureId: FixtureId): FixtureS
     const changed = live.changes.filter((change) => change.clubId === club.id).at(-1)
     return changed?.lineup ?? withoutInjured(club, declared, out)
   }
+  const shown = events.slice(0, live.shown)
+  const fatigue = Object.fromEntries(
+    [...input.homeClub.skaters, ...input.awayClub.skaters].map((skater) => [
+      skater.id,
+      Math.round(skater.fatigue),
+    ]),
+  )
+  for (const event of shown) {
+    if (event.type !== 'shift_change') continue
+    event.onIce.forEach((id, i) => {
+      fatigue[id] = event.fatigue[i]!
+    })
+  }
   return {
-    events: events.slice(0, live.shown),
+    events: shown,
     phase: phaseOf(events, live.shown),
+    fatigue,
     lineups: {
       [fixture.homeClubId]: inForce(input.homeClub, input.homeLineup),
       [fixture.awayClubId]: inForce(input.awayClub, input.awayLineup),

@@ -629,3 +629,31 @@ tr.notice-new td {
   border-color: var(--rule);
   background: var(--sheet);
 }
+
+.line {
+  grid-template-columns: 74px repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.line-title {
+  display: grid;
+}
+
+.line-fatigue {
+  font: 400 11px var(--mono);
+  color: var(--muted);
+}
+
+.line-tired {
+  color: var(--red-line);
+  font-weight: 700;
+}
+
+.slot-fatigue {
+  float: right;
+  font: 400 12px var(--mono);
+  color: var(--muted);
+}
+
+.slot-picked .slot-fatigue {
+  color: #d6e2ee;
+}
