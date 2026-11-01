@@ -127,6 +127,7 @@ describe('simulateFixture', () => {
         if (event.type !== 'goal') return
         const between = new Set([
           'shift_change',
+          'injury',
           'period_start',
           'powerplay_start',
           'powerplay_end',
