@@ -1,13 +1,17 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { SKATER_ATTRIBUTE_KEYS } from '../src/domain/attributes.js'
-import type { Club, GoalieRotation, Lineup } from '../src/domain/club.js'
+import type { Club, GoalieRotation, Lineup, Tactics } from '../src/domain/club.js'
 import {
   afterStart,
+  bringIn,
   buildNaiveLineup,
   DEFAULT_TACTICS,
   lineupForFixture,
+  playerAt,
+  swapSlots,
   validateLineup,
   type LineupRule,
+  type LineupSlot,
 } from '../src/engine/lineup.js'
 import { createGeneratedRosterProvider } from '../src/generate/roster.js'
 import { NHL_2026_27, NHL_2026_27_CLUB_SEEDS } from '../src/data/nhl-2026-27.js'
@@ -255,5 +259,86 @@ describe('validateLineup', () => {
     const lineup = buildNaiveLineup(bruins)
     const broken = { ...lineup, lines: lineup.lines.slice(0, 3) as unknown as typeof lineup.lines }
     expect(rulesOf(validateLineup(broken, bruins))).toContain('roster-size')
+  })
+})
+
+describe('editing a Lineup by slot', () => {
+  let club: Club
+  let lineup: Lineup
+
+  beforeAll(async () => {
+    const provider = createGeneratedRosterProvider({
+      structure: NHL_2026_27,
+      seed: 7,
+      clubIdentities: new Map(
+        NHL_2026_27_CLUB_SEEDS.map((seed) => [seed.id, { code: seed.code, name: seed.name }]),
+      ),
+    })
+    club = (await provider.loadCompetition('nhl')).clubs[0]!
+    lineup = buildNaiveLineup(club)
+  })
+
+  const firstLeftWing: LineupSlot = { group: 'line', index: 0, key: 'leftWing' }
+  const secondLeftWing: LineupSlot = { group: 'line', index: 1, key: 'leftWing' }
+
+  it('swaps two slots and stays valid, leaving the Units as they were', () => {
+    const swapped = swapSlots(lineup, firstLeftWing, secondLeftWing)
+    expect(playerAt(swapped, firstLeftWing)).toBe(playerAt(lineup, secondLeftWing))
+    expect(playerAt(swapped, secondLeftWing)).toBe(playerAt(lineup, firstLeftWing))
+    expect(swapped.powerPlayUnits).toEqual(lineup.powerPlayUnits)
+    expect(validateLineup(swapped, club)).toEqual([])
+  })
+
+  it('reorders a Unit and swaps the Goalies', () => {
+    const unit = swapSlots(
+      lineup,
+      { group: 'powerPlay', index: 0, position: 0 },
+      { group: 'powerPlay', index: 0, position: 4 },
+    )
+    expect(unit.powerPlayUnits[0]!.skaters[0]).toBe(lineup.powerPlayUnits[0]!.skaters[4])
+    expect(validateLineup(unit, club)).toEqual([])
+
+    const goalies = swapSlots(
+      lineup,
+      { group: 'goalie', key: 'starter' },
+      { group: 'goalie', key: 'backup' },
+    )
+    expect(goalies.starter).toBe(lineup.backup)
+    expect(validateLineup(goalies, club)).toEqual([])
+  })
+
+  it('flags a Skater moved out of position', () => {
+    const moved = swapSlots(lineup, firstLeftWing, { group: 'pairing', index: 0, key: 'leftDefence' })
+    expect(validateLineup(moved, club).map((v) => v.rule)).toContain('illegal-position')
+  })
+
+  it('brings a spare in everywhere the one leaving stood', () => {
+    const dressed = JSON.stringify(lineup)
+    const spare = club.skaters.find(
+      (s) => s.preferredPositions[0] === 'LW' && !dressed.includes(s.id),
+    )!
+    const leaving = playerAt(lineup, firstLeftWing)
+    const changed = bringIn(lineup, firstLeftWing, spare.id)
+
+    expect(playerAt(changed, firstLeftWing)).toBe(spare.id)
+    expect(JSON.stringify(changed)).not.toContain(leaving)
+    expect(validateLineup(changed, club)).toEqual([])
+  })
+
+  it('leaves the Lineup it was given as it was', () => {
+    const before = structuredClone(lineup)
+    swapSlots(lineup, firstLeftWing, secondLeftWing)
+    expect(lineup).toEqual(before)
+  })
+
+  it('rejects Tactics out of range', () => {
+    const wild = (tactics: Partial<Tactics>) =>
+      validateLineup({ ...lineup, tactics: { ...lineup.tactics, ...tactics } }, club).map(
+        (v) => v.rule,
+      )
+    expect(wild({ aggression: 101 })).toContain('tactics-invalid')
+    expect(wild({ shotVolume: Number.NaN })).toContain('tactics-invalid')
+    expect(wild({ matchup: 'wild' as Tactics['matchup'] })).toContain('tactics-invalid')
+    expect(wild({ aggression: 0, shiftLength: 100 })).toEqual([])
   })
 })

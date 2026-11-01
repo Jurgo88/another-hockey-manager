@@ -52,7 +52,6 @@ export async function replaceSeason(
 /**
  * Stores what a run of days produced. Results first: if the state then fails,
  * the same days play the same again and overwrite them, so nothing is lost.
- * The version refuses a second advance that started from the same state.
  */
 export async function saveDays(
   season: StoredSeason,
@@ -86,7 +85,13 @@ export async function saveDays(
   }
 
   const state = days.at(-1)?.state ?? season.state
-  const { data, error } = await client
+  await saveState(season, state)
+  return state
+}
+
+/** The version refuses a change made from a state that has since moved on. */
+export async function saveState(season: StoredSeason, state: SeasonState): Promise<void> {
+  const { data, error } = await dataClient()
     .from('seasons')
     .update({ state, version: season.version + 1, updated_at: new Date().toISOString() })
     .eq('id', season.id)
@@ -94,7 +99,6 @@ export async function saveDays(
     .select('id')
   if (error) throw createError({ statusCode: 500, message: error.message })
   if (data.length === 0) throw createError({ statusCode: 409, message: 'errors.seasonMoved' })
-  return state
 }
 
 export function clubName(state: SeasonState, clubId: ClubId): string {
