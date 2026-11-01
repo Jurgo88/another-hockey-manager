@@ -128,6 +128,7 @@ describe('simulateFixture', () => {
         const between = new Set([
           'shift_change',
           'injury',
+          'fatigue',
           'period_start',
           'powerplay_start',
           'powerplay_end',

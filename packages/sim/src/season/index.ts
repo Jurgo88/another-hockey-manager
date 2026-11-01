@@ -89,7 +89,9 @@ const REVEAL_SECONDS = 60
 export interface FixtureSoFar {
   events: readonly MatchEvent[]
   phase: LivePhase
-  /** Each Skater's fatigue as last seen, 0-100: at their last Shift, or at the opening faceoff. */
+  /** Each Skater's fatigue at the opening faceoff, 0-100. */
+  openingFatigue: Readonly<Record<PlayerId, number>>
+  /** Each Skater's fatigue as last reported in what has been shown, 0-100. */
   fatigue: Readonly<Record<PlayerId, number>>
   /** The Lineups in force now, to start a change from. */
   lineups: Readonly<Record<ClubId, Lineup>>
@@ -256,21 +258,23 @@ export function fixtureSoFar(state: SeasonState, fixtureId: FixtureId): FixtureS
     return changed?.lineup ?? withoutInjured(club, declared, out)
   }
   const shown = events.slice(0, live.shown)
-  const fatigue = Object.fromEntries(
+  const openingFatigue = Object.fromEntries(
     [...input.homeClub.skaters, ...input.awayClub.skaters].map((skater) => [
       skater.id,
       Math.round(skater.fatigue),
     ]),
   )
+  const fatigue = { ...openingFatigue }
   for (const event of shown) {
-    if (event.type !== 'shift_change') continue
-    event.onIce.forEach((id, i) => {
+    if (event.type !== 'fatigue') continue
+    event.players.forEach((id, i) => {
       fatigue[id] = event.fatigue[i]!
     })
   }
   return {
     events: shown,
     phase: phaseOf(events, live.shown),
+    openingFatigue,
     fatigue,
     lineups: {
       [fixture.homeClubId]: inForce(input.homeClub, input.homeLineup),

@@ -45,13 +45,24 @@ const pressure = computed(() => {
   return recent.length === 0 ? 50 : Math.round((100 * home) / recent.length)
 })
 
-const shiftOf = (home: boolean) =>
+/** Every Skater's fatigue at this point of the broadcast. */
+const fatigueNow = computed(() => {
+  const now = new Map(Object.entries(live.value?.openingFatigue ?? {}))
+  for (const report of live.value?.fatigueReports ?? []) {
+    if (report.clock > shownClock.value) break
+    report.players.forEach((id, i) => now.set(id, report.fatigue[i] ?? 0))
+  }
+  return now
+})
+const onIce = (home: boolean) =>
   (live.value?.shifts ?? []).filter((s) => s.home === home && s.clock <= shownClock.value).at(-1)
-/** Names with the fatigue each took the ice on. */
-const onIce = (home: boolean) => {
-  const shift = shiftOf(home)
-  return shift?.players.map((name, i) => `${name} (${shift.fatigue[i]})`) ?? []
-}
+    ?.players ?? []
+const boardPlayers = computed(() =>
+  (live.value?.players ?? []).map((player) => ({
+    ...player,
+    ...('fatigue' in player ? { fatigue: fatigueNow.value.get(player.id) ?? 0 } : {}),
+  })),
+)
 
 /** A clock exactly on a Period's end still belongs to that Period. */
 const period = computed(() => {
@@ -187,13 +198,12 @@ onBeforeUnmount(() => clearInterval(timer))
       </div>
 
       <div class="on-ice">
-        <div>
-          <strong>{{ live.home }}</strong>
-          <div class="muted">{{ onIce(true).join(', ') || '-' }}</div>
-        </div>
-        <div>
-          <strong>{{ live.away }}</strong>
-          <div class="muted">{{ onIce(false).join(', ') || '-' }}</div>
+        <div v-for="side in [true, false]" :key="String(side)">
+          <strong>{{ side ? live.home : live.away }}</strong>
+          <div v-for="player in onIce(side)" :key="player.id" class="on-ice-row">
+            <span>{{ player.name }}</span>
+            <FatigueBar :value="fatigueNow.get(player.id) ?? 0" />
+          </div>
         </div>
       </div>
     </section>
@@ -219,7 +229,7 @@ onBeforeUnmount(() => clearInterval(timer))
       />
       <LineupBoard
         :lineup="draft"
-        :players="live.players"
+        :players="boardPlayers"
         :spares="false"
         @update:lineup="draft = $event"
       />

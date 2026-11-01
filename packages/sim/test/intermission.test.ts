@@ -235,31 +235,40 @@ describe('following a Fixture (ADR-018)', () => {
     expect(after.lineups[clubId]).toEqual(lineup)
   })
 
-  it('reports fatigue on every Shift, rising from one to the next', () => {
-    const { events } = fixtureSoFar(stepTo(opened(), 'ended'), fixtureId)
-    const shifts = events.filter(isShift)
-    const last = new Map<string, number>()
-    for (const shift of shifts) {
-      expect(shift.fatigue).toHaveLength(shift.onIce.length)
-      shift.onIce.forEach((id, i) => {
-        expect(shift.fatigue[i]!).toBeGreaterThanOrEqual(last.get(id) ?? 0)
-        last.set(id, shift.fatigue[i]!)
-      })
+  it('reports a Skater fresh off the ice, with more fatigue than they took it with', () => {
+    const { events } = fixtureSoFar(stepTo(opened(), 'intermission'), fixtureId)
+    const taken = new Map<string, number>()
+    let compared = 0
+    for (const event of events) {
+      if (event.type === 'shift_change') {
+        event.onIce.forEach((id, i) => taken.set(id, event.fatigue[i]!))
+      }
+      if (event.type === 'fatigue' && event.players.length <= 6) {
+        event.players.forEach((id, i) => {
+          expect(event.fatigue[i]!).toBeGreaterThanOrEqual(taken.get(id) ?? 0)
+          compared++
+        })
+      }
     }
-    expect(Math.max(...last.values())).toBeGreaterThan(0)
+    expect(compared).toBeGreaterThan(100)
   })
 
-  it('keeps each Skater at their fatigue as last seen', () => {
-    let state = opened()
-    const atStart = fixtureSoFar(state, fixtureId).fatigue
-    expect(Object.values(atStart).every((value) => value === 0)).toBe(true)
+  it('eases a whole Roster at a regulation intermission, and shows it at the break', () => {
+    const { events, fatigue } = fixtureSoFar(stepTo(opened(), 'intermission'), fixtureId)
+    const rosterReports = events.filter((e) => e.type === 'fatigue' && e.players.length > 6)
+    expect(rosterReports).toHaveLength(2)
+    for (const report of rosterReports) {
+      if (report.type !== 'fatigue') continue
+      report.players.forEach((id, i) => expect(fatigue[id]).toBe(report.fatigue[i]))
+    }
+    const before = events[events.indexOf(rosterReports[0]!) - 1]
+    expect(before?.type).not.toBe('period_end')
+  })
 
-    state = stepTo(state, 'intermission')
-    const { fatigue, events } = fixtureSoFar(state, fixtureId)
-    const shift = events.filter(isShift).at(-1)!
-    shift.onIce.forEach((id, i) => {
-      expect(fatigue[id]).toBe(shift.fatigue[i])
-    })
+  it('starts everyone at their opening fatigue', () => {
+    const { fatigue, openingFatigue } = fixtureSoFar(opened(), fixtureId)
+    expect(fatigue).toEqual(openingFatigue)
+    expect(Object.values(fatigue).every((value) => value === 0)).toBe(true)
   })
 
   it('takes a change into the Fixture that advanceDay then plays', () => {

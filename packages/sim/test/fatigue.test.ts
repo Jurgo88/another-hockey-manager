@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { Club, Lineup } from '../src/domain/club.js'
 import type { MatchEndEvent, MatchEvent } from '../src/domain/event.js'
 import { NHL_2026_27, NHL_2026_27_CLUB_SEEDS } from '../src/data/nhl-2026-27.js'
-import { afterRest, afterShift } from '../src/engine/fatigue.js'
+import { afterIntermission, afterRest, afterShift } from '../src/engine/fatigue.js'
 import { buildNaiveLineup, DEFAULT_TACTICS } from '../src/engine/lineup.js'
 import { simulateFixture } from '../src/engine/simulate.js'
 import { createGeneratedRosterProvider } from '../src/generate/roster.js'
@@ -64,6 +64,12 @@ describe('the fatigue model (ADR-010)', () => {
 
   it('scales the whole cost of a Shift by its effort', () => {
     expect(afterShift(0, 45, 10, 2)).toBeCloseTo(2 * afterShift(0, 45, 10))
+  })
+
+  it('eases a little at an intermission, more for a fit Skater, and less than a day of rest', () => {
+    expect(afterIntermission(40, 10)).toBeLessThan(40)
+    expect(afterIntermission(40, 18)).toBeLessThan(afterIntermission(40, 6))
+    expect(afterIntermission(40, 10)).toBeGreaterThan(afterRest(40, 1, 10))
   })
 
   it('clears with each day of rest, faster for a fit Skater', () => {
