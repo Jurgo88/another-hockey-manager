@@ -1,5 +1,5 @@
 import type { Club, ClubId, PlayedDay, PlayerId, SeasonState } from '@ahm/sim'
-import { displayName, isSeasonOver, plainMatchStats, playsNext } from '@ahm/sim'
+import { displayName, isSeasonOver, noticesOf, plainMatchStats, playsNext } from '@ahm/sim'
 
 const RESULTS_PER_INSERT = 200
 
@@ -92,8 +92,18 @@ export async function saveDays(
     if (error) throw createError({ statusCode: 500, message: error.message })
   }
 
+  const notices = days.flatMap((day, i) =>
+    noticesOf(days[i - 1]?.state ?? season.state, day, season.clubId).map(
+      ({ kind, day: on, ...data }) => ({ season_id: season.id, day: on, kind, data }),
+    ),
+  )
   const state = days.at(-1)?.state ?? season.state
   await saveState(season, state)
+  // After the state, since a retry would otherwise tell the same news twice.
+  if (notices.length > 0) {
+    const { error } = await client.from('notices').insert(notices)
+    if (error) throw createError({ statusCode: 500, message: error.message })
+  }
   return state
 }
 

@@ -107,6 +107,11 @@ export interface PlayedDay {
   played: readonly PlayedFixture[]
 }
 
+/** What a Manager is told about a day. A new kind of news is one more member here. */
+export type ClubNotice =
+  | { kind: 'injury'; day: number; playerId: PlayerId; fixtures: number }
+  | { kind: 'recovered'; day: number; playerId: PlayerId }
+
 /** A Lineup that breaks the rules of the game: the Manager has to change it. */
 export class InvalidLineupError extends Error {
   constructor(
@@ -285,6 +290,22 @@ export function isRegularSeasonOver(state: SeasonState): boolean {
 /** True once the playoffs have a champion. */
 export function isSeasonOver(state: SeasonState): boolean {
   return state.playoffs !== null && state.playoffs.champion !== null
+}
+
+/** What a played day means for one Club, folded from its Matches and the absences it left. */
+export function noticesOf(before: SeasonState, played: PlayedDay, clubId: ClubId): ClubNotice[] {
+  const { day, state } = played
+  const roster = new Set(rosterIds(clubOf(before, clubId)))
+  const recovered = Object.keys(before.absent)
+    .filter((id) => roster.has(id) && state.absent[id] === undefined)
+    .map((playerId): ClubNotice => ({ kind: 'recovered', day, playerId }))
+  const injured = played.played
+    .flatMap(({ match }) => match.injuries)
+    .filter((injury) => injury.clubId === clubId)
+    .map(
+      ({ playerId, fixtures }): ClubNotice => ({ kind: 'injury', day, playerId, fixtures }),
+    )
+  return [...recovered, ...injured]
 }
 
 /** Whether a Club plays on the next day that has Fixtures. */
