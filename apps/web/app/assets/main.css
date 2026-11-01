@@ -624,3 +624,8 @@ tr.play-mark td {
 tr.notice-new td {
   font-weight: 700;
 }
+
+.notice-plain {
+  border-color: var(--rule);
+  background: var(--sheet);
+}

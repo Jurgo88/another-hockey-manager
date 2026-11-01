@@ -155,7 +155,9 @@
     "reset": "Undo changes",
     "save": "Save",
     "saved": "Saved. It counts from your next Fixture.",
-    "outOfPosition": "out of position"
+    "outOfPosition": "out of position",
+    "assistant": "Let the assistant pick",
+    "assistantHelp": "Your assistant coach picks the best Lineup from the fit Players. Your Tactics stay, and nothing counts until you save."
   },
   "tactics": {
     "style": "Style of play",
