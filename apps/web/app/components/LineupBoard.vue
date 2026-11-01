@@ -20,6 +20,20 @@ const label = (id: string) => {
 }
 const same = (a: LineupSlot | null, b: LineupSlot) => JSON.stringify(a) === JSON.stringify(b)
 
+const SLOT_POSITION: Record<string, string> = {
+  leftWing: 'LW',
+  centre: 'C',
+  rightWing: 'RW',
+  leftDefence: 'LD',
+  rightDefence: 'RD',
+}
+/** Injuries can leave a Skater out of position: show it rather than hide it. */
+function outOfPosition(slot: LineupSlot): boolean {
+  if (slot.group !== 'line' && slot.group !== 'pairing') return false
+  const positions = nameOf(playerAt(props.lineup, slot))?.positions
+  return positions !== undefined && !positions.includes(SLOT_POSITION[slot.key]!)
+}
+
 function pick(slot: LineupSlot) {
   if (!picked.value) {
     picked.value = slot
@@ -119,10 +133,12 @@ const sections = computed((): { title: string; rows: Row[] }[] => {
           :class="{
             'slot-picked': same(picked, slot),
             'slot-out': nameOf(playerAt(lineup, slot))?.out,
+            'slot-wrong': outOfPosition(slot),
           }"
           @click="pick(slot)"
         >
           {{ label(playerAt(lineup, slot)) }}
+          <span v-if="outOfPosition(slot)" class="slot-note">{{ t('lineup.outOfPosition') }}</span>
         </button>
       </div>
     </div>

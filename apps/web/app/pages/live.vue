@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Lineup, MatchupPolicy } from '@ahm/sim'
+import type { Lineup } from '@ahm/sim'
 
 const { t } = useI18n()
 
@@ -18,8 +18,6 @@ const plays = computed(() => [...(live.value?.plays ?? [])].reverse())
 const changedAny = computed(
   () => JSON.stringify(draft.value) !== JSON.stringify(live.value?.lineup),
 )
-const dials = ['aggression', 'shotVolume', 'shiftLength'] as const
-const policies: MatchupPolicy[] = ['none', 'exploit', 'shutdown']
 
 async function playOn() {
   busy.value = true
@@ -88,39 +86,15 @@ async function finish() {
         <h2>{{ t('live.plays') }}</h2>
         <PlayByPlay :plays="plays" />
       </section>
-      <section v-if="!live.ended && draft" class="sheet">
-        <h2>{{ t('live.tactics') }}</h2>
-        <label v-for="dial in dials" :key="dial" class="dial">
-          <span class="strong">{{ t(`tactics.${dial}`) }}: {{ draft.tactics[dial] }}</span>
-          <input
-            type="range"
-            min="0"
-            max="100"
-            :value="draft.tactics[dial]"
-            @input="
-              draft = {
-                ...draft!,
-                tactics: { ...draft!.tactics, [dial]: Number(($event.target as HTMLInputElement).value) },
-              }
-            "
-          />
-        </label>
-        <label v-for="policy in policies" :key="policy" class="dial">
-          <span>
-            <input
-              type="radio"
-              name="live-matchup"
-              :checked="draft.tactics.matchup === policy"
-              @change="draft = { ...draft!, tactics: { ...draft!.tactics, matchup: policy } }"
-            />
-            {{ t(`tactics.${policy}`) }}
-          </span>
-        </label>
-      </section>
     </div>
 
     <template v-if="!live.ended && draft">
       <p class="muted">{{ t('live.help') }}</p>
+      <TacticsPanel
+        :tactics="draft.tactics"
+        :rotation="false"
+        @update:tactics="draft = { ...draft!, tactics: $event }"
+      />
       <LineupBoard
         :lineup="draft"
         :players="live.players"

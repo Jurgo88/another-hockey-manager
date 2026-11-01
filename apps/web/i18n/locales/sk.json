@@ -149,29 +149,56 @@
     "overtime": "Trojice do predĺženia",
     "spares": "Mimo zostavy",
     "sparesHelp": "Vyber miesto vyššie a potom hráča tu, ktorý naň nastúpi.",
-    "help": "Klikni na jedného hráča a potom na druhého a vymenia sa. Nič sa nezmení, kým neuložíš.",
+    "help": "Klikni na jedného hráča a potom na druhého a vymenia sa. Nič sa nezmení, kým neuložíš. Zranenia môžu nechať hráča mimo postu: je to označené a cez prestávku okolo neho môžeš preskladať.",
     "reset": "Zrušiť zmeny",
     "save": "Uložiť",
-    "saved": "Uložené. Platí od ďalšieho zápasu."
+    "saved": "Uložené. Platí od ďalšieho zápasu.",
+    "outOfPosition": "mimo postu"
   },
   "tactics": {
     "style": "Štýl hry",
+    "presets": "Rýchle nastavenie:",
+    "defensive": "Defenzívne",
+    "balanced": "Vyvážené",
+    "attacking": "Útočné",
     "aggression": "Agresivita",
-    "aggressionHelp": "Viac striel pre aj proti a viac trestov.",
-    "shotVolume": "Objem striel",
-    "shotVolumeHelp": "Viac striel, ale z väčšej diaľky.",
+    "aggressionLow": "Opatrne",
+    "aggressionHigh": "Naplno",
+    "aggressionEffect": {
+      "low": "Držíte sa vzadu: menej striel na oboch stranách a menej trestov.",
+      "mid": "Rovnováha medzi tlakom a poriadkom vzadu.",
+      "high": "Tlačíte: viac striel pre vás aj proti vám a viac trestov."
+    },
+    "shotVolume": "Streľba",
+    "shotVolumeLow": "Len šance",
+    "shotVolumeHigh": "Strieľať",
+    "shotVolumeEffect": {
+      "low": "Menej striel, ale z lepších šancí.",
+      "mid": "Mix dobrých šancí a počtu striel.",
+      "high": "Veľa striel, viac z nich z diaľky."
+    },
     "shiftLength": "Dĺžka Shiftov",
-    "shiftLengthHelp": "Vyššia hodnota znamená kratšie Shifty: menej únavy, slabší matchup.",
-    "matchup": "Matchup doma",
+    "shiftLengthLow": "Dlhé",
+    "shiftLengthHigh": "Krátke",
+    "shiftLengthEffect": {
+      "low": "Hráči sú na ľade dlhšie a rýchlejšie sa unavia. Matchupy fungujú lepšie.",
+      "mid": "Bežné striedanie.",
+      "high": "Čerstvejšie nohy, ale matchupy fungujú horšie."
+    },
+    "shiftSeconds": "Približne {seconds} s na Shift.",
+    "matchup": "Matchupy",
+    "matchupHelp": "Koho posielaš proti komu. Funguje len doma, kde máš posledné striedanie, a cielené Shifty hráčov viac unavia.",
     "none": "Žiadny",
     "noneHelp": "Formácie sa striedajú.",
     "exploit": "Exploit",
-    "exploitHelp": "Prvá formácia poľuje na ich slabšiu dvojicu. Stojí to únavu.",
+    "exploitHelp": "Prvá formácia poľuje na ich slabšiu dvojicu. Viac bodov pre tvoju prvú formáciu.",
     "shutdown": "Shutdown",
-    "shutdownHelp": "Tvoje najlepšie obranné jednotky idú proti ich prvej formácii. Stojí to únavu.",
+    "shutdownHelp": "Tvoje najlepšie obranné jednotky idú proti ich prvej formácii a brzdia ju.",
     "rotation": "Rotácia brankárov",
+    "rotationHelp": "Kedy namiesto jednotky chytá dvojka. V playoff neplatí.",
     "restOnBackToBack": "Oddýchne brankár, ktorý chytal včera",
-    "maxStarts": "Štarty po sebe pred oddychom (0 znamená bez limitu)"
+    "maxStarts": "Najviac štartov po sebe:",
+    "noLimit": "bez limitu"
   },
   "live": {
     "shots": "Strely {home} : {away}",
