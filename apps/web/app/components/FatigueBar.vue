@@ -1,19 +1,19 @@
 <script setup lang="ts">
-/** Skaters rarely pass this in a Fixture, so the bar uses its whole width. */
-const FULL_BAR = 60
-
+/** A Manager reads energy, which is what fatigue leaves: 100 for a rested Skater. */
 const props = defineProps<{ value: number }>()
 const { t } = useI18n()
 
-const width = computed(() => `${Math.min(100, (100 * props.value) / FULL_BAR)}%`)
+const energy = computed(() => Math.round(100 - props.value))
 const tone = computed(() =>
-  props.value >= 40 ? 'fatigue-high' : props.value >= 20 ? 'fatigue-mid' : 'fatigue-low',
+  energy.value <= 60 ? 'fatigue-high' : energy.value <= 80 ? 'fatigue-mid' : 'fatigue-low',
 )
 </script>
 
 <template>
   <span class="fatigue" :title="t('lineup.fatigueHelp')">
-    <span class="fatigue-track"><span class="fatigue-fill" :class="tone" :style="{ width }" /></span>
-    <span class="fatigue-value">{{ value }}</span>
+    <span class="fatigue-track"
+      ><span class="fatigue-fill" :class="tone" :style="{ width: `${energy}%` }"
+    /></span>
+    <span class="fatigue-value">{{ energy }}</span>
   </span>
 </template>

@@ -50,7 +50,7 @@ Identifier scheme follows the convention established on HermanTool:
 | FR-32 | A Manager is told which Players in their Lineup are out, before a Fixture, and can replace them in one click. A Manager who does nothing is covered by FR-27. A declared Lineup may keep a Skater out of position only when injuries leave no natural replacement. |
 | FR-33 | A Manager receives notices about their Club in an inbox, folded from the Fixtures played: who was hurt and who is fit again. A new kind of notice is one more member of a type and one more line of wording. |
 | FR-34 | A Manager can let an assistant coach propose the best Lineup from the fit Players, using the builder that sets AI Lineups (D-04). Tactics stay, and it counts only once saved. |
-| FR-35 | A Manager sees Skater fatigue as a bar before a Fixture and during it, by Skater and by unit, up to date after each Shift. It reaches a reader through `fatigue` events, and only `match_end` carries it to the next Fixture (ADR-019). |
+| FR-35 | A Manager sees Skater fatigue as an energy bar before a Fixture and during it, by Skater and by unit, up to date after each Shift. Energy is 100 less fatigue, so the bar starts full and empties. Fatigue reaches a reader through `fatigue` events, and only `match_end` carries it to the next Fixture (ADR-019). |
 
 ## Non-functional requirements
 
