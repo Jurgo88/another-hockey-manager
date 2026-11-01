@@ -3,7 +3,7 @@ import type { Club, Lineup } from '../src/domain/club.js'
 import type { InjuryEvent, MatchEvent, ShiftChangeEvent } from '../src/domain/event.js'
 import type { FixtureInput } from '../src/domain/fixture.js'
 import { NHL_2026_27, NHL_2026_27_CLUB_SEEDS } from '../src/data/nhl-2026-27.js'
-import { buildNaiveLineup } from '../src/engine/lineup.js'
+import { buildNaiveLineup, swapSlots } from '../src/engine/lineup.js'
 import { simulateFixture } from '../src/engine/simulate.js'
 import { createGeneratedRosterProvider } from '../src/generate/roster.js'
 import {
@@ -199,6 +199,41 @@ describe('following a Fixture (ADR-016)', () => {
     expect(() =>
       continueFixture(state, fixtureId, [{ clubId, lineup: { ...lineup, backup: third.id } }]),
     ).toThrow(InvalidLineupError)
+  })
+
+  describe('with a Skater out of position after injuries (ADR-012)', () => {
+    /** Every natural centre out, so wingers have to stand in. */
+    const shortOfCentres = (): SeasonState => {
+      const club = start.clubs.find((candidate) => candidate.id === clubId)!
+      const centres = club.skaters.filter((skater) => skater.preferredPositions.includes('C'))
+      const absent = Object.fromEntries(centres.map((skater) => [skater.id, 5]))
+      return openFixture({ ...start, absent }, fixtureId)
+    }
+
+    it('lets a Manager rearrange around them', () => {
+      const state = shortOfCentres()
+      const lineup = fixtureSoFar(state, fixtureId).lineups[clubId]!
+      const swapped = swapSlots(
+        lineup,
+        { group: 'line', index: 0, key: 'centre' },
+        { group: 'line', index: 1, key: 'centre' },
+      )
+      const next = continueFixture(state, fixtureId, [{ clubId, lineup: swapped }])
+      expect(next.live[fixtureId]!.changes).toHaveLength(1)
+    })
+
+    it('still refuses to put one more out of position', () => {
+      const state = shortOfCentres()
+      const lineup = fixtureSoFar(state, fixtureId).lineups[clubId]!
+      const worse = swapSlots(
+        lineup,
+        { group: 'line', index: 0, key: 'leftWing' },
+        { group: 'pairing', index: 0, key: 'leftDefence' },
+      )
+      expect(() => continueFixture(state, fixtureId, [{ clubId, lineup: worse }])).toThrow(
+        InvalidLineupError,
+      )
+    })
   })
 
   it('rejects a Club that is not in the Fixture, and a Fixture not on the next day', () => {

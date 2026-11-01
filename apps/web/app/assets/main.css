@@ -373,3 +373,148 @@ tr.mine td {
   justify-content: space-between;
   border-bottom: 1px solid var(--rule);
 }
+
+.button-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.play-text {
+  text-align: left;
+}
+
+tr.play-goal td {
+  font-weight: 700;
+  color: var(--red-line);
+}
+
+tr.play-mark td {
+  background: var(--ink);
+  color: #fff;
+}
+
+.slot-wrong {
+  border: 2px solid #c77700;
+}
+
+.slot-note {
+  display: block;
+  color: #8a5200;
+  font: 400 12px var(--mono);
+}
+
+.slot-picked .slot-note {
+  color: #ffd9a0;
+}
+
+.tactics {
+  display: grid;
+  gap: 14px;
+}
+
+.presets {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.chip {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--ink);
+  background: var(--sheet);
+  color: var(--ink);
+  cursor: pointer;
+  font: 600 15px var(--display);
+}
+
+.chip:hover {
+  background: var(--band);
+}
+
+.dial-row {
+  display: grid;
+  grid-template-columns: 130px minmax(240px, 420px) minmax(220px, 1fr);
+  align-items: center;
+  gap: 4px 16px;
+  padding: 8px 10px;
+  border-top: 1px solid var(--rule);
+}
+
+.dial-name {
+  font: 700 17px var(--display);
+}
+
+.dial-scale {
+  display: grid;
+  grid-template-columns: 76px minmax(90px, 1fr) 76px;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.dial-scale span:last-child {
+  text-align: right;
+}
+
+.dial-scale input {
+  width: 100%;
+  accent-color: var(--blue-line);
+}
+
+.dial-effect {
+  margin: 0;
+  font-size: 13px;
+}
+
+.sheet-note {
+  margin: 0;
+  padding: 8px 10px 0;
+  font-size: 13px;
+}
+
+.choices {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 8px;
+  padding: 10px;
+}
+
+.choice {
+  display: grid;
+  gap: 2px;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--rule);
+  background: var(--sheet);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  font: 400 13px var(--mono);
+}
+
+.choice strong {
+  font: 700 17px var(--display);
+}
+
+.choice-on {
+  border: 2px solid var(--blue-line);
+  background: #dcebf8;
+}
+
+.rotation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  padding: 10px;
+}
+
+@media (max-width: 900px) {
+  .dial-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

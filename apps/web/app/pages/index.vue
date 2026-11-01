@@ -18,6 +18,18 @@ const recent = computed(() =>
     .reverse(),
 )
 
+async function follow() {
+  busy.value = true
+  failure.value = null
+  try {
+    await $fetch('/api/live/open', { method: 'POST' })
+    await navigateTo('/live')
+  } catch {
+    failure.value = 'errors.advanceFailed'
+    busy.value = false
+  }
+}
+
 async function advance(mode: 'day' | 'fixture') {
   busy.value = true
   failure.value = null
@@ -70,15 +82,28 @@ async function advance(mode: 'day' | 'fixture') {
         {{ t('season.missedPlayoffs') }}
       </p>
       <div class="actions" style="padding: 0 10px">
+        <NuxtLink v-if="season.following" to="/live" class="button button-go button-link">
+          {{ t('season.keepFollowing') }}
+        </NuxtLink>
         <button
+          v-else-if="season.playsNext"
+          type="button"
+          class="button button-go"
+          :disabled="busy"
+          @click="follow"
+        >
+          {{ t('season.follow') }}
+        </button>
+        <button
+          v-else
           type="button"
           class="button"
-          :disabled="busy || season.playsNext"
+          :disabled="busy"
           @click="advance('fixture')"
         >
           {{ t('season.toFixture') }}
         </button>
-        <button type="button" class="button button-go" :disabled="busy" @click="advance('day')">
+        <button type="button" class="button" :disabled="busy" @click="advance('day')">
           {{ t(season.playsNext ? 'season.playFixture' : 'season.nextDay') }}
         </button>
       </div>

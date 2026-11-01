@@ -1,7 +1,14 @@
-import { points, savePercentage, type PlainMatchStats, type SkaterStats } from '@ahm/sim'
+import {
+  points,
+  savePercentage,
+  type MatchEvent,
+  type PlainMatchStats,
+  type SkaterStats,
+} from '@ahm/sim'
 
 interface BoxRow {
   stats: PlainMatchStats
+  events: readonly MatchEvent[] | null
 }
 
 export default defineEventHandler(async (event) => {
@@ -10,14 +17,14 @@ export default defineEventHandler(async (event) => {
 
   const { data, error } = await dataClient()
     .from('fixture_results')
-    .select('stats')
+    .select('stats, events')
     .eq('season_id', id)
     .eq('fixture_id', getRouterParam(event, 'id') ?? '')
     .maybeSingle<BoxRow>()
   if (error) throw createError({ statusCode: 500, message: error.message })
   if (!data) throw createError({ statusCode: 404, message: 'errors.noFixture' })
 
-  const { stats } = data
+  const { stats, events } = data
   const names = playerNames(state.clubs)
   const name = (playerId: string) => names.get(playerId) ?? playerId
   const side = (clubId: string) => {
@@ -70,5 +77,6 @@ export default defineEventHandler(async (event) => {
       player: name(injury.playerId),
       fixtures: injury.fixtures,
     })),
+    plays: events ? playByPlay(events, state.clubs) : null,
   }
 })

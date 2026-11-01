@@ -32,8 +32,10 @@
     "missedPlayoffs": "Your Club missed the playoffs.",
     "toFixture": "Skip to my Fixture",
     "nextDay": "Next day",
-    "playFixture": "Play my Fixture",
-    "recent": "Recent results"
+    "playFixture": "Simulate my Fixture",
+    "recent": "Recent results",
+    "follow": "Follow my Fixture",
+    "keepFollowing": "Back to my Fixture"
   },
   "errors": {
     "signedOut": "Please sign in.",
@@ -48,7 +50,8 @@
     "advanceFailed": "The Season did not move on. Refresh the page and try again.",
     "invalidLineup": "That Lineup breaks the rules.",
     "fixtureFollowed": "The Lineup is locked while you follow a Fixture.",
-    "saveFailed": "That could not be saved. Refresh the page and try again."
+    "saveFailed": "That could not be saved. Refresh the page and try again.",
+    "notFollowing": "No Fixture is being followed."
   },
   "nav": {
     "label": "Main menu",
@@ -146,28 +149,88 @@
     "overtime": "Overtime trios",
     "spares": "Not dressed",
     "sparesHelp": "Pick a slot above, then a Player here to bring them in.",
-    "help": "Click one Player, then another, and they trade places. Nothing changes until you save.",
+    "help": "Click one Player, then another, and they trade places. Nothing changes until you save. Injuries can leave a Skater out of position: this is marked, and you can rearrange around it at an intermission.",
     "reset": "Undo changes",
     "save": "Save",
-    "saved": "Saved. It counts from your next Fixture."
+    "saved": "Saved. It counts from your next Fixture.",
+    "outOfPosition": "out of position"
   },
   "tactics": {
     "style": "Style of play",
+    "presets": "Quick setting:",
+    "defensive": "Defensive",
+    "balanced": "Balanced",
+    "attacking": "Attacking",
     "aggression": "Aggression",
-    "aggressionHelp": "More shots for and against, and more penalties.",
-    "shotVolume": "Shot volume",
-    "shotVolumeHelp": "More shots, from further out.",
+    "aggressionLow": "Careful",
+    "aggressionHigh": "All in",
+    "aggressionEffect": {
+      "low": "You sit back: fewer shots both ways and fewer penalties.",
+      "mid": "A balance of pressure and structure.",
+      "high": "You press: more shots for you, more against you, and more penalties."
+    },
+    "shotVolume": "Shooting",
+    "shotVolumeLow": "Pick spots",
+    "shotVolumeHigh": "Shoot often",
+    "shotVolumeEffect": {
+      "low": "Fewer shots, but from better chances.",
+      "mid": "A mix of good chances and volume.",
+      "high": "Many shots, more of them from distance."
+    },
     "shiftLength": "Shift length",
-    "shiftLengthHelp": "Higher means shorter Shifts: less fatigue, a weaker matchup.",
-    "matchup": "Matchup at home",
+    "shiftLengthLow": "Long",
+    "shiftLengthHigh": "Short",
+    "shiftLengthEffect": {
+      "low": "Players stay out longer and tire faster. Matchups work better.",
+      "mid": "The usual rotation.",
+      "high": "Fresher legs, but matchups work less well."
+    },
+    "shiftSeconds": "About {seconds} s a Shift.",
+    "matchup": "Matchups",
+    "matchupHelp": "Who you send out against whom. It works at home only, where you have the last change, and matched Shifts tire your Players more.",
     "none": "None",
     "noneHelp": "Lines roll in turn.",
     "exploit": "Exploit",
-    "exploitHelp": "Your first Line hunts their weak Pairing. It costs fatigue.",
+    "exploitHelp": "Your first Line hunts their weaker Pairing. More points for your top Line.",
     "shutdown": "Shutdown",
-    "shutdownHelp": "Your best defensive units face their first Line. It costs fatigue.",
+    "shutdownHelp": "Your best defensive units face their first Line, and hold it back.",
     "rotation": "Goalie rotation",
+    "rotationHelp": "When your backup starts instead of your starter. It does not apply in the playoffs.",
     "restOnBackToBack": "Rest the Goalie who played yesterday",
-    "maxStarts": "Starts running before a rest (0 means no limit)"
+    "maxStarts": "Most starts in a row:",
+    "noLimit": "no limit"
+  },
+  "live": {
+    "shots": "Shots {home} : {away}",
+    "after": "Intermission after Period {period}",
+    "final": "Final",
+    "plays": "Play by play",
+    "tactics": "Tactics for the rest",
+    "play": "Play on",
+    "applyAndPlay": "Apply and play on",
+    "finish": "Save the result",
+    "help": "Only dressed Players can take part. A choice is final once play goes on."
+  },
+  "plays": {
+    "goal": "Goal! {player}, {club}",
+    "chance": "Big save on {player}, {club}",
+    "penalty": "{player}, {club}: {kind}, {minutes} min",
+    "injury": "{player}, {club}, hurt, out for {fixtures} Fixtures",
+    "lineup": "{club} change the Lineup",
+    "periodEnd": "End of Period, {home} : {away}",
+    "powerPlay": "power play",
+    "emptyNet": "empty net"
+  },
+  "penalties": {
+    "tripping": "tripping",
+    "hooking": "hooking",
+    "holding": "holding",
+    "slashing": "slashing",
+    "interference": "interference",
+    "boarding": "boarding",
+    "roughing": "roughing",
+    "highsticking": "high sticking",
+    "crosschecking": "cross-checking",
+    "delayofgame": "delay of play"
   }
 }
