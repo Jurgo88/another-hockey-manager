@@ -609,3 +609,18 @@ tr.play-mark td {
 .notice p {
   margin: 4px 0 0;
 }
+
+.badge {
+  display: inline-block;
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--red-line);
+  color: #fff;
+  font: 700 12px/18px var(--mono);
+  text-align: center;
+}
+
+tr.notice-new td {
+  font-weight: 700;
+}

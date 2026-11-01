@@ -5,11 +5,14 @@ const headers = useRequestHeaders(['cookie'])
 const { data: manager } = await useFetch('/api/me', { headers })
 const { data: season, refresh } = await useFetch('/api/season', { headers })
 const { data: fixtures, refresh: refreshFixtures } = await useFetch('/api/fixtures', { headers })
+const { data: notices, refresh: refreshNotices } = await useFetch('/api/notices', { headers })
 
 if (!season.value) await navigateTo('/clubs')
 
 const busy = ref(false)
 const failure = ref<string | null>(null)
+
+const news = computed(() => (notices.value ?? []).filter((notice) => !notice.read).slice(0, 5))
 
 const recent = computed(() =>
   (fixtures.value ?? [])
@@ -23,7 +26,7 @@ async function advance(mode: 'day' | 'fixture') {
   failure.value = null
   try {
     await $fetch('/api/season/advance', { method: 'POST', body: { mode } })
-    await Promise.all([refresh(), refreshFixtures()])
+    await Promise.all([refresh(), refreshFixtures(), refreshNotices(), refreshNuxtData('unread')])
   } catch {
     failure.value = 'errors.advanceFailed'
   } finally {
@@ -98,6 +101,14 @@ async function advance(mode: 'day' | 'fixture') {
         </button>
       </div>
       <p v-if="failure" class="error" role="alert" style="padding: 0 10px">{{ t(failure) }}</p>
+    </section>
+
+    <section v-if="news.length" class="sheet">
+      <h2>{{ t('notices.latest') }}</h2>
+      <NoticeList :notices="news" />
+      <p style="padding: 0 10px">
+        <NuxtLink to="/notices">{{ t('notices.all') }}</NuxtLink>
+      </p>
     </section>
 
     <section v-if="recent.length" class="sheet">

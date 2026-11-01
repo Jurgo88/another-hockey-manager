@@ -7,6 +7,7 @@ import {
   advanceDay,
   advanceToFixtureOf,
   InvalidLineupError,
+  noticesOf,
   playsNext,
   replaceInjured,
   setLineup,
@@ -139,6 +140,50 @@ describe('saved state (ADR-014)', () => {
   it('gives the same Fixtures when stored as JSON between every two days', () => {
     const saved = play(DAYS, (state) => JSON.parse(JSON.stringify(state)) as SeasonState)
     expect(saved).toEqual(play(DAYS, (state) => state))
+  })
+})
+
+describe('noticesOf', () => {
+  /** Plays on until a day on which `clubId` has news of this kind. */
+  function firstNotice(kind: 'injury' | 'recovered', days = 80) {
+    let state = start
+    for (let i = 0; i < days; i++) {
+      const day = advanceDay(state)
+      for (const club of start.clubs) {
+        const found = noticesOf(state, day, club.id).filter((notice) => notice.kind === kind)
+        if (found.length > 0) return { before: state, day, club, found }
+      }
+      state = day.state
+    }
+    throw new Error(`no ${kind} notice`)
+  }
+
+  it('tells a Club who was hurt, and for how long', () => {
+    const { day, club, found } = firstNotice('injury')
+    const injuries = day.played.flatMap((p) => p.match.injuries)
+    for (const notice of found) {
+      expect(notice).toMatchObject({ kind: 'injury', day: day.day })
+      expect(injuries).toContainEqual(
+        expect.objectContaining({ playerId: notice.playerId, clubId: club.id }),
+      )
+    }
+  })
+
+  it('tells a Club who is back, once they no longer count as out', () => {
+    const { before, day, found } = firstNotice('recovered')
+    for (const notice of found) {
+      expect(before.absent[notice.playerId]).toBeDefined()
+      expect(day.state.absent[notice.playerId]).toBeUndefined()
+    }
+  })
+
+  it('says nothing to a Club about the Players of another', () => {
+    const { before, day, club } = firstNotice('injury')
+    const others = start.clubs.find((candidate) => candidate.id !== club.id)!
+    const ids = new Set(club.skaters.map((s) => s.id))
+    for (const notice of noticesOf(before, day, others.id)) {
+      expect(ids.has(notice.playerId)).toBe(false)
+    }
   })
 })
 

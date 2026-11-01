@@ -63,7 +63,8 @@
     "playoffs": "Playoff",
     "roster": "Roster",
     "lineup": "Zostava",
-    "tactics": "Taktika"
+    "tactics": "Taktika",
+    "notices": "Správy"
   },
   "decided": {
     "regulation": "Základná hracia doba",
@@ -256,5 +257,13 @@
     "help": "Títo hráči nemôžu hrať. Ak nič neurobíš, v ďalšom zápase ich automaticky nahradia náhradníci, ale môžeš to nastaviť aj sám.",
     "fix": "Upraviť zostavu automaticky",
     "toLineup": "Upraviť zostavu"
+  },
+  "notices": {
+    "injury": "je zranený: vynechá zápasy: {fixtures}.",
+    "recovered": "sa zotavil a môže hrať.",
+    "empty": "Zatiaľ nič. Správy o tvojom klube prídu sem.",
+    "latest": "Nové správy",
+    "all": "Otvoriť správy",
+    "injuryBrief": "sa zranil, ale ďalší zápas nevynechá."
   }
 }

@@ -3,6 +3,7 @@ const { t, locale, locales, setLocale } = useI18n()
 
 const sections = [
   { to: '/', key: 'nav.overview' },
+  { to: '/notices', key: 'nav.notices' },
   { to: '/roster', key: 'nav.roster' },
   { to: '/lineup', key: 'nav.lineup' },
   { to: '/tactics', key: 'nav.tactics' },
@@ -11,6 +12,13 @@ const sections = [
   { to: '/leaders', key: 'nav.leaders' },
   { to: '/playoffs', key: 'nav.playoffs' },
 ]
+
+const route = useRoute()
+const { data: unread } = await useFetch('/api/notices/unread', {
+  key: 'unread',
+  headers: useRequestHeaders(['cookie']),
+  watch: [() => route.path],
+})
 
 async function signOut() {
   await $fetch('/api/auth/logout', { method: 'POST' })
@@ -31,6 +39,7 @@ async function signOut() {
         exact-active-class="side-on"
       >
         {{ t(section.key) }}
+        <span v-if="section.to === '/notices' && unread?.count" class="badge">{{ unread.count }}</span>
       </NuxtLink>
       <div class="side-foot">
         <button
