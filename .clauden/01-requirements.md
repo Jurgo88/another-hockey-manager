@@ -38,7 +38,7 @@ Identifier scheme follows the convention established on HermanTool:
 | FR-22 | A trailing Club may replace its Goalie with an extra attacker late in a Fixture, governed by the Manager's rules: per deficit, how early to pull, and optionally only on a power play. This is the only source of `emptyNet` goals. It never applies in playoff overtime. |
 | FR-23 | Ice-time deployment must match measured NHL distribution: about 19:34 per Fixture for a first-Line forward and 12:03 for a fourth-Line forward. The point gap between tiers must come mostly from scoring rate, not from extra ice time. See `04-validation-targets.md`. |
 | FR-13 | A CLI command simulates a full Season and prints standings plus scoring leaders. |
-| FR-14 | Fatigue accumulates within a Match, lowers play, and carries across a congested schedule, recovering between Fixtures. See ADR-010. |
+| FR-14 | Fatigue accumulates within a Match, eases a little at the regulation intermissions, lowers play, and carries across a congested schedule, recovering between Fixtures. See ADR-010 and ADR-019. |
 | FR-25 | The backup Goalie starts Fixtures under a rule in Tactics: whoever played yesterday may sit, and whoever has started a set number running may sit the next. The rule is applied before the Fixture, the same for every Manager. See ADR-011. |
 | FR-26 | Players get hurt: mostly in a Match, in proportion to ice time, and some off the ice before the opening faceoff. An injury is an event naming the Fixtures the Player will miss, at measured frequency and length. See ADR-012. |
 | FR-27 | A Lineup answers an injury by itself: the Skater moves to the bottom of their column, everyone below steps up, and a spare fills the slot between Fixtures. The backup Goalie takes the net and the next healthy Goalie dresses. See ADR-012. |
@@ -50,7 +50,7 @@ Identifier scheme follows the convention established on HermanTool:
 | FR-32 | A Manager is told which Players in their Lineup are out, before a Fixture, and can replace them in one click. A Manager who does nothing is covered by FR-27. A declared Lineup may keep a Skater out of position only when injuries leave no natural replacement. |
 | FR-33 | A Manager receives notices about their Club in an inbox, folded from the Fixtures played: who was hurt and who is fit again. A new kind of notice is one more member of a type and one more line of wording. |
 | FR-34 | A Manager can let an assistant coach propose the best Lineup from the fit Players, using the builder that sets AI Lineups (D-04). Tactics stay, and it counts only once saved. |
-| FR-35 | A Manager sees Skater fatigue before a Fixture and during it, by Skater and by unit. It reaches the reader through `shift_change`, and only `match_end` carries it to the next Fixture (ADR-010). |
+| FR-35 | A Manager sees Skater fatigue as a bar before a Fixture and during it, by Skater and by unit, up to date after each Shift. It reaches a reader through `fatigue` events, and only `match_end` carries it to the next Fixture (ADR-019). |
 
 ## Non-functional requirements
 
