@@ -44,6 +44,7 @@ Identifier scheme follows the convention established on HermanTool:
 | FR-27 | A Lineup answers an injury by itself: the Skater moves to the bottom of their column, everyone below steps up, and a spare fills the slot between Fixtures. The backup Goalie takes the net and the next healthy Goalie dresses. See ADR-012. |
 | FR-24 | A Fixture is scheduled on a calendar day. Gaps between a Club's Fixtures follow the measured NHL shape, about one in six a back-to-back, and no Club plays three days running. See ADR-010. |
 | FR-28 | A Season advances one calendar day at a time from plain stored state. Stopping and reloading between any two days changes no result. See ADR-014. |
+| FR-29 | After the regular Season, playoff series play through the same daily advance until a champion is known. Goalie rotation does not apply in the playoffs. See ADR-015. |
 
 ## Non-functional requirements
 

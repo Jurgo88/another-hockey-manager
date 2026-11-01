@@ -95,3 +95,4 @@ Out (deferred, with the phase that owns them in `05-roadmap.md`):
 | 012 | Injuries are events in the stream, and a Lineup answers them by moving up |
 | 013 | A matchup costs fatigue, and shorter Shifts weaken it |
 | 014 | A Season is plain JSON state advanced one day at a time |
+| 015 | Playoffs are Fixtures added to the Season as they become due |
