@@ -13,6 +13,26 @@ const emit = defineEmits<{ 'update:lineup': [lineup: Lineup] }>()
 const { t } = useI18n()
 const picked = ref<LineupSlot | null>(null)
 
+const asking = ref(false)
+const failure = ref(false)
+
+async function askAssistant() {
+  asking.value = true
+  failure.value = false
+  try {
+    const { lineup } = await $fetch<{ lineup: Lineup }>('/api/lineup/assistant', {
+      method: 'POST',
+      body: { tactics: props.lineup.tactics },
+    })
+    picked.value = null
+    emit('update:lineup', lineup)
+  } catch {
+    failure.value = true
+  } finally {
+    asking.value = false
+  }
+}
+
 const nameOf = (id: string) => props.players.find((p) => p.id === id)
 const label = (id: string) => {
   const player = nameOf(id)
@@ -120,6 +140,13 @@ const sections = computed((): { title: string; rows: Row[] }[] => {
 </script>
 
 <template>
+  <section v-if="spares" class="notice notice-plain">
+    <p>{{ t('lineup.assistantHelp') }}</p>
+    <button type="button" class="button" :disabled="asking" @click="askAssistant">
+      {{ t('lineup.assistant') }}
+    </button>
+    <p v-if="failure" class="error" role="alert">{{ t('errors.saveFailed') }}</p>
+  </section>
   <section v-for="section in sections" :key="section.title" class="sheet">
     <h2>{{ section.title }}</h2>
     <div class="lines">

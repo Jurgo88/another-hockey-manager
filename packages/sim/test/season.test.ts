@@ -6,6 +6,7 @@ import { foldSeason } from '../src/stats/season.js'
 import {
   advanceDay,
   advanceToFixtureOf,
+  assistantLineup,
   InvalidLineupError,
   noticesOf,
   playsNext,
@@ -140,6 +141,44 @@ describe('saved state (ADR-014)', () => {
   it('gives the same Fixtures when stored as JSON between every two days', () => {
     const saved = play(DAYS, (state) => JSON.parse(JSON.stringify(state)) as SeasonState)
     expect(saved).toEqual(play(DAYS, (state) => state))
+  })
+})
+
+describe('assistantLineup', () => {
+  const clubId = () => start.clubs[0]!.id
+  const club = () => start.clubs[0]!
+
+  it('picks a valid Lineup and keeps the Tactics', () => {
+    const tactics = { ...DEFAULT_TACTICS, aggression: 77 }
+    const lineup = assistantLineup(start, clubId(), tactics)
+    expect(validateLineup(lineup, club())).toEqual([])
+    expect(lineup.tactics).toEqual(tactics)
+  })
+
+  it('undoes a poor Lineup', () => {
+    const lineup = start.lineups[clubId()]!
+    const poor = swapSlots(
+      lineup,
+      { group: 'line', index: 0, key: 'leftWing' },
+      { group: 'line', index: 3, key: 'leftWing' },
+    )
+    const state = setLineup(start, clubId(), poor)
+    expect(assistantLineup(state, clubId(), poor.tactics).lines).toEqual(lineup.lines)
+  })
+
+  it('leaves out everyone who is hurt', () => {
+    const lineup = start.lineups[clubId()]!
+    const out = [lineup.lines[0].leftWing, lineup.pairings[0].leftDefence, lineup.starter]
+    const state = { ...start, absent: Object.fromEntries(out.map((id) => [id, 4])) }
+    const picked = JSON.stringify(assistantLineup(state, clubId(), lineup.tactics))
+    for (const id of out) expect(picked).not.toContain(id)
+  })
+
+  it('still gives a Lineup that can be saved when a position runs out', () => {
+    const centres = club().skaters.filter((s) => s.preferredPositions[0] === 'C')
+    const state = { ...start, absent: Object.fromEntries(centres.map((s) => [s.id, 5])) }
+    const picked = assistantLineup(state, clubId(), DEFAULT_TACTICS)
+    expect(() => setLineup(state, clubId(), picked)).not.toThrow()
   })
 })
 

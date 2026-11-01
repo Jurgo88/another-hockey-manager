@@ -1,4 +1,4 @@
-import type { Club, Lineup } from '../domain/club.js'
+import type { Club, Lineup, Tactics } from '../domain/club.js'
 import type { CompetitionStructure } from '../domain/competition.js'
 import type { MatchEvent } from '../domain/event.js'
 import type { Fixture, FixtureChange, FixtureId, FixtureInput } from '../domain/fixture.js'
@@ -184,6 +184,26 @@ export function replaceInjured(state: SeasonState, clubId: ClubId, lineup: Lineu
   const club = clubOf(state, clubId)
   const out = new Set(rosterIds(club).filter((id) => state.absent[id] !== undefined))
   return withoutInjured(club, lineup, out)
+}
+
+/**
+ * The Lineup an assistant coach would pick from those fit to play, keeping the
+ * Tactics. It is the same builder that sets an AI Manager's Lineup (D-04). With
+ * too few fit at a position to build one, it builds from everyone and replaces
+ * those who are out, as a Fixture would.
+ */
+export function assistantLineup(state: SeasonState, clubId: ClubId, tactics: Tactics): Lineup {
+  const club = clubOf(state, clubId)
+  const fit = <T extends { id: PlayerId }>(players: readonly T[]) =>
+    players.filter((player) => state.absent[player.id] === undefined)
+  try {
+    return buildNaiveLineup(
+      { ...club, skaters: fit(club.skaters), goalies: fit(club.goalies) },
+      tactics,
+    )
+  } catch {
+    return replaceInjured(state, clubId, buildNaiveLineup(club, tactics))
+  }
 }
 
 /** Whether a Fixture of this Club is being followed, which locks its Lineup. */

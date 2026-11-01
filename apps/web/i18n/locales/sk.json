@@ -155,7 +155,9 @@
     "reset": "Zrušiť zmeny",
     "save": "Uložiť",
     "saved": "Uložené. Platí od ďalšieho zápasu.",
-    "outOfPosition": "mimo postu"
+    "outOfPosition": "mimo postu",
+    "assistant": "Nech zostaví asistent",
+    "assistantHelp": "Asistent trénera vyberie najlepšiu zostavu zo zdravých hráčov. Tvoje Tactics zostanú a platí to až po uložení."
   },
   "tactics": {
     "style": "Štýl hry",
