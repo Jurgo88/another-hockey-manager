@@ -43,7 +43,7 @@ guessed.
 - Standings, scoring leaders
 - Season advance, one day at a time from saved state (ADR-014)
 - Playoffs, played as series after the regular Season
-- Decide OQ #12: Lineup changes at intermissions
+- Lineup changes at intermissions (ADR-016)
 - AI Managers setting Lineups through the same API a human uses (D-04)
 
 Architecture constraint carried from HermanTool: no client-to-database access.
