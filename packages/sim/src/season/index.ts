@@ -226,8 +226,9 @@ export function continueFixture(
   const changes = chosen.map(({ clubId, lineup }) => {
     const before = lineups[clubId]
     if (!before) throw new Error(`Club ${clubId} is not in Fixture ${fixtureId}`)
+    const club = clubOf(state, clubId)
     const violations = [
-      ...validateLineup(lineup, clubOf(state, clubId)),
+      ...withinEmergency(validateLineup(lineup, club), validateLineup(before, club)),
       ...notDressed(lineup, before),
     ]
     if (violations.length > 0) throw new InvalidLineupError(clubId, violations)
@@ -332,6 +333,22 @@ function dressed(lineup: Lineup): PlayerId[] {
     ...lineup.lines.flatMap((line) => [line.leftWing, line.centre, line.rightWing]),
     ...lineup.pairings.flatMap((pairing) => [pairing.leftDefence, pairing.rightDefence]),
   ]
+}
+
+/**
+ * With no natural replacement left, an injury can put a Skater out of position
+ * (ADR-012). A Manager can rearrange around that, as long as no more Skaters
+ * end up out of position than the Fixture already had.
+ */
+function withinEmergency(
+  found: readonly LineupViolation[],
+  before: readonly LineupViolation[],
+): LineupViolation[] {
+  const outOfPosition = (list: readonly LineupViolation[]) =>
+    list.filter((violation) => violation.rule === 'illegal-position')
+  return outOfPosition(found).length > outOfPosition(before).length
+    ? [...found]
+    : found.filter((violation) => violation.rule !== 'illegal-position')
 }
 
 function notDressed(lineup: Lineup, before: Lineup): LineupViolation[] {
