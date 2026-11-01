@@ -62,6 +62,10 @@ describe('the fatigue model (ADR-010)', () => {
     expect(afterShift(99.9, 90, 1)).toBe(100)
   })
 
+  it('scales the whole cost of a Shift by its effort', () => {
+    expect(afterShift(0, 45, 10, 2)).toBeCloseTo(2 * afterShift(0, 45, 10))
+  })
+
   it('clears with each day of rest, faster for a fit Skater', () => {
     expect(afterRest(40, 1, 10)).toBeLessThan(40)
     expect(afterRest(40, 2, 10)).toBeLessThan(afterRest(40, 1, 10))

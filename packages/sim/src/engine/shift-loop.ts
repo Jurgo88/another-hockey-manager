@@ -45,8 +45,14 @@ const BASE_SHIFT_SECONDS_SHORT = 30
 /** Fraction a fully-fatigued (100) unit shortens its own target shift by. */
 const FATIGUE_SHIFT_SHORTEN_MAX = 0.3
 
-/** Multiplier applied to the targeted unit's weight when a matchup policy finds an opening. */
+/** Multiplier applied to the targeted unit's weight at `shiftLength` 50, when a matchup policy finds an opening. */
 const MATCHUP_BIAS_MULTIPLIER = 2.5
+/**
+ * What a Shift a matchup sent a unit out for costs, against a turn in the
+ * rotation: it plays outside its rest and against the hardest opposition.
+ * Set so a matchup is worth about nothing on average (ADR-013).
+ */
+const MATCHED_SHIFT_EFFORT = 2.5
 
 /** Below five a side, forwards leave the ice first, down to this many. */
 const MIN_FORWARDS = 2
@@ -99,6 +105,14 @@ function unitFatigue(state: ClubState, playerIds: readonly PlayerId[]): number {
   return mean(playerIds.map((id) => state.fatigue.get(id)!))
 }
 
+/**
+ * Shorter Shifts leave a coach fewer chances to get the wanted matchup: double
+ * the bias at `shiftLength` 0, none at 100 (02-domain-model.md).
+ */
+function matchupBias(shiftLengthDial: number): number {
+  return 1 + ((MATCHUP_BIAS_MULTIPLIER - 1) * (100 - shiftLengthDial)) / 50
+}
+
 function targetShiftSeconds(shiftLengthDial: number, unitFatigue0to100: number): number {
   const base =
     BASE_SHIFT_SECONDS_LONG -
@@ -136,6 +150,8 @@ export interface ShiftSelection {
   seconds: number
   /** Mean fatigue of each unit as it takes the ice, 0-100. */
   fatigue: Readonly<Record<'home' | 'away', number>>
+  /** Home Skaters on the ice because a matchup policy sent them. */
+  matched: readonly PlayerId[]
 }
 
 export interface ShiftLoop {
@@ -284,16 +300,20 @@ export function createShiftLoop(
     }
 
     let homeOnIce: OnIce
+    let matched: readonly PlayerId[] = []
     if (situation.home.strength === 'even' && situation.home.threeOnThree) {
       homeOnIce = overtimeTrio(homeState, homeRng, situation.home)
     } else if (situation.home.strength === 'even') {
       const homeLineWeights = [...LINE_DEPLOYMENT_WEIGHT]
       const homePairingWeights = [...PAIRING_DEPLOYMENT_WEIGHT]
+      let matchedLine: number | null = null
+      let matchedPairing: number | null = null
 
       // Home selects with the away unit already committed. Matchups exist
       // only at even strength - special teams are not chosen to match.
       if (awayLine && awayPairing) {
         const policy = home.lineup.tactics.matchup
+        const bias = matchupBias(home.lineup.tactics.shiftLength)
         const awayPairingQuality = unitQuality(awayState, playersOfPairing(awayPairing))
         const awayLineQualities = awayState.lineup.lines.map((l) =>
           unitQuality(awayState, playersOf(l)),
@@ -305,21 +325,30 @@ export function createShiftLoop(
 
         // exploit: away's committed Pairing is weaker than its own average -> favour home's top Line.
         if (policy === 'exploit' && awayPairingQuality < awayPairingAvg) {
-          homeLineWeights[0] = homeLineWeights[0]! * MATCHUP_BIAS_MULTIPLIER
+          homeLineWeights[0] = homeLineWeights[0]! * bias
+          matchedLine = 0
         }
         // shutdown: away's best Line is out -> favour home's best defensive Line and top
         // Pairing. Only that Line: chasing every above-average one shuts down nobody.
         if (policy === 'shutdown' && awayLineQuality >= Math.max(...awayLineQualities)) {
-          homePairingWeights[0] = homePairingWeights[0]! * MATCHUP_BIAS_MULTIPLIER
+          homePairingWeights[0] = homePairingWeights[0]! * bias
+          matchedPairing = 0
           const lineDefence = homeState.lineup.lines.map((l) => unitDefence(homeState, playersOf(l)))
           const best = lineDefence.indexOf(Math.max(...lineDefence))
-          homeLineWeights[best] = homeLineWeights[best]! * MATCHUP_BIAS_MULTIPLIER
+          homeLineWeights[best] = homeLineWeights[best]! * bias
+          matchedLine = best
         }
       }
 
-      const homeLine = homeState.lineup.lines[weightedIndex(homeRng, homeLineWeights)]!
-      const homePairing = homeState.lineup.pairings[weightedIndex(homeRng, homePairingWeights)]!
+      const lineIndex = weightedIndex(homeRng, homeLineWeights)
+      const pairingIndex = weightedIndex(homeRng, homePairingWeights)
+      const homeLine = homeState.lineup.lines[lineIndex]!
+      const homePairing = homeState.lineup.pairings[pairingIndex]!
       homeOnIce = fromEvenStrength(homeState, homeLine, homePairing, situation.home)
+      matched = [
+        ...(lineIndex === matchedLine ? playersOf(homeLine) : []),
+        ...(pairingIndex === matchedPairing ? playersOfPairing(homePairing) : []),
+      ]
     } else {
       homeOnIce = specialUnit(homeState, homeRng, situation.home)
     }
@@ -332,11 +361,11 @@ export function createShiftLoop(
     const awayTarget = targetShiftSeconds(away.lineup.tactics.shiftLength, fatigue.away)
     const seconds = Math.min(Math.max(1, Math.round(Math.min(homeTarget, awayTarget))), maxSeconds)
 
-    return { home: homeOnIce, away: awayOnIce, seconds, fatigue }
+    return { home: homeOnIce, away: awayOnIce, seconds, fatigue, matched }
   }
 
   function played(selection: ShiftSelection, seconds: number): void {
-    applyFatigue(homeState, onIceIds(selection.home), seconds)
+    applyFatigue(homeState, onIceIds(selection.home), seconds, selection.matched)
     applyFatigue(awayState, onIceIds(selection.away), seconds)
   }
 
@@ -358,9 +387,15 @@ export function createShiftLoop(
   }
 }
 
-function applyFatigue(state: ClubState, onIce: readonly PlayerId[], seconds: number): void {
+function applyFatigue(
+  state: ClubState,
+  onIce: readonly PlayerId[],
+  seconds: number,
+  matched: readonly PlayerId[] = [],
+): void {
   for (const id of onIce) {
     const stamina = state.skaterById.get(id)!.attributes.stamina
-    state.fatigue.set(id, afterShift(state.fatigue.get(id)!, seconds, stamina))
+    const effort = matched.includes(id) ? MATCHED_SHIFT_EFFORT : 1
+    state.fatigue.set(id, afterShift(state.fatigue.get(id)!, seconds, stamina, effort))
   }
 }

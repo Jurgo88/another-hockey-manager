@@ -24,11 +24,12 @@ function staminaFactor(stamina: number): number {
 /**
  * What one continuous Shift costs. Per second it grows with the length of the
  * Shift, so splitting the same ice time into shorter Shifts tires a Skater
- * less - which is what the `shiftLength` dial trades on.
+ * less - which is what the `shiftLength` dial trades on. `effort` scales the
+ * whole cost, for a Shift played harder than a Skater's turn in the rotation.
  */
-export function afterShift(fatigue: number, seconds: number, stamina: number): number {
+export function afterShift(fatigue: number, seconds: number, stamina: number, effort = 1): number {
   const perSecond = FATIGUE_PER_SECOND * (1 + seconds / SHIFT_COST_SECONDS)
-  return Math.min(100, fatigue + perSecond * seconds * staminaFactor(stamina))
+  return Math.min(100, fatigue + effort * perSecond * seconds * staminaFactor(stamina))
 }
 
 /** What is left after `days` between two Fixtures. Higher `stamina` clears it faster. */
