@@ -93,8 +93,8 @@ async function step(options: { toBreak?: boolean } = {}) {
     if (options.toBreak) shownClock.value = view.clock
   } catch (error) {
     playing.value = false
-    const violations = (error as { data?: { data?: { message: string }[] } }).data?.data
-    if (violations) problems.value = violations.map((violation) => violation.message)
+    const violations = violationMessages(error)
+    if (violations) problems.value = violations
     else failure.value = 'errors.saveFailed'
   } finally {
     busy.value = false

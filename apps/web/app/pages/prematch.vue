@@ -32,8 +32,8 @@ async function start() {
     await $fetch('/api/live/open', { method: 'POST' })
     await navigateTo('/live')
   } catch (error) {
-    const violations = (error as { data?: { data?: { message: string }[] } }).data?.data
-    if (violations) problems.value = violations.map((violation) => violation.message)
+    const violations = violationMessages(error)
+    if (violations) problems.value = violations
     else failure.value = 'errors.saveFailed'
     busy.value = false
   }

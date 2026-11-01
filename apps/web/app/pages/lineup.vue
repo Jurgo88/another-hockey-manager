@@ -36,8 +36,8 @@ async function save() {
     dirty.value = false
     saved.value = true
   } catch (error) {
-    const violations = (error as { data?: { data?: { message: string }[] } }).data?.data
-    if (violations) problems.value = violations.map((violation) => violation.message)
+    const violations = violationMessages(error)
+    if (violations) problems.value = violations
     else failure.value = 'errors.saveFailed'
   }
 }
