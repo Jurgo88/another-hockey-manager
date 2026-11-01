@@ -15,16 +15,24 @@ interface SeasonRow {
   club_id: string
   version: number
   state: SeasonState
+  live: SeasonState['live']
 }
 
 export async function loadSeason(managerId: string): Promise<StoredSeason | null> {
   const { data, error } = await dataClient()
     .from('seasons')
-    .select('id, club_id, version, state')
+    .select('id, club_id, version, state, live')
     .eq('manager_id', managerId)
     .maybeSingle<SeasonRow>()
   if (error) throw createError({ statusCode: 500, message: error.message })
-  return data && { id: data.id, clubId: data.club_id, version: data.version, state: data.state }
+  return (
+    data && {
+      id: data.id,
+      clubId: data.club_id,
+      version: data.version,
+      state: { ...data.state, live: data.live },
+    }
+  )
 }
 
 export async function requireSeason(managerId: string): Promise<StoredSeason> {
@@ -93,12 +101,31 @@ export async function saveDays(
 export async function saveState(season: StoredSeason, state: SeasonState): Promise<void> {
   const { data, error } = await dataClient()
     .from('seasons')
-    .update({ state, version: season.version + 1, updated_at: new Date().toISOString() })
+    .update({
+      state,
+      live: state.live,
+      version: season.version + 1,
+      updated_at: new Date().toISOString(),
+    })
     .eq('id', season.id)
     .eq('version', season.version)
     .select('id')
   if (error) throw createError({ statusCode: 500, message: error.message })
   if (data.length === 0) throw createError({ statusCode: 409, message: 'errors.seasonMoved' })
+}
+
+/** Stores only the progress of a followed Fixture. */
+export async function saveLive(season: StoredSeason, live: SeasonState['live']): Promise<number> {
+  const version = season.version + 1
+  const { data, error } = await dataClient()
+    .from('seasons')
+    .update({ live, version })
+    .eq('id', season.id)
+    .eq('version', season.version)
+    .select('id')
+  if (error) throw createError({ statusCode: 500, message: error.message })
+  if (data.length === 0) throw createError({ statusCode: 409, message: 'errors.seasonMoved' })
+  return version
 }
 
 export function clubName(state: SeasonState, clubId: ClubId): string {

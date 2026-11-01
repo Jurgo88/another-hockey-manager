@@ -51,7 +51,8 @@
     "invalidLineup": "That Lineup breaks the rules.",
     "fixtureFollowed": "The Lineup is locked while you follow a Fixture.",
     "saveFailed": "That could not be saved. Refresh the page and try again.",
-    "notFollowing": "No Fixture is being followed."
+    "notFollowing": "No Fixture is being followed.",
+    "fixtureOver": "That Fixture has been played to its end."
   },
   "nav": {
     "label": "Main menu",
@@ -209,7 +210,18 @@
     "play": "Play on",
     "applyAndPlay": "Apply and play on",
     "finish": "Save the result",
-    "help": "Only dressed Players can take part. A choice is final once play goes on."
+    "help": "You can change Tactics and the Lineup. Only dressed Players can take part, and nothing already played can change.",
+    "period": "Period {period}",
+    "start": "Start the Fixture",
+    "pause": "Pause",
+    "resume": "Play on",
+    "nextPeriod": "Start the next Period",
+    "speed": "Speed",
+    "skip": "Skip to the next break",
+    "pressure": "Pressure",
+    "atBreak": "Intermission",
+    "paused": "Paused",
+    "pending": "Your change is ready. It counts from the next Shift once play goes on."
   },
   "plays": {
     "goal": "Goal! {player}, {club}",
@@ -232,5 +244,10 @@
     "highsticking": "high sticking",
     "crosschecking": "cross-checking",
     "delayofgame": "delay of play"
+  },
+  "prematch": {
+    "title": "Before the Fixture",
+    "start": "Start the Fixture",
+    "help": "Set your Lineup and Tactics. Starting the Fixture saves them."
   }
 }

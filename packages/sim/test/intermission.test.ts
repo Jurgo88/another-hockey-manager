@@ -42,13 +42,13 @@ beforeAll(async () => {
   awayLineup = buildNaiveLineup(away)
 })
 
-const inputWith = (intermissions: FixtureInput['intermissions'] = []): FixtureInput => ({
+const inputWith = (changes: FixtureInput['changes'] = []): FixtureInput => ({
   fixture: fixtureBetween(home.id, away.id),
   homeClub: home,
   awayClub: away,
   homeLineup,
   awayLineup,
-  intermissions,
+  changes,
 })
 
 const periodEnd = (events: readonly MatchEvent[], period: 1 | 2) =>
@@ -67,30 +67,60 @@ const reshuffled = (lineup: Lineup): Lineup => {
   }
 }
 
-describe('a change at an intermission (ADR-016)', () => {
-  it('leaves every event before it byte-identical, for every seed', () => {
+describe('a change during a Fixture (ADR-018)', () => {
+  it('leaves every event before an intermission change byte-identical', () => {
     for (let seed = 0; seed < FIXTURES; seed++) {
       const plain = simulateFixture(inputWith(), seed)
+      const end = periodEnd(plain, 1)
       const changed = simulateFixture(
-        inputWith([{ afterPeriod: 1, clubId: home.id, lineup: reshuffled(homeLineup) }]),
+        inputWith([{ afterEvent: end + 1, clubId: home.id, lineup: reshuffled(homeLineup) }]),
         seed,
       )
-      const end = periodEnd(plain, 1)
       expect(changed.slice(0, end + 1)).toEqual(plain.slice(0, end + 1))
       expect(changed[end + 1]).toMatchObject({ type: 'lineup_change', clubId: home.id })
       expect(changed.slice(end + 2)).not.toEqual(plain.slice(end + 1))
     }
   })
 
+  it('leaves every event before it byte-identical at any moment of a Period', () => {
+    for (let seed = 0; seed < FIXTURES; seed++) {
+      const plain = simulateFixture(inputWith(), seed)
+      const afterEvent = 40 + (seed * 37) % (plain.length - 80)
+      const changed = simulateFixture(
+        inputWith([{ afterEvent, clubId: home.id, lineup: reshuffled(homeLineup) }]),
+        seed,
+      )
+      expect(changed.slice(0, afterEvent)).toEqual(plain.slice(0, afterEvent))
+      const taken = changed.findIndex((e) => e.type === 'lineup_change')
+      if (taken !== -1) expect(taken).toBeGreaterThanOrEqual(afterEvent)
+    }
+  })
+
+  it('takes up several changes in turn, each leaving the one before it in place', () => {
+    const first = simulateFixture(
+      inputWith([{ afterEvent: 100, clubId: home.id, lineup: reshuffled(homeLineup) }]),
+      SEED,
+    )
+    const both = simulateFixture(
+      inputWith([
+        { afterEvent: 100, clubId: home.id, lineup: reshuffled(homeLineup) },
+        { afterEvent: 300, clubId: away.id, lineup: reshuffled(awayLineup) },
+      ]),
+      SEED,
+    )
+    expect(both.slice(0, 300)).toEqual(first.slice(0, 300))
+    expect(both.filter((e) => e.type === 'lineup_change')).toHaveLength(2)
+  })
+
   it('stands in the stream and folds like any Fixture', () => {
-    const input = inputWith([{ afterPeriod: 2, clubId: away.id, lineup: reshuffled(awayLineup) }])
+    const input = inputWith([{ afterEvent: 500, clubId: away.id, lineup: reshuffled(awayLineup) }])
     const events = simulateFixture(input, SEED)
     expect(events.at(-1)!.type).toBe('match_end')
     expect(foldMatch(input.fixture, events).result.winner).not.toBeNull()
   })
 
   it('replays from the stored input and seed (FR-02)', () => {
-    const input = inputWith([{ afterPeriod: 2, clubId: home.id, lineup: reshuffled(homeLineup) }])
+    const input = inputWith([{ afterEvent: 500, clubId: home.id, lineup: reshuffled(homeLineup) }])
     expect(simulateFixture(input, SEED)).toEqual(simulateFixture(input, SEED))
   })
 
@@ -107,8 +137,12 @@ describe('a change at an intermission (ADR-016)', () => {
 
   it('puts the backup in net for the rest of the Fixture', () => {
     const lineup = { ...homeLineup, starter: homeLineup.backup, backup: homeLineup.starter }
-    const events = simulateFixture(inputWith([{ afterPeriod: 1, clubId: home.id, lineup }]), SEED)
-    const after = events.slice(periodEnd(events, 1)).filter(isShift)
+    const end = periodEnd(simulateFixture(inputWith(), SEED), 1)
+    const events = simulateFixture(
+      inputWith([{ afterEvent: end + 1, clubId: home.id, lineup }]),
+      SEED,
+    )
+    const after = events.slice(end + 1).filter(isShift)
     const ours = after.filter((shift) => shift.clubId === home.id && shift.goalie !== null)
     expect(ours.every((shift) => shift.goalie === homeLineup.backup)).toBe(true)
   })
@@ -117,24 +151,25 @@ describe('a change at an intermission (ADR-016)', () => {
     let found = 0
     for (let seed = 0; seed < FIXTURES * 5 && found < 3; seed++) {
       const plain = simulateFixture(inputWith(), seed)
+      const end = periodEnd(plain, 1)
       const hurt = plain
-        .slice(0, periodEnd(plain, 1))
+        .slice(0, end)
         .filter(isInjury)
         .find((e) => !e.offIce && e.clubId === home.id && e.player !== homeLineup.starter)
       if (!hurt) continue
       found++
       const events = simulateFixture(
-        inputWith([{ afterPeriod: 1, clubId: home.id, lineup: reshuffled(homeLineup) }]),
+        inputWith([{ afterEvent: end + 1, clubId: home.id, lineup: reshuffled(homeLineup) }]),
         seed,
       )
-      const after = events.slice(periodEnd(events, 1)).filter(isShift)
+      const after = events.slice(end + 1).filter(isShift)
       expect(after.some((shift) => shift.onIce.includes(hurt.player))).toBe(false)
     }
     expect(found).toBeGreaterThan(0)
   })
 })
 
-describe('following a Fixture (ADR-016)', () => {
+describe('following a Fixture (ADR-018)', () => {
   let start: SeasonState
   let fixtureId: string
   let clubId: string
@@ -148,39 +183,72 @@ describe('following a Fixture (ADR-016)', () => {
 
   const opened = () => openFixture(start, fixtureId)
 
-  it('shows the first Period and nothing past it', () => {
-    const { events } = fixtureSoFar(opened(), fixtureId)
+  /** Steps on until `phase`, and returns the state there. */
+  function stepTo(state: SeasonState, phase: string): SeasonState {
+    let current = state
+    for (let i = 0; i < 200; i++) {
+      if (fixtureSoFar(current, fixtureId).phase === phase) return current
+      current = continueFixture(current, fixtureId)
+    }
+    throw new Error(`never reached ${phase}`)
+  }
+
+  it('starts with nothing shown', () => {
+    const { events, phase } = fixtureSoFar(opened(), fixtureId)
+    expect(phase).toBe('start')
+    expect(events).toEqual([])
+  })
+
+  it('shows about a minute of play at a time', () => {
+    const state = continueFixture(continueFixture(opened(), fixtureId), fixtureId)
+    const { events, phase } = fixtureSoFar(state, fixtureId)
+    expect(phase).toBe('running')
+    expect(events.at(-1)!.clock).toBeLessThanOrEqual(120)
+    expect(events.at(-1)!.clock).toBeGreaterThan(30)
+  })
+
+  it('stops at every intermission, and shows nothing past it', () => {
+    const state = stepTo(opened(), 'intermission')
+    const { events } = fixtureSoFar(state, fixtureId)
     expect(events.at(-1)).toMatchObject({ type: 'period_end', period: 1 })
-    expect(events.some((e) => e.type === 'period_start' && e.period === 2)).toBe(false)
   })
 
   it('plays the same Fixture when followed as when not', () => {
-    let state = opened()
-    state = continueFixture(state, fixtureId)
-    state = continueFixture(state, fixtureId)
-    state = continueFixture(state, fixtureId)
-
+    const state = stepTo(opened(), 'ended')
     const shown = fixtureSoFar(state, fixtureId).events
     const followed = advanceDay(state).played.find((p) => p.fixture.id === fixtureId)!
     const plain = advanceDay(start).played.find((p) => p.fixture.id === fixtureId)!
-    expect(shown).toEqual(plain.events)
     expect(followed.events).toEqual(plain.events)
+    expect(shown).toEqual(plain.events.slice(0, shown.length))
+    expect(plain.events.at(shown.length)?.type).toBe('match_end')
+  })
+
+  it('never changes what has been shown, whatever is chosen in mid-Period', () => {
+    let state = opened()
+    for (let i = 0; i < 6; i++) state = continueFixture(state, fixtureId)
+    const before = fixtureSoFar(state, fixtureId)
+    const lineup = reshuffled(before.lineups[clubId]!)
+
+    state = continueFixture(state, fixtureId, [{ clubId, lineup }])
+    const after = fixtureSoFar(state, fixtureId)
+    expect(after.events.slice(0, before.events.length)).toEqual(before.events)
+    expect(after.lineups[clubId]).toEqual(lineup)
   })
 
   it('takes a change into the Fixture that advanceDay then plays', () => {
-    let state = opened()
+    let state = stepTo(opened(), 'running')
     const { lineups } = fixtureSoFar(state, fixtureId)
     state = continueFixture(state, fixtureId, [{ clubId, lineup: reshuffled(lineups[clubId]!) }])
 
     const { played, state: after } = advanceDay(state)
     const ours = played.find((p) => p.fixture.id === fixtureId)!
     expect(ours.events.some((e) => e.type === 'lineup_change')).toBe(true)
-    expect(ours.input.intermissions).toHaveLength(1)
+    expect(ours.input.changes).toHaveLength(1)
     expect(after.live).toEqual({})
   })
 
-  it('survives being stored as JSON at an intermission', () => {
-    const state = continueFixture(opened(), fixtureId)
+  it('survives being stored as JSON in mid-Period', () => {
+    const state = stepTo(opened(), 'running')
     const saved = JSON.parse(JSON.stringify(state)) as SeasonState
     expect(fixtureSoFar(saved, fixtureId).events).toEqual(fixtureSoFar(state, fixtureId).events)
   })
@@ -245,8 +313,7 @@ describe('following a Fixture (ADR-016)', () => {
   })
 
   it('stops once all of it has been shown', () => {
-    let state = opened()
-    for (let i = 0; i < 3; i++) state = continueFixture(state, fixtureId)
+    const state = stepTo(opened(), 'ended')
     expect(() => continueFixture(state, fixtureId)).toThrow(/shown to its end/)
   })
 })

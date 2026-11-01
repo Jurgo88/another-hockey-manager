@@ -1,4 +1,10 @@
-import { continueFixture, InvalidLineupError, type Lineup } from '@ahm/sim'
+import {
+  continueFixture,
+  fixtureSoFar,
+  InvalidLineupError,
+  type Lineup,
+  type SeasonState,
+} from '@ahm/sim'
 
 export default defineEventHandler(async (event) => {
   const manager = await requireManager(event)
@@ -6,11 +12,19 @@ export default defineEventHandler(async (event) => {
   const { clubId, state } = season
   const fixture = liveFixture(state, clubId)
   if (!fixture) throw createError({ statusCode: 409, message: 'errors.notFollowing' })
+  if (fixtureSoFar(state, fixture.id).phase === 'ended') {
+    throw createError({ statusCode: 409, message: 'errors.fixtureOver' })
+  }
 
-  const { lineup } = await readBody<{ lineup?: Lineup }>(event)
+  const { lineup, toBreak } = await readBody<{ lineup?: Lineup; toBreak?: boolean }>(event)
   const chosen = lineup ? [{ clubId, lineup: { ...lineup, clubId } }] : []
+
+  let next: SeasonState
   try {
-    await saveState(season, continueFixture(state, fixture.id, chosen))
+    next = continueFixture(state, fixture.id, chosen)
+    while (toBreak && fixtureSoFar(next, fixture.id).phase === 'running') {
+      next = continueFixture(next, fixture.id)
+    }
   } catch (error) {
     if (error instanceof InvalidLineupError) {
       throw createError({
@@ -25,5 +39,7 @@ export default defineEventHandler(async (event) => {
     }
     throw error
   }
-  return { ok: true }
+
+  await saveLive(season, next.live)
+  return liveView(next, clubId, fixture)
 })

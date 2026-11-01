@@ -518,3 +518,74 @@ tr.play-mark td {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.broadcast-clock {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.broadcast-clock strong {
+  font-size: 26px;
+}
+
+.broadcast {
+  display: grid;
+  gap: 10px;
+  padding: 10px;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.speeds {
+  display: flex;
+  gap: 4px;
+}
+
+.chip[aria-pressed='true'] {
+  background: var(--ink);
+  color: #fff;
+}
+
+.pressure {
+  display: grid;
+  grid-template-columns: auto minmax(120px, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.pressure-bar {
+  height: 12px;
+  background: var(--red-line);
+}
+
+.pressure-home {
+  height: 12px;
+  background: var(--blue-line);
+  transition: width 0.3s;
+}
+
+.on-ice {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 8px;
+  font-size: 13px;
+}
+
+.plays {
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pressure-home {
+    transition: none;
+  }
+}
