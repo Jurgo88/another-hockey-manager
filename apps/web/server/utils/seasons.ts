@@ -140,6 +140,21 @@ export function playerNames(clubs: readonly Club[]): ReadonlyMap<PlayerId, strin
   )
 }
 
+/** Those declared in a Club's Lineup who are out. They are replaced for the Fixture itself. */
+function injuredInLineup(state: SeasonState, clubId: ClubId): string[] {
+  const lineup = state.lineups[clubId]
+  if (!lineup) return []
+  const names = playerNames(state.clubs)
+  return [
+    lineup.starter,
+    lineup.backup,
+    ...lineup.lines.flatMap((line) => [line.leftWing, line.centre, line.rightWing]),
+    ...lineup.pairings.flatMap((pairing) => [pairing.leftDefence, pairing.rightDefence]),
+  ]
+    .filter((id) => state.absent[id] !== undefined)
+    .map((id) => names.get(id) ?? id)
+}
+
 /** What the home screen needs. The state itself never leaves the server (ADR-016). */
 export function seasonSummary({ clubId, state }: StoredSeason) {
   const next = state.fixtures
@@ -164,6 +179,7 @@ export function seasonSummary({ clubId, state }: StoredSeason) {
     champion: state.playoffs?.champion ? clubName(state, state.playoffs.champion) : null,
     playsNext: playsNext(state, clubId),
     following: liveFixture(state, clubId) !== null,
+    injuredInLineup: injuredInLineup(state, clubId),
     next: next
       ? {
           id: next.id,

@@ -60,6 +60,12 @@ async function save() {
   <ul v-if="problems.length" class="error" role="alert">
     <li v-for="problem in problems" :key="problem">{{ problem }}</li>
   </ul>
+  <InjuryNotice
+    v-if="draft && data"
+    :lineup="draft"
+    :players="data.players"
+    @update:lineup="changed"
+  />
   <LineupBoard
     v-if="draft && data"
     :lineup="draft"

@@ -249,5 +249,12 @@
     "title": "Pred zápasom",
     "start": "Začať zápas",
     "help": "Nastav si zostavu a Tactics. Začatím zápasu sa uložia."
+  },
+  "injuries": {
+    "title": "Zranení hráči v zostave: {count}",
+    "out": "mimo ešte na zápasy: {fixtures}",
+    "help": "Títo hráči nemôžu hrať. Ak nič neurobíš, v ďalšom zápase ich automaticky nahradia náhradníci, ale môžeš to nastaviť aj sám.",
+    "fix": "Upraviť zostavu automaticky",
+    "toLineup": "Upraviť zostavu"
   }
 }

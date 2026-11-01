@@ -50,6 +50,14 @@ async function advance(mode: 'day' | 'fixture') {
     </header>
     <p class="muted">{{ t('season.manager', { name: manager?.name }) }}</p>
 
+    <section v-if="!season.over && season.injuredInLineup.length" class="notice" role="status">
+      <div>
+        <strong>{{ t('injuries.title', { count: season.injuredInLineup.length }) }}</strong>
+        <p>{{ season.injuredInLineup.join(', ') }}</p>
+      </div>
+      <NuxtLink to="/lineup" class="button button-link">{{ t('injuries.toLineup') }}</NuxtLink>
+    </section>
+
     <section v-if="season.over" class="sheet">
       <h2>{{ t('season.overTitle') }}</h2>
       <p style="padding: 0 10px">{{ t('season.champion', { club: season.champion }) }}</p>

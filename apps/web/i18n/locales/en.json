@@ -249,5 +249,12 @@
     "title": "Before the Fixture",
     "start": "Start the Fixture",
     "help": "Set your Lineup and Tactics. Starting the Fixture saves them."
+  },
+  "injuries": {
+    "title": "Injured Players in your Lineup: {count}",
+    "out": "out for {fixtures} more",
+    "help": "They cannot play. If you do nothing, the next Fixture replaces them automatically, but you can set it yourself.",
+    "fix": "Fix the Lineup automatically",
+    "toLineup": "Fix the Lineup"
   }
 }

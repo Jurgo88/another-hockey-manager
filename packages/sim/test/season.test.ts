@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import type { MatchEvent } from '../src/domain/event.js'
-import { DEFAULT_TACTICS, validateLineup } from '../src/engine/lineup.js'
+import { DEFAULT_TACTICS, swapSlots, validateLineup } from '../src/engine/lineup.js'
 import { plainMatchStats } from '../src/stats/match.js'
 import { foldSeason } from '../src/stats/season.js'
 import {
@@ -8,6 +8,7 @@ import {
   advanceToFixtureOf,
   InvalidLineupError,
   playsNext,
+  replaceInjured,
   setLineup,
   startSeason,
   type PlayedFixture,
@@ -138,6 +139,44 @@ describe('saved state (ADR-014)', () => {
   it('gives the same Fixtures when stored as JSON between every two days', () => {
     const saved = play(DAYS, (state) => JSON.parse(JSON.stringify(state)) as SeasonState)
     expect(saved).toEqual(play(DAYS, (state) => state))
+  })
+})
+
+describe('injured Players in a Lineup', () => {
+  const clubId = () => start.clubs[0]!.id
+  const lineup = () => start.lineups[clubId()]!
+
+  it('replaces them, and leaves everyone else where they were', () => {
+    const out = lineup().lines[0].leftWing
+    const state = { ...start, absent: { [out]: 3 } }
+    const healthy = replaceInjured(state, clubId(), lineup())
+
+    expect(JSON.stringify(healthy)).not.toContain(out)
+    expect(healthy.lines[0].centre).toBe(lineup().lines[0].centre)
+    expect(setLineup(state, clubId(), healthy).lineups[clubId()]).toEqual(healthy)
+  })
+
+  it('leaves a Lineup with nobody out as it was', () => {
+    expect(replaceInjured(start, clubId(), lineup())).toEqual(lineup())
+  })
+
+  it('accepts a Skater out of position when no natural replacement is left', () => {
+    const club = start.clubs[0]!
+    const centres = club.skaters.filter((skater) => skater.preferredPositions.includes('C'))
+    const state = { ...start, absent: Object.fromEntries(centres.map((s) => [s.id, 5])) }
+    const healthy = replaceInjured(state, clubId(), lineup())
+
+    expect(validateLineup(healthy, club).map((v) => v.rule)).toContain('illegal-position')
+    expect(() => setLineup(state, clubId(), healthy)).not.toThrow()
+  })
+
+  it('still refuses a Skater out of position with a healthy Roster', () => {
+    const moved = swapSlots(
+      lineup(),
+      { group: 'line', index: 0, key: 'leftWing' },
+      { group: 'pairing', index: 0, key: 'leftDefence' },
+    )
+    expect(() => setLineup(start, clubId(), moved)).toThrow(InvalidLineupError)
   })
 })
 
