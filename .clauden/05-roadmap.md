@@ -41,7 +41,8 @@ guessed.
 - Lineup editor: Lines, Pairings, special teams, Tactics
 - Fixture list, play-by-play reader, box score
 - Standings, scoring leaders
-- Season advance
+- Season advance, one day at a time from saved state (ADR-014)
+- Playoffs, played as series after the regular Season
 - Decide OQ #12: Lineup changes at intermissions
 - AI Managers setting Lineups through the same API a human uses (D-04)
 

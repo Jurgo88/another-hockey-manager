@@ -43,6 +43,7 @@ Identifier scheme follows the convention established on HermanTool:
 | FR-26 | Players get hurt: mostly in a Match, in proportion to ice time, and some off the ice before the opening faceoff. An injury is an event naming the Fixtures the Player will miss, at measured frequency and length. See ADR-012. |
 | FR-27 | A Lineup answers an injury by itself: the Skater moves to the bottom of their column, everyone below steps up, and a spare fills the slot between Fixtures. The backup Goalie takes the net and the next healthy Goalie dresses. See ADR-012. |
 | FR-24 | A Fixture is scheduled on a calendar day. Gaps between a Club's Fixtures follow the measured NHL shape, about one in six a back-to-back, and no Club plays three days running. See ADR-010. |
+| FR-28 | A Season advances one calendar day at a time from plain stored state. Stopping and reloading between any two days changes no result. See ADR-014. |
 
 ## Non-functional requirements
 
