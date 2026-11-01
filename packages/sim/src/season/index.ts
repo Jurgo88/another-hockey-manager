@@ -27,6 +27,7 @@ import { fixtureSeed, simulateFixture } from '../engine/simulate.js'
 import { createGeneratedRosterProvider } from '../generate/roster.js'
 import { createRng } from '../rng/index.js'
 import { foldMatch, type MatchStats } from '../stats/match.js'
+import { foldTotals, NO_TOTALS, type SeasonTotals } from '../stats/season.js'
 import { foldStandings } from '../stats/standings.js'
 
 /**
@@ -63,6 +64,8 @@ export interface SeasonState {
   absent: Readonly<Record<PlayerId, number>>
   /** The regular-Season table. */
   standings: readonly StandingsRow[]
+  /** Player counts so far, the playoffs kept apart. */
+  totals: Readonly<{ regular: SeasonTotals; playoffs: SeasonTotals }>
   /** Null until the regular Season ends. */
   playoffs: PlayoffState | null
   /** Fixtures a Manager is following Period by Period (ADR-016). */
@@ -137,6 +140,7 @@ export async function startSeason(seed: number): Promise<SeasonState> {
     goalieHistory: {},
     absent: {},
     standings: foldStandings(NHL_2026_27, []),
+    totals: { regular: NO_TOTALS, playoffs: NO_TOTALS },
     playoffs: null,
     live: {},
   }
@@ -240,6 +244,32 @@ export function isRegularSeasonOver(state: SeasonState): boolean {
 /** True once the playoffs have a champion. */
 export function isSeasonOver(state: SeasonState): boolean {
   return state.playoffs !== null && state.playoffs.champion !== null
+}
+
+/** Whether a Club plays on the next day that has Fixtures. */
+export function playsNext(state: SeasonState, clubId: ClubId): boolean {
+  const day = state.fixtures[state.nextFixture]?.day
+  return state.fixtures
+    .slice(state.nextFixture)
+    .some(
+      (fixture) =>
+        fixture.day === day && (fixture.homeClubId === clubId || fixture.awayClubId === clubId),
+    )
+}
+
+/**
+ * Plays every day up to a Club's next Fixture, and stops before it, so its
+ * Manager can still set the Lineup. With no Fixture left, plays to the champion.
+ */
+export function advanceToFixtureOf(state: SeasonState, clubId: ClubId): PlayedDay[] {
+  const days: PlayedDay[] = []
+  let current = state
+  while (!isSeasonOver(current) && !playsNext(current, clubId)) {
+    const day = advanceDay(current)
+    days.push(day)
+    current = day.state
+  }
+  return days
 }
 
 /** Plays every Fixture of the next day that has any. */
@@ -418,6 +448,10 @@ function playFixture(
         state.playoffs === null
           ? foldStandings(state.structure, [match], state.standings)
           : state.standings,
+      totals:
+        state.playoffs === null
+          ? { ...state.totals, regular: foldTotals(state.totals.regular, [match]) }
+          : { ...state.totals, playoffs: foldTotals(state.totals.playoffs, [match]) },
     },
   }
 }

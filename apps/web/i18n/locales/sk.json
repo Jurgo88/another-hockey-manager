@@ -1,5 +1,7 @@
 {
-  "app": { "name": "Another Hockey Manager" },
+  "app": {
+    "name": "Another Hockey Manager"
+  },
   "login": {
     "title": "Prihlásenie",
     "createTitle": "Nový účet",
@@ -17,17 +19,85 @@
   },
   "season": {
     "manager": "Manažér: {name}",
-    "record": "Odohrané zápasy: {fixtures}, body: {points}",
+    "record": "Zápasy: {fixtures}, {wins}-{losses}-{otLosses}, body: {points}",
     "nextHome": "Ďalší zápas: {opponent} doma, deň {day}",
     "nextAway": "Ďalší zápas: vonku, {opponent}, deň {day}",
     "newSeason": "Začať novú sezónu",
-    "signOut": "Odhlásiť sa"
+    "signOut": "Odhlásiť sa",
+    "nextTitle": "Ďalej nasleduje",
+    "playoffsTitle": "Playoff",
+    "overTitle": "Koniec sezóny",
+    "champion": "Šampión: {club}",
+    "noFixture": "Tvoj klub už nemá žiadny zápas.",
+    "missedPlayoffs": "Tvoj klub sa do playoff nedostal.",
+    "toFixture": "Prejsť na môj zápas",
+    "nextDay": "Ďalší deň",
+    "playFixture": "Odohrať môj zápas",
+    "recent": "Posledné výsledky"
   },
   "errors": {
     "signedOut": "Prihlás sa, prosím.",
     "invalidLogin": "Nesprávny e-mail alebo heslo.",
     "invalidSignup": "Vyplň všetky polia. Heslo musí mať aspoň 8 znakov.",
     "signupFailed": "Účet sa nepodarilo vytvoriť. E-mail už môže byť použitý.",
-    "unknownClub": "Taký klub neexistuje."
+    "unknownClub": "Taký klub neexistuje.",
+    "noSeason": "Zatiaľ nemáš sezónu.",
+    "noFixture": "Tento zápas ešte nemá výsledok.",
+    "seasonMoved": "Sezóna sa medzitým posunula. Obnov stránku.",
+    "unknownAdvance": "Takýto posun neexistuje.",
+    "advanceFailed": "Sezóna sa neposunula. Obnov stránku a skús to znova."
+  },
+  "nav": {
+    "label": "Hlavné menu",
+    "overview": "Prehľad",
+    "fixtures": "Zápasy",
+    "standings": "Tabuľky",
+    "leaders": "Lídri",
+    "playoffs": "Playoff"
+  },
+  "decided": {
+    "regulation": "Základná hracia doba",
+    "overtime": "Predĺženie",
+    "shootout": "Nájazdy"
+  },
+  "fixtures": {
+    "day": "Deň",
+    "opponent": "Súper",
+    "score": "Skóre",
+    "decided": "Rozhodnuté"
+  },
+  "box": {
+    "period": "Perióda",
+    "shots": "Strely",
+    "scoring": "Góly",
+    "player": "Hráč",
+    "ice": "Čas",
+    "injuries": "Zranenia",
+    "injuryLength": "vynechá zápasy: {fixtures}"
+  },
+  "standings": {
+    "club": "Klub",
+    "played": "Z",
+    "wins": "V",
+    "losses": "P",
+    "otLosses": "PP",
+    "points": "B",
+    "goals": "Skóre"
+  },
+  "leaders": {
+    "regular": "Základná časť",
+    "playoffs": "Playoff",
+    "points": "Body",
+    "goals": "Góly",
+    "goalies": "Brankári",
+    "club": "Klub",
+    "savePercentage": "Úsp."
+  },
+  "playoffs": {
+    "notYet": "Playoff začne po základnej časti.",
+    "round1": "Prvé kolo",
+    "round2": "Finále divízie",
+    "round3": "Finále konferencie",
+    "round4": "Finále"
   }
 }
