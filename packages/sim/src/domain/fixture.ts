@@ -25,6 +25,14 @@ export interface Fixture {
   overtime: OvertimeRegime | null
 }
 
+/** A Lineup and Tactics a Club takes up at an intermission, for the rest of the Fixture. */
+export interface IntermissionChange {
+  /** The Period just ended. After the third it counts only if overtime follows. */
+  afterPeriod: 1 | 2 | 3
+  clubId: ClubId
+  lineup: Lineup
+}
+
 /** Everything the engine needs to simulate one Fixture. Fully self-contained. */
 export interface FixtureInput {
   fixture: Fixture
@@ -32,6 +40,8 @@ export interface FixtureInput {
   awayClub: Club
   homeLineup: Lineup
   awayLineup: Lineup
+  /** Part of the input, so that a Fixture replays from it like any other (ADR-016). */
+  intermissions?: readonly IntermissionChange[]
 }
 
 /**

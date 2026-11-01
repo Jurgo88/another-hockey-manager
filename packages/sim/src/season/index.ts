@@ -1,7 +1,7 @@
 import type { Club, Lineup } from '../domain/club.js'
 import type { CompetitionStructure } from '../domain/competition.js'
 import type { MatchEvent } from '../domain/event.js'
-import type { Fixture, FixtureInput } from '../domain/fixture.js'
+import type { Fixture, FixtureId, FixtureInput, IntermissionChange } from '../domain/fixture.js'
 import type { ClubId, PlayerId } from '../domain/player.js'
 import type { PlayoffFormat, PlayoffState } from '../domain/playoff.js'
 import type { StandingsRow } from '../domain/standings.js'
@@ -16,7 +16,12 @@ import {
   type GoalieHistory,
   type LineupViolation,
 } from '../engine/lineup.js'
-import { afterRound, afterSeriesFixture, nextSeriesFixtures, startPlayoffs } from '../engine/playoff.js'
+import {
+  afterRound,
+  afterSeriesFixture,
+  nextSeriesFixtures,
+  startPlayoffs,
+} from '../engine/playoff.js'
 import { generateSchedule } from '../engine/schedule.js'
 import { fixtureSeed, simulateFixture } from '../engine/simulate.js'
 import { createGeneratedRosterProvider } from '../generate/roster.js'
@@ -60,6 +65,22 @@ export interface SeasonState {
   standings: readonly StandingsRow[]
   /** Null until the regular Season ends. */
   playoffs: PlayoffState | null
+  /** Fixtures a Manager is following Period by Period (ADR-016). */
+  live: Readonly<Record<FixtureId, LiveFixture>>
+}
+
+/** How far a Fixture has been followed, and what has been decided at its intermissions. */
+export interface LiveFixture {
+  /** The last Period shown, or null once all of it has been. */
+  throughPeriod: 1 | 2 | 3 | null
+  changes: readonly IntermissionChange[]
+}
+
+/** A Fixture as far as it has been followed. */
+export interface FixtureSoFar {
+  events: readonly MatchEvent[]
+  /** The Lineups in force now, to start a change from. */
+  lineups: Readonly<Record<ClubId, Lineup>>
 }
 
 export interface PlayedFixture {
@@ -117,6 +138,7 @@ export async function startSeason(seed: number): Promise<SeasonState> {
     absent: {},
     standings: foldStandings(NHL_2026_27, []),
     playoffs: null,
+    live: {},
   }
   // Every Club opens as an AI Manager would, through the call any Manager uses (D-04).
   return clubs.reduce((state, club) => setLineup(state, club.id, buildNaiveLineup(club)), unset)
@@ -124,9 +146,91 @@ export async function startSeason(seed: number): Promise<SeasonState> {
 
 /** Declares a Club's Lineup and Tactics for the Fixtures to come, for any Manager (D-04). */
 export function setLineup(state: SeasonState, clubId: ClubId, lineup: Lineup): SeasonState {
+  // The Fixture so far was played with the Lineup as it stands. Changing that
+  // now would replay what the Manager has already seen.
+  const followed = Object.keys(state.live).some((id) => {
+    const fixture = fixtureOf(state, id)
+    return fixture.homeClubId === clubId || fixture.awayClubId === clubId
+  })
+  if (followed) throw new Error(`Club ${clubId} is in a Fixture being followed`)
+
   const violations = validateLineup(lineup, clubOf(state, clubId))
   if (violations.length > 0) throw new InvalidLineupError(clubId, violations)
   return { ...state, lineups: { ...state.lineups, [clubId]: lineup } }
+}
+
+/** Starts following a Fixture of the next day, which shows its first Period. */
+export function openFixture(state: SeasonState, fixtureId: FixtureId): SeasonState {
+  const fixture = fixtureOf(state, fixtureId)
+  if (fixture.day !== state.fixtures[state.nextFixture]?.day) {
+    throw new Error(`Fixture ${fixtureId} is not on the next day`)
+  }
+  if (state.live[fixtureId]) return state
+  return { ...state, live: { ...state.live, [fixtureId]: { throughPeriod: 1, changes: [] } } }
+}
+
+/** What a followed Fixture has shown so far. Nothing past the current intermission leaves here. */
+export function fixtureSoFar(state: SeasonState, fixtureId: FixtureId): FixtureSoFar {
+  const live = state.live[fixtureId]
+  if (!live) throw new Error(`Fixture ${fixtureId} is not being followed`)
+
+  const fixture = fixtureOf(state, fixtureId)
+  const input = inputFor(state, fixture)
+  const events = simulateFixture(input, seedOf(state, fixture))
+  const { throughPeriod } = live
+  const end = events.findIndex((e) => e.type === 'period_end' && e.period === throughPeriod)
+  const shown = throughPeriod === null ? events : events.slice(0, end + 1)
+
+  const inForce = (club: Club, declared: Lineup): Lineup => {
+    const out = new Set(
+      events.flatMap((e) =>
+        e.type === 'injury' && e.offIce && e.clubId === club.id ? [e.player] : [],
+      ),
+    )
+    const changed = live.changes.filter((change) => change.clubId === club.id).at(-1)
+    return changed?.lineup ?? withoutInjured(club, declared, out)
+  }
+  return {
+    events: shown,
+    lineups: {
+      [fixture.homeClubId]: inForce(input.homeClub, input.homeLineup),
+      [fixture.awayClubId]: inForce(input.awayClub, input.awayLineup),
+    },
+  }
+}
+
+/**
+ * Plays on to the next intermission, taking up any Lineup a Club chose at this
+ * one. The choice is final: there is no going back to it once the next Period
+ * has been shown. Only those already dressed can take part.
+ */
+export function continueFixture(
+  state: SeasonState,
+  fixtureId: FixtureId,
+  chosen: readonly { clubId: ClubId; lineup: Lineup }[] = [],
+): SeasonState {
+  const live = state.live[fixtureId]
+  if (!live) throw new Error(`Fixture ${fixtureId} is not being followed`)
+  const { throughPeriod } = live
+  if (throughPeriod === null) throw new Error(`Fixture ${fixtureId} has been shown to its end`)
+
+  const { lineups } = fixtureSoFar(state, fixtureId)
+  const changes = chosen.map(({ clubId, lineup }) => {
+    const before = lineups[clubId]
+    if (!before) throw new Error(`Club ${clubId} is not in Fixture ${fixtureId}`)
+    const violations = [
+      ...validateLineup(lineup, clubOf(state, clubId)),
+      ...notDressed(lineup, before),
+    ]
+    if (violations.length > 0) throw new InvalidLineupError(clubId, violations)
+    return { afterPeriod: throughPeriod, clubId, lineup }
+  })
+
+  const next: LiveFixture = {
+    throughPeriod: throughPeriod === 3 ? null : ((throughPeriod + 1) as 2 | 3),
+    changes: [...live.changes, ...changes],
+  }
+  return { ...state, live: { ...state.live, [fixtureId]: next } }
 }
 
 export function isRegularSeasonOver(state: SeasonState): boolean {
@@ -166,7 +270,12 @@ function afterDay(state: SeasonState, day: number, played: readonly PlayedFixtur
   const credited = state.playoffs
     ? played.reduce(
         (playoffs, { fixture, match }) =>
-          afterSeriesFixture(playoffs, fixture.homeClubId, fixture.awayClubId, match.result.winner!),
+          afterSeriesFixture(
+            playoffs,
+            fixture.homeClubId,
+            fixture.awayClubId,
+            match.result.winner!,
+          ),
         state.playoffs,
       )
     : startPlayoffs(format, state.standings, structure)
@@ -180,6 +289,49 @@ function afterDay(state: SeasonState, day: number, played: readonly PlayedFixtur
     day: day + format.daysBetweenFixtures,
   })
   return { ...state, playoffs, fixtures: [...state.fixtures, ...due] }
+}
+
+function dressed(lineup: Lineup): PlayerId[] {
+  return [
+    lineup.starter,
+    lineup.backup,
+    ...lineup.lines.flatMap((line) => [line.leftWing, line.centre, line.rightWing]),
+    ...lineup.pairings.flatMap((pairing) => [pairing.leftDefence, pairing.rightDefence]),
+  ]
+}
+
+function notDressed(lineup: Lineup, before: Lineup): LineupViolation[] {
+  const allowed = new Set(dressed(before))
+  return dressed(lineup)
+    .filter((id) => !allowed.has(id))
+    .map((id): LineupViolation => ({
+      rule: 'not-dressed',
+      message: `Player ${id} is not dressed for this Fixture`,
+    }))
+}
+
+function fixtureOf(state: SeasonState, fixtureId: FixtureId): Fixture {
+  const fixture = state.fixtures.find((candidate) => candidate.id === fixtureId)
+  if (!fixture) throw new Error(`No Fixture ${fixtureId} in Season s${state.seed}`)
+  return fixture
+}
+
+function seedOf(state: SeasonState, fixture: Fixture): number {
+  return fixtureSeed(createRng(state.seed), fixture)
+}
+
+/** What the engine plays a Fixture from, the same for following it and for playing it. */
+function inputFor(state: SeasonState, fixture: Fixture): FixtureInput {
+  const { homeClubId, awayClubId, day } = fixture
+  const changes = state.live[fixture.id]?.changes ?? []
+  return {
+    fixture,
+    homeClub: rested(state, homeClubId, day),
+    awayClub: rested(state, awayClubId, day),
+    homeLineup: lineupFor(state, homeClubId, day),
+    awayLineup: lineupFor(state, awayClubId, day),
+    ...(changes.length > 0 ? { intermissions: changes } : {}),
+  }
 }
 
 function clubOf(state: SeasonState, clubId: ClubId): Club {
@@ -220,14 +372,8 @@ function playFixture(
   fixture: Fixture,
 ): { state: SeasonState; played: PlayedFixture } {
   const { homeClubId, awayClubId, day } = fixture
-  const input: FixtureInput = {
-    fixture,
-    homeClub: rested(state, homeClubId, day),
-    awayClub: rested(state, awayClubId, day),
-    homeLineup: lineupFor(state, homeClubId, day),
-    awayLineup: lineupFor(state, awayClubId, day),
-  }
-  const seed = fixtureSeed(createRng(state.seed), fixture)
+  const input = inputFor(state, fixture)
+  const seed = seedOf(state, fixture)
   const events = simulateFixture(input, seed)
   const match = foldMatch(fixture, events)
 
@@ -243,6 +389,8 @@ function playFixture(
   for (const { playerId, fixtures } of match.injuries) {
     if (fixtures > 0) absent[playerId] = fixtures
   }
+  const live = { ...state.live }
+  delete live[fixture.id]
 
   return {
     played: { fixture, input, seed, events, match },
@@ -265,6 +413,7 @@ function playFixture(
         ),
       },
       absent,
+      live,
       standings:
         state.playoffs === null
           ? foldStandings(state.structure, [match], state.standings)
