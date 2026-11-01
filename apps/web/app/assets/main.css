@@ -373,3 +373,23 @@ tr.mine td {
   justify-content: space-between;
   border-bottom: 1px solid var(--rule);
 }
+
+.button-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.play-text {
+  text-align: left;
+}
+
+tr.play-goal td {
+  font-weight: 700;
+  color: var(--red-line);
+}
+
+tr.play-mark td {
+  background: var(--ink);
+  color: #fff;
+}

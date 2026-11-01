@@ -32,8 +32,10 @@
     "missedPlayoffs": "Tvoj klub sa do playoff nedostal.",
     "toFixture": "Prejsť na môj zápas",
     "nextDay": "Ďalší deň",
-    "playFixture": "Odohrať môj zápas",
-    "recent": "Posledné výsledky"
+    "playFixture": "Nasimulovať môj zápas",
+    "recent": "Posledné výsledky",
+    "follow": "Sledovať môj zápas",
+    "keepFollowing": "Späť na môj zápas"
   },
   "errors": {
     "signedOut": "Prihlás sa, prosím.",
@@ -48,7 +50,8 @@
     "advanceFailed": "Sezóna sa neposunula. Obnov stránku a skús to znova.",
     "invalidLineup": "Táto zostava porušuje pravidlá.",
     "fixtureFollowed": "Počas sledovaného zápasu je zostava zamknutá.",
-    "saveFailed": "Nepodarilo sa to uložiť. Obnov stránku a skús to znova."
+    "saveFailed": "Nepodarilo sa to uložiť. Obnov stránku a skús to znova.",
+    "notFollowing": "Nesleduješ žiadny zápas."
   },
   "nav": {
     "label": "Hlavné menu",
@@ -169,5 +172,38 @@
     "rotation": "Rotácia brankárov",
     "restOnBackToBack": "Oddýchne brankár, ktorý chytal včera",
     "maxStarts": "Štarty po sebe pred oddychom (0 znamená bez limitu)"
+  },
+  "live": {
+    "shots": "Strely {home} : {away}",
+    "after": "Prestávka po {period}. perióde",
+    "final": "Koniec zápasu",
+    "plays": "Priebeh zápasu",
+    "tactics": "Taktika na zvyšok zápasu",
+    "play": "Hrať ďalej",
+    "applyAndPlay": "Použiť a hrať ďalej",
+    "finish": "Uložiť výsledok",
+    "help": "Zapojiť sa môžu len nominovaní hráči. Rozhodnutie je konečné, keď hra pokračuje."
+  },
+  "plays": {
+    "goal": "Gól! {player}, {club}",
+    "chance": "Veľký zákrok proti {player}, {club}",
+    "penalty": "{player}, {club}: {kind}, {minutes} min",
+    "injury": "{player}, {club}, zranenie, vynechá zápasy: {fixtures}",
+    "lineup": "{club} menia zostavu",
+    "periodEnd": "Koniec periódy, {home} : {away}",
+    "powerPlay": "presilovka",
+    "emptyNet": "prázdna bránka"
+  },
+  "penalties": {
+    "tripping": "podrazenie",
+    "hooking": "hákovanie",
+    "holding": "držanie",
+    "slashing": "sekanie",
+    "interference": "bránenie v hre",
+    "boarding": "narazenie na mantinel",
+    "roughing": "hrubosť",
+    "highsticking": "vysoká hokejka",
+    "crosschecking": "krosček",
+    "delayofgame": "zdržiavanie hry"
   }
 }

@@ -136,6 +136,7 @@ export function seasonSummary({ clubId, state }: StoredSeason) {
     over: isSeasonOver(state),
     champion: state.playoffs?.champion ? clubName(state, state.playoffs.champion) : null,
     playsNext: playsNext(state, clubId),
+    following: liveFixture(state, clubId) !== null,
     next: next
       ? {
           id: next.id,

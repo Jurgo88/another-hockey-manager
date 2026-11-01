@@ -32,8 +32,10 @@
     "missedPlayoffs": "Your Club missed the playoffs.",
     "toFixture": "Skip to my Fixture",
     "nextDay": "Next day",
-    "playFixture": "Play my Fixture",
-    "recent": "Recent results"
+    "playFixture": "Simulate my Fixture",
+    "recent": "Recent results",
+    "follow": "Follow my Fixture",
+    "keepFollowing": "Back to my Fixture"
   },
   "errors": {
     "signedOut": "Please sign in.",
@@ -48,7 +50,8 @@
     "advanceFailed": "The Season did not move on. Refresh the page and try again.",
     "invalidLineup": "That Lineup breaks the rules.",
     "fixtureFollowed": "The Lineup is locked while you follow a Fixture.",
-    "saveFailed": "That could not be saved. Refresh the page and try again."
+    "saveFailed": "That could not be saved. Refresh the page and try again.",
+    "notFollowing": "No Fixture is being followed."
   },
   "nav": {
     "label": "Main menu",
@@ -169,5 +172,38 @@
     "rotation": "Goalie rotation",
     "restOnBackToBack": "Rest the Goalie who played yesterday",
     "maxStarts": "Starts running before a rest (0 means no limit)"
+  },
+  "live": {
+    "shots": "Shots {home} : {away}",
+    "after": "Intermission after Period {period}",
+    "final": "Final",
+    "plays": "Play by play",
+    "tactics": "Tactics for the rest",
+    "play": "Play on",
+    "applyAndPlay": "Apply and play on",
+    "finish": "Save the result",
+    "help": "Only dressed Players can take part. A choice is final once play goes on."
+  },
+  "plays": {
+    "goal": "Goal! {player}, {club}",
+    "chance": "Big save on {player}, {club}",
+    "penalty": "{player}, {club}: {kind}, {minutes} min",
+    "injury": "{player}, {club}, hurt, out for {fixtures} Fixtures",
+    "lineup": "{club} change the Lineup",
+    "periodEnd": "End of Period, {home} : {away}",
+    "powerPlay": "power play",
+    "emptyNet": "empty net"
+  },
+  "penalties": {
+    "tripping": "tripping",
+    "hooking": "hooking",
+    "holding": "holding",
+    "slashing": "slashing",
+    "interference": "interference",
+    "boarding": "boarding",
+    "roughing": "roughing",
+    "highsticking": "high sticking",
+    "crosschecking": "cross-checking",
+    "delayofgame": "delay of play"
   }
 }

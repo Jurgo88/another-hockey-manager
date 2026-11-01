@@ -97,6 +97,11 @@ const iceTime = (seconds: number) =>
       </section>
     </div>
 
+    <section v-if="box.plays" class="sheet">
+      <h2>{{ t('live.plays') }}</h2>
+      <PlayByPlay :plays="box.plays" />
+    </section>
+
     <section v-if="box.injuries.length" class="sheet">
       <h2>{{ t('box.injuries') }}</h2>
       <table>
