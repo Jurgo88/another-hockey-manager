@@ -157,7 +157,9 @@
     "saved": "Saved. It counts from your next Fixture.",
     "outOfPosition": "out of position",
     "assistant": "Let the assistant pick",
-    "assistantHelp": "Your assistant coach picks the best Lineup from the fit Players. Your Tactics stay, and nothing counts until you save."
+    "assistantHelp": "Your assistant coach picks the best Lineup from the fit Players. Your Tactics stay, and nothing counts until you save.",
+    "fatigue": "fatigue {value}",
+    "fatigueHelp": "Mean fatigue of the unit, 0 to 100. Tired units lose their attack first. The number beside each Player is their own."
   },
   "tactics": {
     "style": "Style of play",

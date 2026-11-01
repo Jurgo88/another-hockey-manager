@@ -157,7 +157,9 @@
     "saved": "Uložené. Platí od ďalšieho zápasu.",
     "outOfPosition": "mimo postu",
     "assistant": "Nech zostaví asistent",
-    "assistantHelp": "Asistent trénera vyberie najlepšiu zostavu zo zdravých hráčov. Tvoje Tactics zostanú a platí to až po uložení."
+    "assistantHelp": "Asistent trénera vyberie najlepšiu zostavu zo zdravých hráčov. Tvoje Tactics zostanú a platí to až po uložení.",
+    "fatigue": "únava {value}",
+    "fatigueHelp": "Priemerná únava jednotky, 0 až 100. Unavené jednotky najprv strácajú útok. Číslo pri hráčovi je jeho vlastná únava."
   },
   "tactics": {
     "style": "Štýl hry",

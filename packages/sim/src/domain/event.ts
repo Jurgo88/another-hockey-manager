@@ -73,6 +73,8 @@ export interface ShiftChangeEvent extends EventBase {
   clubId: ClubId
   /** Player ids taking the ice, forwards then defence. */
   onIce: readonly PlayerId[]
+  /** Parallel to `onIce`: each Skater's fatigue on taking the ice, 0-100, in whole points. */
+  fatigue: readonly number[]
   /** The Goalie in net, or null while it is empty for an extra attacker. */
   goalie: PlayerId | null
 }

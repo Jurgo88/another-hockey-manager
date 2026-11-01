@@ -40,6 +40,22 @@ const label = (id: string) => {
 }
 const same = (a: LineupSlot | null, b: LineupSlot) => JSON.stringify(a) === JSON.stringify(b)
 
+interface Row {
+  title: string
+  slots: LineupSlot[]
+}
+
+/** Lines end a Fixture at about 10 to 29, so this marks the most tired of them. */
+const TIRED = 25
+const fatigueOf = (slot: LineupSlot) => nameOf(playerAt(props.lineup, slot))?.fatigue
+const isTired = (row: Row) => (unitFatigue(row) ?? 0) >= TIRED
+function unitFatigue(row: Row): number | null {
+  if (row.slots[0]?.group !== 'line' && row.slots[0]?.group !== 'pairing') return null
+  const values = row.slots.map(fatigueOf).filter((value) => value !== undefined)
+  if (values.length === 0) return null
+  return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length)
+}
+
 const SLOT_POSITION: Record<string, string> = {
   leftWing: 'LW',
   centre: 'C',
@@ -80,10 +96,6 @@ const dressed = computed(
 )
 const outside = computed(() => props.players.filter((p) => !dressed.value.has(p.id)))
 
-interface Row {
-  title: string
-  slots: LineupSlot[]
-}
 const sections = computed((): { title: string; rows: Row[] }[] => {
   const { lineup } = props
   const units = (group: 'powerPlay' | 'penaltyKill', count: number, size: number): Row[] =>
@@ -151,7 +163,17 @@ const sections = computed((): { title: string; rows: Row[] }[] => {
     <h2>{{ section.title }}</h2>
     <div class="lines">
       <div v-for="row in section.rows" :key="row.title" class="line">
-        <strong>{{ row.title }}</strong>
+        <strong class="line-title">
+          {{ row.title }}
+          <span
+            v-if="unitFatigue(row) !== null"
+            class="line-fatigue"
+            :class="{ 'line-tired': isTired(row) }"
+            :title="t('lineup.fatigueHelp')"
+          >
+            {{ t('lineup.fatigue', { value: unitFatigue(row) }) }}
+          </span>
+        </strong>
         <button
           v-for="slot in row.slots"
           :key="JSON.stringify(slot)"
@@ -165,6 +187,7 @@ const sections = computed((): { title: string; rows: Row[] }[] => {
           @click="pick(slot)"
         >
           {{ label(playerAt(lineup, slot)) }}
+          <span v-if="fatigueOf(slot) !== undefined" class="slot-fatigue">{{ fatigueOf(slot) }}</span>
           <span v-if="outOfPosition(slot)" class="slot-note">{{ t('lineup.outOfPosition') }}</span>
         </button>
       </div>

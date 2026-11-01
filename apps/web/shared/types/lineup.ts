@@ -9,5 +9,7 @@ export interface LineupPage {
     name: string
     positions: readonly string[]
     out: number
+    /** 0-100. A Goalie has none. */
+    fatigue?: number
   }[]
 }

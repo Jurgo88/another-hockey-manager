@@ -235,6 +235,33 @@ describe('following a Fixture (ADR-018)', () => {
     expect(after.lineups[clubId]).toEqual(lineup)
   })
 
+  it('reports fatigue on every Shift, rising from one to the next', () => {
+    const { events } = fixtureSoFar(stepTo(opened(), 'ended'), fixtureId)
+    const shifts = events.filter(isShift)
+    const last = new Map<string, number>()
+    for (const shift of shifts) {
+      expect(shift.fatigue).toHaveLength(shift.onIce.length)
+      shift.onIce.forEach((id, i) => {
+        expect(shift.fatigue[i]!).toBeGreaterThanOrEqual(last.get(id) ?? 0)
+        last.set(id, shift.fatigue[i]!)
+      })
+    }
+    expect(Math.max(...last.values())).toBeGreaterThan(0)
+  })
+
+  it('keeps each Skater at their fatigue as last seen', () => {
+    let state = opened()
+    const atStart = fixtureSoFar(state, fixtureId).fatigue
+    expect(Object.values(atStart).every((value) => value === 0)).toBe(true)
+
+    state = stepTo(state, 'intermission')
+    const { fatigue, events } = fixtureSoFar(state, fixtureId)
+    const shift = events.filter(isShift).at(-1)!
+    shift.onIce.forEach((id, i) => {
+      expect(fatigue[id]).toBe(shift.fatigue[i])
+    })
+  })
+
   it('takes a change into the Fixture that advanceDay then plays', () => {
     let state = stepTo(opened(), 'running')
     const { lineups } = fixtureSoFar(state, fixtureId)

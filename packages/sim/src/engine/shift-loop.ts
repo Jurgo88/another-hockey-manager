@@ -16,8 +16,9 @@ import { movedToBottom } from './lineup.js'
  * either way, the special-teams Units do (ADR-009), and nobody in the box is
  * ever selected.
  *
- * D-03: fatigue leaves the engine only through the `match_end` event, so its
- * formula exists once (ADR-010).
+ * D-03: fatigue leaves the engine only through the stream, on `shift_change`
+ * for a reader and on `match_end` for the next Fixture, so its formula exists
+ * once (ADR-010).
  */
 
 /**
@@ -167,6 +168,8 @@ export interface ShiftLoop {
   played(selection: ShiftSelection, seconds: number): void
   /** Every Skater on both Rosters as things stand, to two decimals. */
   fatigue(): Record<PlayerId, number>
+  /** These Skaters as things stand, in whole points. */
+  fatigueOf(side: 'home' | 'away', players: readonly PlayerId[]): readonly number[]
   /**
    * Takes a Skater out for the rest of the Fixture. Everyone below moves up,
    * and the slot left at the bottom fills from the dressed Skaters (ADR-012).
@@ -265,7 +268,7 @@ export function createShiftLoop(
   const homeRng = rng.fork('home')
   const awayRng = rng.fork('away')
 
-  return { next, played, fatigue, injure, injured, changeLineup }
+  return { next, played, fatigue, fatigueOf, injure, injured, changeLineup }
 
   /** The power-play or penalty-kill Unit for a Club with an advantage either way. */
   function specialUnit(state: ClubState, unitRng: Rng, side: SideSituation): OnIce {
@@ -384,6 +387,11 @@ export function createShiftLoop(
 
   function injured(side: 'home' | 'away'): ReadonlySet<PlayerId> {
     return (side === 'home' ? homeState : awayState).injured
+  }
+
+  function fatigueOf(side: 'home' | 'away', players: readonly PlayerId[]): readonly number[] {
+    const state = side === 'home' ? homeState : awayState
+    return players.map((id) => Math.round(state.fatigue.get(id)!))
   }
 
   function fatigue(): Record<PlayerId, number> {

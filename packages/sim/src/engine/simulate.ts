@@ -249,6 +249,7 @@ export function simulateFixture(declared: FixtureInput, seed: number): MatchEven
           strength: box.strength(side),
           clubId: clubIds[side],
           onIce: onIceIds(shift[side]),
+          fatigue: shifts.fatigueOf(side, onIceIds(shift[side])),
           goalie: emptyNet[side] ? null : goalies[side],
         })
       }
