@@ -39,6 +39,7 @@ interface Aggregate {
   endFatigue: number
   firstLinePoints: number
   opposingFirstLinePoints: number
+  firstLineSeconds: number
 }
 
 const firstLine = (lineup: Lineup): readonly PlayerId[] => {
@@ -56,6 +57,7 @@ function playAll(tactics: Partial<Tactics>): Aggregate {
     endFatigue: 0,
     firstLinePoints: 0,
     opposingFirstLinePoints: 0,
+    firstLineSeconds: 0,
   }
   let dangerSum = 0
   let attempts = 0
@@ -86,6 +88,10 @@ function playAll(tactics: Partial<Tactics>): Aggregate {
       total.penalties += homeStats.penalties
       total.firstLinePoints += pointsOf(firstLine(homeLineup))
       total.opposingFirstLinePoints += pointsOf(firstLine(awayLineup))
+      total.firstLineSeconds += firstLine(homeLineup).reduce(
+        (sum, id) => sum + (match.skaters.get(id)?.iceTimeSeconds ?? 0),
+        0,
+      )
 
       for (const event of events) {
         if (event.type === 'shot' && event.clubId === home.id && event.period !== 'SO') {
@@ -168,6 +174,8 @@ describe('Tier 3 - tactics are not placebos', () => {
   const longShifts = playAll({ shiftLength: 25 })
   const exploit = playAll({ matchup: 'exploit' })
   const shutdown = playAll({ matchup: 'shutdown' })
+  const exploitLongShifts = playAll({ matchup: 'exploit', shiftLength: 25 })
+  const exploitShortShifts = playAll({ matchup: 'exploit', shiftLength: 75 })
 
   it('plays the same number of Fixtures under every dial', () => {
     expect(aggressive.fixtures).toBe(none.fixtures)
@@ -195,6 +203,15 @@ describe('Tier 3 - tactics are not placebos', () => {
 
   it('shutdown lowers the opposing first Line point production', () => {
     expect(shutdown.opposingFirstLinePoints).toBeLessThan(none.opposingFirstLinePoints)
+  })
+
+  it('a matchup tires the Skaters it sends out', () => {
+    expect(exploit.endFatigue).toBeGreaterThan(none.endFatigue)
+    expect(shutdown.endFatigue).toBeGreaterThan(none.endFatigue)
+  })
+
+  it('shorter Shifts weaken a matchup', () => {
+    expect(exploitShortShifts.firstLineSeconds).toBeLessThan(exploitLongShifts.firstLineSeconds)
   })
 
   it(`a Club's best Lineup beats its worst more than ${BEST_BEATS_WORST}% of the time`, () => {

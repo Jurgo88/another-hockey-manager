@@ -289,6 +289,8 @@ Rosters and seeds fixed, vary one dial, compare aggregates.
 | Raising `shiftLength` from 25 to 75 reduces end-of-Fixture fatigue across the Roster. |
 | `matchup: 'exploit'` increases first-Line point production relative to `none`. |
 | `matchup: 'shutdown'` reduces opposition first-Line point production relative to `none`. |
+| `exploit` and `shutdown` raise end-of-Fixture fatigue relative to `none` (ADR-013). |
+| Raising `shiftLength` from 25 to 75 under `exploit` reduces the first Line's ice time (ADR-013). |
 | A Club fielding its best Lineup beats the same Club fielding its worst Lineup over 1,000 Fixtures at a rate above 65%. |
 
 ## Tier 4 - Internal consistency
