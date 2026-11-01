@@ -223,7 +223,7 @@ from off the ice comes before the first Period; the Player misses that Fixture t
 Every stream ends with `match_end`, the fatigue of each Skater on both Rosters,
 which is what the next Fixture starts from (ADR-010).
 
-Event types: `period_start`, `period_end`, `lineup_change`, `injury`, `match_end`, `faceoff`, `shift_change`, `shot`,
+Event types: `period_start`, `period_end`, `lineup_change`, `fatigue`, `injury`, `match_end`, `faceoff`, `shift_change`, `shot`,
 `goal`, `save`, `turnover`, `penalty`, `powerplay_start`, `powerplay_end`.
 
 Every event carries `clock` (elapsed seconds), `period`, and `strength`.

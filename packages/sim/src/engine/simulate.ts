@@ -45,6 +45,8 @@ interface PeriodRules {
   threeOnThree: boolean
   /** A trailing Club may pull its Goalie (FR-22). */
   pullGoalie: boolean
+  /** An intermission follows, in which Skaters ease (ADR-019). */
+  restAfter: boolean
 }
 
 export function simulateFixture(declared: FixtureInput, seed: number): MatchEvent[] {
@@ -155,6 +157,23 @@ export function simulateFixture(declared: FixtureInput, seed: number): MatchEven
       ),
     )
 
+  const reportFatigue = (
+    side: Side,
+    players: readonly PlayerId[],
+    clock: number,
+    period: Period,
+  ): void => {
+    events.push({
+      type: 'fatigue',
+      clock,
+      period,
+      strength: box.strength(side),
+      clubId: clubIds[side],
+      players,
+      fatigue: shifts.fatigueOf(side, players),
+    })
+  }
+
   /** Whoever was on the ice for `seconds` may be hurt. Play goes on, so this falls between Shifts. */
   const injuries = (
     side: Side,
@@ -261,12 +280,21 @@ export function simulateFixture(declared: FixtureInput, seed: number): MatchEven
       )
       shifts.played(shift, reached - clock)
       for (const side of ['home', 'away'] as const) {
-        injuries(side, onIceIds(shift[side]), emptyNet[side], reached - clock, reached, period)
+        const onIce = onIceIds(shift[side])
+        reportFatigue(side, onIce, reached, period)
+        injuries(side, onIce, emptyNet[side], reached - clock, reached, period)
       }
       clock = reached
     }
 
     if (closesFixture()) box.close(clock, period, events)
+    // Before `period_end`, so that a Manager at the intermission sees it.
+    if (rules.restAfter) {
+      shifts.intermission()
+      for (const side of ['home', 'away'] as const) {
+        reportFatigue(side, shifts.roster(side), clock, period)
+      }
+    }
     const goals = play.goals()
     events.push({
       type: 'period_end',
@@ -285,7 +313,13 @@ export function simulateFixture(declared: FixtureInput, seed: number): MatchEven
     clock = playPeriod(
       period,
       clock,
-      { length: PERIOD_LENGTH, suddenDeath: false, threeOnThree: false, pullGoalie: last },
+      {
+        length: PERIOD_LENGTH,
+        suddenDeath: false,
+        threeOnThree: false,
+        pullGoalie: last,
+        restAfter: !last,
+      },
       () => last && (input.fixture.overtime === null || !level()),
     )
     if (!last || (input.fixture.overtime !== null && level())) takeUpChanges(clock, period)
@@ -314,7 +348,13 @@ export function simulateFixture(declared: FixtureInput, seed: number): MatchEven
     const end = playPeriod(
       'OT',
       start,
-      { length: THREE_ON_THREE_LENGTH, suddenDeath: true, threeOnThree: true, pullGoalie: false },
+      {
+        length: THREE_ON_THREE_LENGTH,
+        suddenDeath: true,
+        threeOnThree: true,
+        pullGoalie: false,
+        restAfter: false,
+      },
       () => true,
     )
     if (!level()) return
@@ -350,7 +390,13 @@ export function simulateFixture(declared: FixtureInput, seed: number): MatchEven
       clock = playPeriod(
         'OT',
         clock,
-        { length: PERIOD_LENGTH, suddenDeath: true, threeOnThree: false, pullGoalie: false },
+        {
+          length: PERIOD_LENGTH,
+          suddenDeath: true,
+          threeOnThree: false,
+          pullGoalie: false,
+          restAfter: false,
+        },
         () => !level(),
       )
     }

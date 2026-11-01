@@ -168,6 +168,18 @@ export interface InjuryEvent extends EventBase {
   offIce: boolean
 }
 
+/**
+ * Skaters' fatigue as it now stands, 0-100 in whole points: those coming off
+ * after a Shift, or a whole Roster after an intermission. For a reader. It is
+ * `match_end` that carries fatigue on to the next Fixture (ADR-019).
+ */
+export interface FatigueEvent extends EventBase {
+  type: 'fatigue'
+  clubId: ClubId
+  players: readonly PlayerId[]
+  fatigue: readonly number[]
+}
+
 /** A Club took up another Lineup or Tactics at this intermission (ADR-016). */
 export interface LineupChangeEvent extends EventBase {
   type: 'lineup_change'
@@ -187,6 +199,7 @@ export type MatchEvent =
   | PeriodStartEvent
   | PeriodEndEvent
   | LineupChangeEvent
+  | FatigueEvent
   | FaceoffEvent
   | ShiftChangeEvent
   | ShotEvent

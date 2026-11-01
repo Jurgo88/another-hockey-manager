@@ -98,11 +98,15 @@ describe('shift loop', () => {
 
     let checked = 0
     for (const seed of [1, 2, 3, 4, 5, 6, 7, 8]) {
-      for (const shift of shiftChanges(play(home!, away!, seed))) {
+      const events = play(home!, away!, seed)
+      for (const shift of shiftChanges(events)) {
         if (shift.clubId !== home!.id || shift.strength === 'even') continue
         const unit = shift.strength === 'powerplay' ? powerPlayers : killers
-        // A Unit member in the box is replaced from the bench, so allow one outsider.
-        expect(shift.onIce.filter((id) => !unit.has(id)).length).toBeLessThanOrEqual(1)
+        // Members in the box or hurt are replaced from the bench: one for the box, and each injury.
+        const hurt = events
+          .slice(0, events.indexOf(shift))
+          .filter((e) => e.type === 'injury' && e.clubId === home!.id).length
+        expect(shift.onIce.filter((id) => !unit.has(id)).length).toBeLessThanOrEqual(1 + hurt)
         checked++
       }
     }

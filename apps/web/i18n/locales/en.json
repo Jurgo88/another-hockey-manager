@@ -115,7 +115,7 @@
     "position": "Pos",
     "place": "Unit",
     "age": "Age",
-    "fatigue": "Fatigue",
+    "fatigue": "Energy",
     "out": "out {fixtures}",
     "attributes": "Attributes",
     "notOurs": "That Player is not on your Roster."
@@ -158,8 +158,7 @@
     "outOfPosition": "out of position",
     "assistant": "Let the assistant pick",
     "assistantHelp": "Your assistant coach picks the best Lineup from the fit Players. Your Tactics stay, and nothing counts until you save.",
-    "fatigue": "fatigue {value}",
-    "fatigueHelp": "Mean fatigue of the unit, 0 to 100. Tired units lose their attack first. The number beside each Player is their own."
+    "fatigueHelp": "Energy, 100 for a fully rested Skater. It falls during play, and tired Skaters lose their attack first. It recovers a little at the intermissions."
   },
   "tactics": {
     "style": "Style of play",

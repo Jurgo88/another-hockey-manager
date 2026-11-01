@@ -115,7 +115,7 @@
     "position": "Poz",
     "place": "Zost",
     "age": "Vek",
-    "fatigue": "Únava",
+    "fatigue": "Energia",
     "out": "mimo {fixtures}",
     "attributes": "Atribúty",
     "notOurs": "Tento hráč nie je na tvojom Rosteri."
@@ -158,8 +158,7 @@
     "outOfPosition": "mimo postu",
     "assistant": "Nech zostaví asistent",
     "assistantHelp": "Asistent trénera vyberie najlepšiu zostavu zo zdravých hráčov. Tvoje Tactics zostanú a platí to až po uložení.",
-    "fatigue": "únava {value}",
-    "fatigueHelp": "Priemerná únava jednotky, 0 až 100. Unavené jednotky najprv strácajú útok. Číslo pri hráčovi je jeho vlastná únava."
+    "fatigueHelp": "Energia, 100 je úplne oddýchnutý hráč. Počas hry klesá a unavení hráči najprv strácajú útok. Cez prestávky sa trochu doplní."
   },
   "tactics": {
     "style": "Štýl hry",

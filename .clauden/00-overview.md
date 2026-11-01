@@ -99,3 +99,4 @@ Out (deferred, with the phase that owns them in `05-roadmap.md`):
 | 016 | A change at an intermission is part of the Fixture input |
 | 017 | Nuxt on Supabase, with the browser kept away from Supabase |
 | 018 | A Fixture is revealed in steps, and a change can come at any of them |
+| 019 | Skaters ease at the regulation intermissions |

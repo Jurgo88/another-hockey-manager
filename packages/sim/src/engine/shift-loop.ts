@@ -4,7 +4,7 @@ import type { Strength } from '../domain/event.js'
 import type { PlayerId, Skater } from '../domain/player.js'
 import type { Rng } from '../rng/index.js'
 import { weightedIndex } from './draw.js'
-import { afterShift } from './fatigue.js'
+import { afterIntermission, afterShift } from './fatigue.js'
 import { movedToBottom } from './lineup.js'
 
 /**
@@ -168,6 +168,10 @@ export interface ShiftLoop {
   played(selection: ShiftSelection, seconds: number): void
   /** Every Skater on both Rosters as things stand, to two decimals. */
   fatigue(): Record<PlayerId, number>
+  /** Eases every Skater on both Rosters, between regulation Periods. */
+  intermission(): void
+  /** Everyone on this Club's Roster, as `fatigueOf` reads them. */
+  roster(side: 'home' | 'away'): readonly PlayerId[]
   /** These Skaters as things stand, in whole points. */
   fatigueOf(side: 'home' | 'away', players: readonly PlayerId[]): readonly number[]
   /**
@@ -268,7 +272,7 @@ export function createShiftLoop(
   const homeRng = rng.fork('home')
   const awayRng = rng.fork('away')
 
-  return { next, played, fatigue, fatigueOf, injure, injured, changeLineup }
+  return { next, played, fatigue, fatigueOf, intermission, roster, injure, injured, changeLineup }
 
   /** The power-play or penalty-kill Unit for a Club with an advantage either way. */
   function specialUnit(state: ClubState, unitRng: Rng, side: SideSituation): OnIce {
@@ -387,6 +391,19 @@ export function createShiftLoop(
 
   function injured(side: 'home' | 'away'): ReadonlySet<PlayerId> {
     return (side === 'home' ? homeState : awayState).injured
+  }
+
+  function intermission(): void {
+    for (const state of [homeState, awayState]) {
+      for (const [id, value] of state.fatigue) {
+        const stamina = state.skaterById.get(id)!.attributes.stamina
+        state.fatigue.set(id, afterIntermission(value, stamina))
+      }
+    }
+  }
+
+  function roster(side: 'home' | 'away'): readonly PlayerId[] {
+    return [...(side === 'home' ? homeState : awayState).fatigue.keys()]
   }
 
   function fatigueOf(side: 'home' | 'away', players: readonly PlayerId[]): readonly number[] {

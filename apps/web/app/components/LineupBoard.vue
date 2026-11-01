@@ -45,10 +45,7 @@ interface Row {
   slots: LineupSlot[]
 }
 
-/** Lines end a Fixture at about 10 to 29, so this marks the most tired of them. */
-const TIRED = 25
 const fatigueOf = (slot: LineupSlot) => nameOf(playerAt(props.lineup, slot))?.fatigue
-const isTired = (row: Row) => (unitFatigue(row) ?? 0) >= TIRED
 function unitFatigue(row: Row): number | null {
   if (row.slots[0]?.group !== 'line' && row.slots[0]?.group !== 'pairing') return null
   const values = row.slots.map(fatigueOf).filter((value) => value !== undefined)
@@ -165,14 +162,7 @@ const sections = computed((): { title: string; rows: Row[] }[] => {
       <div v-for="row in section.rows" :key="row.title" class="line">
         <strong class="line-title">
           {{ row.title }}
-          <span
-            v-if="unitFatigue(row) !== null"
-            class="line-fatigue"
-            :class="{ 'line-tired': isTired(row) }"
-            :title="t('lineup.fatigueHelp')"
-          >
-            {{ t('lineup.fatigue', { value: unitFatigue(row) }) }}
-          </span>
+          <FatigueBar v-if="unitFatigue(row) !== null" :value="unitFatigue(row) ?? 0" />
         </strong>
         <button
           v-for="slot in row.slots"
@@ -187,7 +177,7 @@ const sections = computed((): { title: string; rows: Row[] }[] => {
           @click="pick(slot)"
         >
           {{ label(playerAt(lineup, slot)) }}
-          <span v-if="fatigueOf(slot) !== undefined" class="slot-fatigue">{{ fatigueOf(slot) }}</span>
+          <FatigueBar v-if="fatigueOf(slot) !== undefined" :value="fatigueOf(slot) ?? 0" />
           <span v-if="outOfPosition(slot)" class="slot-note">{{ t('lineup.outOfPosition') }}</span>
         </button>
       </div>

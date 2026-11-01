@@ -60,7 +60,7 @@ const strong = (value: number) => (value >= 17 ? 'strong' : value <= 10 ? 'muted
           <td class="strong">{{ skater.points }}</td>
           <td>{{ skater.plusMinus }}</td>
           <td>{{ iceTime(skater.iceSeconds) }}</td>
-          <td>{{ skater.fatigue }}</td>
+          <td><FatigueBar :value="skater.fatigue" /></td>
         </tr>
       </tbody>
     </table>
