@@ -135,6 +135,8 @@ export const NHL_PLAYOFF_FORMAT: PlayoffFormat = {
   reseedEachRound: false,
   overtime: 'sudden-death-5on5',
   venuePattern: '2-2-1-1-1',
+  // Every second day, so no game is a back-to-back. Unmeasured.
+  daysBetweenFixtures: 2,
 }
 
 export const NHL_2026_27: CompetitionStructure = {

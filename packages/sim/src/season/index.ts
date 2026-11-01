@@ -1,9 +1,11 @@
 import type { Club, Lineup } from '../domain/club.js'
-import type { CompetitionId } from '../domain/competition.js'
+import type { CompetitionStructure } from '../domain/competition.js'
 import type { MatchEvent } from '../domain/event.js'
 import type { Fixture, FixtureInput } from '../domain/fixture.js'
 import type { ClubId, PlayerId } from '../domain/player.js'
-import { NHL_2026_27, NHL_2026_27_CLUB_SEEDS } from '../data/nhl-2026-27.js'
+import type { PlayoffFormat, PlayoffState } from '../domain/playoff.js'
+import type { StandingsRow } from '../domain/standings.js'
+import { NHL_2026_27, NHL_2026_27_CLUB_SEEDS, NHL_PLAYOFF_FORMAT } from '../data/nhl-2026-27.js'
 import { afterRest } from '../engine/fatigue.js'
 import {
   afterStart,
@@ -14,11 +16,13 @@ import {
   type GoalieHistory,
   type LineupViolation,
 } from '../engine/lineup.js'
+import { afterRound, afterSeriesFixture, nextSeriesFixtures, startPlayoffs } from '../engine/playoff.js'
 import { generateSchedule } from '../engine/schedule.js'
 import { fixtureSeed, simulateFixture } from '../engine/simulate.js'
 import { createGeneratedRosterProvider } from '../generate/roster.js'
 import { createRng } from '../rng/index.js'
 import { foldMatch, type MatchStats } from '../stats/match.js'
+import { foldStandings } from '../stats/standings.js'
 
 /**
  * A Season played one calendar day at a time (ADR-014). Everything here is a
@@ -36,11 +40,12 @@ import { foldMatch, type MatchStats } from '../stats/match.js'
  */
 export interface SeasonState {
   seed: number
-  competitionId: CompetitionId
+  structure: CompetitionStructure
+  playoffFormat: PlayoffFormat
   clubs: readonly Club[]
   /** Each Club's declared Lineup. What a Fixture gets is this, less injuries and rotation. */
   lineups: Readonly<Record<ClubId, Lineup>>
-  /** In calendar order. */
+  /** In calendar order. Playoff games join as they become due. */
   fixtures: readonly Fixture[]
   /** Index in `fixtures` of the next Fixture to play. */
   nextFixture: number
@@ -51,6 +56,10 @@ export interface SeasonState {
   goalieHistory: Readonly<Record<ClubId, GoalieHistory>>
   /** Fixtures each injured Player still has to miss, folded from the stream. */
   absent: Readonly<Record<PlayerId, number>>
+  /** The regular-Season table. */
+  standings: readonly StandingsRow[]
+  /** Null until the regular Season ends. */
+  playoffs: PlayoffState | null
 }
 
 export interface PlayedFixture {
@@ -78,7 +87,7 @@ export class InvalidLineupError extends Error {
   }
 }
 
-/** One full NHL 2026-27 regular Season of 32 generated Clubs, before its first day. */
+/** One full NHL 2026-27 Season of 32 generated Clubs, before its first day. */
 export async function startSeason(seed: number): Promise<SeasonState> {
   const provider = createGeneratedRosterProvider({
     structure: NHL_2026_27,
@@ -96,7 +105,8 @@ export async function startSeason(seed: number): Promise<SeasonState> {
 
   const unset: SeasonState = {
     seed,
-    competitionId: NHL_2026_27.id,
+    structure: NHL_2026_27,
+    playoffFormat: NHL_PLAYOFF_FORMAT,
     clubs,
     lineups: {},
     fixtures,
@@ -105,6 +115,8 @@ export async function startSeason(seed: number): Promise<SeasonState> {
     lastPlayed: {},
     goalieHistory: {},
     absent: {},
+    standings: foldStandings(NHL_2026_27, []),
+    playoffs: null,
   }
   // Every Club opens as an AI Manager would, through the call any Manager uses (D-04).
   return clubs.reduce((state, club) => setLineup(state, club.id, buildNaiveLineup(club)), unset)
@@ -117,8 +129,13 @@ export function setLineup(state: SeasonState, clubId: ClubId, lineup: Lineup): S
   return { ...state, lineups: { ...state.lineups, [clubId]: lineup } }
 }
 
+export function isRegularSeasonOver(state: SeasonState): boolean {
+  return state.playoffs !== null
+}
+
+/** True once the playoffs have a champion. */
 export function isSeasonOver(state: SeasonState): boolean {
-  return state.nextFixture >= state.fixtures.length
+  return state.playoffs !== null && state.playoffs.champion !== null
 }
 
 /** Plays every Fixture of the next day that has any. */
@@ -135,7 +152,34 @@ export function advanceDay(state: SeasonState): PlayedDay {
     current = step.state
     played.push(step.played)
   }
-  return { state: current, day: next.day, played }
+  return { state: afterDay(current, next.day, played), day: next.day, played }
+}
+
+/**
+ * Moves the playoffs on once the last due Fixture is in: the end of the regular
+ * Season seeds them, and each game day credits its series and sets the next game.
+ */
+function afterDay(state: SeasonState, day: number, played: readonly PlayedFixture[]): SeasonState {
+  if (state.nextFixture < state.fixtures.length) return state
+
+  const { playoffFormat: format, structure } = state
+  const credited = state.playoffs
+    ? played.reduce(
+        (playoffs, { fixture, match }) =>
+          afterSeriesFixture(playoffs, fixture.homeClubId, fixture.awayClubId, match.result.winner!),
+        state.playoffs,
+      )
+    : startPlayoffs(format, state.standings, structure)
+  const playoffs = afterRound(format, credited)
+
+  const last = state.fixtures.at(-1)!
+  const due = nextSeriesFixtures(format, playoffs, {
+    competitionId: last.competitionId,
+    seasonId: last.seasonId,
+    round: last.round + 1,
+    day: day + format.daysBetweenFixtures,
+  })
+  return { ...state, playoffs, fixtures: [...state.fixtures, ...due] }
 }
 
 function clubOf(state: SeasonState, clubId: ClubId): Club {
@@ -166,6 +210,8 @@ function lineupFor(state: SeasonState, clubId: ClubId, day: number): Lineup {
   const club = clubOf(state, clubId)
   const out = new Set(rosterIds(club).filter((id) => state.absent[id] !== undefined))
   const healthy = withoutInjured(club, state.lineups[clubId]!, out)
+  // Rotation is a regular-Season rule: nobody rests a starter in the playoffs.
+  if (state.playoffs !== null) return healthy
   return lineupForFixture(healthy, day, state.goalieHistory[clubId] ?? null)
 }
 
@@ -219,6 +265,10 @@ function playFixture(
         ),
       },
       absent,
+      standings:
+        state.playoffs === null
+          ? foldStandings(state.structure, [match], state.standings)
+          : state.standings,
     },
   }
 }

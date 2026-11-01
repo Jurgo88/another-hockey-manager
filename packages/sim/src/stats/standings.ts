@@ -31,10 +31,15 @@ function emptyRow(
   }
 }
 
-/** Every Club in the structure, including any yet to play, ordered by `compareStandings`. */
+/**
+ * Every Club in the structure, including any yet to play, ordered by
+ * `compareStandings`. `opening` carries on from an earlier fold, so a Season
+ * can keep its table without keeping every Match.
+ */
 export function foldStandings(
   structure: CompetitionStructure,
   matches: Iterable<MatchStats>,
+  opening: readonly StandingsRow[] = [],
 ): StandingsRow[] {
   const rows = new Map<ClubId, StandingsRow>()
   for (const division of structure.divisions) {
@@ -42,6 +47,7 @@ export function foldStandings(
       rows.set(clubId, emptyRow(clubId, division.id, division.conferenceId))
     }
   }
+  for (const row of opening) rows.set(row.clubId, { ...row })
 
   const row = (clubId: ClubId, fixtureId: string): StandingsRow => {
     const found = rows.get(clubId)

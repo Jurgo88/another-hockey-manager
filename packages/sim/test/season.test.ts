@@ -4,7 +4,6 @@ import { DEFAULT_TACTICS, validateLineup } from '../src/engine/lineup.js'
 import {
   advanceDay,
   InvalidLineupError,
-  isSeasonOver,
   setLineup,
   startSeason,
   type PlayedFixture,
@@ -85,8 +84,7 @@ describe('advanceDay', () => {
   })
 
   it('refuses to play past the last Fixture', () => {
-    const over = { ...start, nextFixture: start.fixtures.length }
-    expect(isSeasonOver(over)).toBe(true)
+    const over = { ...start, fixtures: [] }
     expect(() => advanceDay(over)).toThrow(/no Fixtures left/)
   })
 })
