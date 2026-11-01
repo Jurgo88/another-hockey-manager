@@ -134,7 +134,7 @@ is treated as uniformly generated.
 | `shotVolume` | 0-100 | Higher means more attempts from distance and fewer forced plays: more shots, lower average danger. |
 | `goalieRotation` | rule | When the backup starts: whoever played yesterday sits, and a limit on starts running (ADR-011). |
 | `shiftLength` | 0-100 | Higher means shorter shifts - less fatigue, but the Matchup policy gets less traction. |
-| `matchup` | enum | `none`, `exploit` (top Line against weakest Pairing), `shutdown` (best defensive unit against their top Line). |
+| `matchup` | enum | `none`, `exploit` (top Line against weakest Pairing), `shutdown` (best defensive unit against their top Line). A Shift it sends a unit out for costs extra fatigue (ADR-013). |
 
 Every dial must be observable in the statistics, or it is a placebo. This is
 asserted in `04-validation-targets.md`.

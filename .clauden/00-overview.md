@@ -93,3 +93,4 @@ Out (deferred, with the phase that owns them in `05-roadmap.md`):
 | 010 | Fatigue is one rising number, carried through the event stream on a day-based calendar |
 | 011 | Goalie rotation is a Tactics rule applied before the Fixture |
 | 012 | Injuries are events in the stream, and a Lineup answers them by moving up |
+| 013 | A matchup costs fatigue, and shorter Shifts weaken it |
