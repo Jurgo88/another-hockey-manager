@@ -589,3 +589,23 @@ tr.play-mark td {
     transition: none;
   }
 }
+
+.notice {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 2px solid #c77700;
+  background: #fff4e0;
+}
+
+.notice ul {
+  margin: 4px 0;
+  padding-left: 18px;
+}
+
+.notice p {
+  margin: 4px 0 0;
+}

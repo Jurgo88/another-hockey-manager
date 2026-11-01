@@ -161,9 +161,24 @@ export function setLineup(state: SeasonState, clubId: ClubId, lineup: Lineup): S
   // now would replay what the Manager has already seen.
   if (isFollowed(state, clubId)) throw new Error(`Club ${clubId} is in a Fixture being followed`)
 
-  const violations = validateLineup(lineup, clubOf(state, clubId))
+  const club = clubOf(state, clubId)
+  const declared = state.lineups[clubId]
+  const violations = withinEmergency(
+    validateLineup(lineup, club),
+    declared ? validateLineup(replaceInjured(state, clubId, declared), club) : [],
+  )
   if (violations.length > 0) throw new InvalidLineupError(clubId, violations)
   return { ...state, lineups: { ...state.lineups, [clubId]: lineup } }
+}
+
+/**
+ * A Lineup with everyone currently out replaced, as it would be for the next
+ * Fixture anyway (ADR-012). Offered to a Manager so they need not click it through.
+ */
+export function replaceInjured(state: SeasonState, clubId: ClubId, lineup: Lineup): Lineup {
+  const club = clubOf(state, clubId)
+  const out = new Set(rosterIds(club).filter((id) => state.absent[id] !== undefined))
+  return withoutInjured(club, lineup, out)
 }
 
 /** Whether a Fixture of this Club is being followed, which locks its Lineup. */
@@ -431,9 +446,7 @@ function rested(state: SeasonState, clubId: ClubId, day: number): Club {
 
 /** The Lineup a Club dresses on `day`, once injuries and Goalie rotation have had their say. */
 function lineupFor(state: SeasonState, clubId: ClubId, day: number): Lineup {
-  const club = clubOf(state, clubId)
-  const out = new Set(rosterIds(club).filter((id) => state.absent[id] !== undefined))
-  const healthy = withoutInjured(club, state.lineups[clubId]!, out)
+  const healthy = replaceInjured(state, clubId, state.lineups[clubId]!)
   // Rotation is a regular-Season rule: nobody rests a starter in the playoffs.
   if (state.playoffs !== null) return healthy
   return lineupForFixture(healthy, day, state.goalieHistory[clubId] ?? null)

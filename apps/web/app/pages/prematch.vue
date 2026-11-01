@@ -61,6 +61,7 @@ async function start() {
     <li v-for="problem in problems" :key="problem">{{ problem }}</li>
   </ul>
   <template v-if="draft && data">
+    <InjuryNotice :lineup="draft" :players="data.players" @update:lineup="changed" />
     <TacticsPanel
       :tactics="draft.tactics"
       :rotation="true"
