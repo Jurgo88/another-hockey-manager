@@ -214,23 +214,33 @@ export function generateGoalieAttributes(rng: Rng, ability: Ability): GoalieAttr
 }
 
 /**
- * Age and potential.
+ * Age and the room left to grow.
  *
  * Ability and age are correlated in a league: the best Players are mostly in
  * their prime, and a young Player at a high slot is a prospect who arrived
- * early. Potential is the ceiling - always at or above current ability, and
- * furthest above it for the youngest.
+ * early. Headroom is furthest above ability for the youngest.
  */
-export function generateAgeAndPotential(
+export function generateAgeAndHeadroom(
   rng: Rng,
   ability: Ability,
-): { age: number; potential: number } {
+): { age: number; headroom: Ability } {
   const primePull = ability * 4
   const age = Math.max(18, Math.min(40, Math.round(22 + primePull + gaussian(rng) * 3.4)))
 
   const yearsToPrime = Math.max(0, 26 - age)
   const headroom = (yearsToPrime / 8) * 0.22 + Math.max(0, gaussian(rng)) * 0.05
-  const potential = Math.min(0.99, ability + headroom)
 
-  return { age, potential: clampAttribute(1 + potential * 19) }
+  return { age, headroom }
+}
+
+/**
+ * The ceiling of a Player's level (ADR-020). The headroom goes through the same
+ * curve as the attributes and lands on the level the Player was generated with,
+ * so it never sits below the rounded level. Mapping it straight onto the scale
+ * left a fifth of the league below its own best attribute.
+ */
+export function potentialOf(level: number, ability: Ability, headroom: Ability): number {
+  const ceiling = Math.min(0.99, ability + headroom)
+  const room = Math.max(0, Math.pow(ceiling, ABILITY_CURVE) - Math.pow(ability, ABILITY_CURVE))
+  return clampAttribute(level + room * 19)
 }
