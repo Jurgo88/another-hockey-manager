@@ -47,6 +47,7 @@ rng/      deterministic randomness      - imports nothing internal
 generate/ procedural Rosters and names  - may import domain, rng
 engine/   simulation                    - may import domain, rng
 stats/    folds over the event stream   - may import domain ONLY
+roster/   the roster file (ADR-020)     - may import domain ONLY
 season/   a Season, day by day          - may import domain, rng, generate,
                                           engine, stats
 cli/      entry points                  - may import anything
@@ -69,7 +70,8 @@ pnpm test                 # all packages
 pnpm --filter @ahm/sim test:watch
 pnpm --filter @ahm/sim test:realism
 pnpm typecheck
-pnpm sim:season           # simulate a Season, print tables
+pnpm sim:season           # simulate a Season, print tables (--roster <file>)
+pnpm sim:roster           # write a generated league as a roster file
 pnpm db:start             # local Supabase, needs Docker
 pnpm web:dev              # the application, needs apps/web/.env
 ```

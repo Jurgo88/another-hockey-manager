@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { ATTRIBUTE_MAX, ATTRIBUTE_MIN, SKATER_ATTRIBUTE_KEYS } from '../src/domain/attributes.js'
 import type { Club } from '../src/domain/club.js'
-import type { Skater } from '../src/domain/player.js'
+import { playerLevel, type Skater } from '../src/domain/player.js'
 import { isUniformSource } from '../src/domain/provenance.js'
 import { ROSTER_SHAPE, ROSTER_SIZE } from '../src/domain/roster.js'
 import { NHL_2026_27, NHL_2026_27_CLUB_SEEDS } from '../src/data/nhl-2026-27.js'
@@ -156,11 +156,25 @@ describe('createGeneratedRosterProvider', () => {
     }
   })
 
-  it('gives potential at or above current ability', () => {
-    for (const skater of skaters) {
-      expect(skater.potential).toBeGreaterThanOrEqual(1)
-      expect(skater.potential).toBeLessThanOrEqual(ATTRIBUTE_MAX)
+  it('gives potential at or above the rounded level (ADR-020)', () => {
+    for (const club of clubs) {
+      for (const player of [...club.skaters, ...club.goalies]) {
+        expect(Number.isInteger(player.potential)).toBe(true)
+        expect(player.potential).toBeLessThanOrEqual(ATTRIBUTE_MAX)
+        expect(player.potential).toBeGreaterThanOrEqual(Math.round(playerLevel(player)))
+      }
     }
+  })
+
+  it('leaves the most room to grow to the youngest', () => {
+    const room = (young: boolean) =>
+      mean(
+        skaters
+          .filter((skater) => (young ? skater.age <= 21 : skater.age >= 30))
+          .map((skater) => skater.potential - playerLevel(skater)),
+      )
+    expect(room(true)).toBeGreaterThan(room(false) + 1)
+    expect(room(false)).toBeLessThan(1)
   })
 
   it('produces plausible ages', () => {

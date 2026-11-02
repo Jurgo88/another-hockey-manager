@@ -94,7 +94,9 @@ return if board battles become a distinct engine step.
 
 ### Shared meta fields
 
-`age`, `potential` (1-20 ceiling, never shown raw - scouting derives from it),
+`age`, `potential` (1-20 ceiling of the Player's level, never shown raw -
+scouting derives from it; the level is the mean of a Skater's attributes without
+`faceoffs` and `discipline`, or of all five for a Goalie, ADR-020),
 `handedness`, `preferredPositions[]` (Skater only, first entry is natural),
 Rosters hold 16 forwards, 10 defencemen and 3 Goalies, the last of the depth
 standing in for call-ups (ADR-012).

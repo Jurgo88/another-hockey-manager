@@ -2,6 +2,7 @@ import type { Club, Lineup } from '../domain/club.js'
 import type { MatchEvent } from '../domain/event.js'
 import type { Fixture, FixtureId } from '../domain/fixture.js'
 import type { ClubId } from '../domain/player.js'
+import type { RosterProvider } from '../domain/roster.js'
 import { simulateFixture } from '../engine/simulate.js'
 import {
   advanceDay,
@@ -24,9 +25,12 @@ export interface SimulatedSeason {
   replay(fixtureId: FixtureId): readonly MatchEvent[]
 }
 
-/** One regular Season played straight through on the AI Managers' opening Lineups. */
-export async function simulateSeason(seed: number): Promise<SimulatedSeason> {
-  let state = await startSeason(seed)
+/**
+ * One regular Season played straight through on the AI Managers' opening
+ * Lineups, on generated Rosters unless a provider gives others.
+ */
+export async function simulateSeason(seed: number, provider?: RosterProvider): Promise<SimulatedSeason> {
+  let state = await startSeason(seed, provider)
 
   const played = new Map<FixtureId, Omit<PlayedFixture, 'events'>>()
   const fixtures: Fixture[] = []

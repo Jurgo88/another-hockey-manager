@@ -13,7 +13,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:realism": "vitest run test/realism",
-    "sim:season": "tsx src/cli/simulate-season.ts"
+    "sim:season": "tsx src/cli/simulate-season.ts",
+    "sim:roster": "tsx src/cli/export-roster.ts"
   },
   "dependencies": {},
   "devDependencies": {

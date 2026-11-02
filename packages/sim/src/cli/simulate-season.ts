@@ -1,27 +1,21 @@
-import { writeFileSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { readFileSync, writeFileSync } from 'node:fs'
 import { parseArgs } from 'node:util'
 import { NHL_2026_27 } from '../data/nhl-2026-27.js'
+import { createFileRosterProvider } from '../roster/file.js'
 import { renderPlayByPlay, renderSeason, seasonDump } from './format.js'
+import { integerOption, typedPath } from './options.js'
 import { simulateSeason } from './season.js'
 
 /** FR-13: simulate one Season and print its tables. */
 
 const HELP = `Usage: pnpm sim:season [options]
 
-  --seed <n>       Season seed, an integer (default 1)
-  --top <n>        Rows in each leaders table (default 20)
-  --fixture <id>   Also print one Fixture's play-by-play, e.g. s1-r00-00
-  --json <path>    Also write the Season to a JSON file
-  --help           Show this message`
-
-function integerOption(flag: string, value: string, min: number): number {
-  const parsed = Number(value)
-  if (!Number.isSafeInteger(parsed) || parsed < min) {
-    throw new Error(`${flag} must be an integer of at least ${min}, got "${value}"`)
-  }
-  return parsed
-}
+  --seed <n>        Season seed, an integer (default 1)
+  --roster <path>   Play on the Rosters of a roster file instead of generated ones
+  --top <n>         Rows in each leaders table (default 20)
+  --fixture <id>    Also print one Fixture's play-by-play, e.g. s1-r00-00
+  --json <path>     Also write the Season to a JSON file
+  --help            Show this message`
 
 async function main(): Promise<void> {
   const { values } = parseArgs({
@@ -29,6 +23,7 @@ async function main(): Promise<void> {
     args: process.argv.slice(2).filter((arg) => arg !== '--'),
     options: {
       seed: { type: 'string', default: '1' },
+      roster: { type: 'string' },
       top: { type: 'string', default: '20' },
       fixture: { type: 'string' },
       json: { type: 'string' },
@@ -44,7 +39,11 @@ async function main(): Promise<void> {
   const seed = integerOption('--seed', values.seed, 0)
   const top = integerOption('--top', values.top, 1)
 
-  const season = await simulateSeason(seed)
+  const provider =
+    values.roster === undefined
+      ? undefined
+      : createFileRosterProvider(readFileSync(typedPath(values.roster), 'utf8'), NHL_2026_27)
+  const season = await simulateSeason(seed, provider)
   console.log(renderSeason(season, NHL_2026_27, top))
 
   if (values.fixture !== undefined) {
@@ -52,8 +51,7 @@ async function main(): Promise<void> {
   }
 
   if (values.json !== undefined) {
-    // pnpm runs the script from the package; the path is meant from where it was typed.
-    const path = resolve(process.env.INIT_CWD ?? process.cwd(), values.json)
+    const path = typedPath(values.json)
     writeFileSync(path, JSON.stringify(seasonDump(season, NHL_2026_27), null, 2))
     console.log(`\nWrote ${path}`)
   }

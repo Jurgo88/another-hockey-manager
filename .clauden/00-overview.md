@@ -75,6 +75,7 @@ Out (deferred, with the phase that owns them in `05-roadmap.md`):
 | `03-sim-engine.md` | Engine architecture and event schema |
 | `04-validation-targets.md` | Statistical targets, as tests |
 | `05-roadmap.md` | Phases 0-4 and their gates |
+| `06-roster-file.md` | The roster file format |
 | `adr/` | Architecture decision records |
 
 ## Accepted decisions
@@ -100,3 +101,4 @@ Out (deferred, with the phase that owns them in `05-roadmap.md`):
 | 017 | Nuxt on Supabase, with the browser kept away from Supabase |
 | 018 | A Fixture is revealed in steps, and a change can come at any of them |
 | 019 | Skaters ease at the regulation intermissions |
+| 020 | A roster file keeps the provenance it carries |

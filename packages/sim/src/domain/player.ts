@@ -1,4 +1,9 @@
-import type { GoalieAttributes, SkaterAttributes } from './attributes.js'
+import {
+  GOALIE_ATTRIBUTE_KEYS,
+  SKATER_ATTRIBUTE_KEYS,
+  type GoalieAttributes,
+  type SkaterAttributes,
+} from './attributes.js'
 import type { GoalieProvenance, SkaterProvenance } from './provenance.js'
 
 export type PlayerId = string
@@ -17,8 +22,9 @@ interface PlayerBase {
   /** Age in whole years at the start of the current Season. */
   age: number
   /**
-   * Ceiling the player can still develop toward, on the same 1-20 scale as
-   * attributes. Never exposed raw to a Manager - scouting reports derive from it.
+   * The level the Player can still reach, on the 1-20 attribute scale (ADR-020).
+   * Single attributes may sit above it. Never exposed raw to a Manager -
+   * scouting reports derive from it.
    */
   potential: number
   handedness: Handedness
@@ -59,4 +65,26 @@ export function isGoalie(player: Player): player is Goalie {
 
 export function displayName(player: Player): string {
   return `${player.firstName} ${player.lastName}`
+}
+
+/** `faceoffs` belongs to a role and `discipline` to temperament, so neither counts towards a level. */
+export const SKATER_LEVEL_KEYS = SKATER_ATTRIBUTE_KEYS.filter(
+  (key) => key !== 'faceoffs' && key !== 'discipline',
+)
+
+const mean = (values: readonly number[]) =>
+  values.reduce((sum, value) => sum + value, 0) / values.length
+
+/** A Skater's level, the scale `potential` is a ceiling on (ADR-020). */
+export function skaterLevel(attributes: SkaterAttributes): number {
+  return mean(SKATER_LEVEL_KEYS.map((key) => attributes[key]))
+}
+
+/** A Goalie's level: the mean of all five attributes. */
+export function goalieLevel(attributes: GoalieAttributes): number {
+  return mean(GOALIE_ATTRIBUTE_KEYS.map((key) => attributes[key]))
+}
+
+export function playerLevel(player: Player): number {
+  return isSkater(player) ? skaterLevel(player.attributes) : goalieLevel(player.attributes)
 }
