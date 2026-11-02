@@ -29,6 +29,7 @@ packages/sim/          simulation engine, zero runtime dependencies
   src/engine/          shift loop, possession resolution
   src/stats/           folds over the event stream
   src/cli/             simulate a Season, print tables
+packages/estimate/     real NHL Rosters from public data, as a roster file
 apps/web/              the application, on Nuxt
 supabase/              local Supabase and migrations
 .clauden/              specification and architecture decision records

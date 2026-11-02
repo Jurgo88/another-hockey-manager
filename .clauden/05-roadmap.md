@@ -69,7 +69,9 @@ playable version.
 - Attribute estimator from public data (ADR-008): NHL EDGE tracking for
   `speed`, `shooting`, `stamina`; published rates for `faceoffs` and
   `discipline`; deployment-adjusted performance statistics for the inferable
-  group; generated values, honestly marked, for the rest
+  group; generated values, honestly marked, for the rest. The method is
+  ADR-021: real Players ranked within position onto the generator's
+  distribution, ice time as the anchor of a Player's level
 - Provenance and confidence populated per attribute, per Player
 - Generated Players for everyone outside the tracked population - prospects,
   minor leagues, juniors, Europe. The entry draft in Phase 2 reuses this for its
