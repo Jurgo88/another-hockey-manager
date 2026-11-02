@@ -72,7 +72,14 @@ playable version.
   group; generated values, honestly marked, for the rest
 - Provenance and confidence populated per attribute, per Player
 - Generated Players for everyone outside the tracked population - prospects,
-  minor leagues, juniors, Europe
+  minor leagues, juniors, Europe. The entry draft in Phase 2 reuses this for its
+  draft classes.
+- `potential` fixed and defined before the roster file freezes its meaning. The
+  generator maps it linearly while attributes use a convex curve, so across 8
+  seeds 21% of Players sit below their own best attribute, and 71% of those aged
+  30 or more sit at least 1.5 above their mean attribute.
+- `potential` estimated for real Players too, since Phase 2 development reads
+  it, and age taken from the date of birth
 
 **Why it comes after Phase 0, and not before.** The engine is calibrated
 against distributions, and a generator gives exact control over the
@@ -93,16 +100,43 @@ attribute carries a source and a confidence rather than an unmarked guess.
 
 ## Phase 2 - Multiple Seasons
 
-This is where it becomes a manager rather than a season simulator.
+This is where it becomes a manager rather than a season simulator. Runs after
+the Phase 0.5 gate, which the author confirmed on 2026-11-02.
 
-- Ageing and development against `potential`
-- Retirement
-- Entry draft
-- Season history and Player career records
-- Form across a Season
+The simulation comes first, up to the gate, and the web application after it:
+
+1. Measured targets and ADRs for the choices below
+2. A realistic age profile in the generator
+3. Moving from one Season to the next
+4. Season history and Player career records
+5. Ageing and development against `potential`
+6. Retirement and leaving the league
+7. Entry draft
+8. Long-run realism suite and calibration
+9. Web: continuing a career across Seasons
+10. Web: draft and notices
+11. Web: Season history and Player careers
+
+Choices made by the author on 2026-11-02, each to be recorded in an ADR under
+item 1:
+
+- **Development** follows age curves by attribute group, capped by `potential`,
+  with a small bonus for ice time played. It changes attributes directly, so
+  imported Rosters develop the same way as generated ones.
+- **Leaving the league** depends on age, level and pressure on the Roster. A
+  Club keeps its shape, and the weakest at a position leave when new Players
+  arrive. An assistant coach decides by default, and a Manager can overrule it.
+- **The draft** gives a Club the rights to a prospect, who develops off the
+  Roster and joins when ready. Undrafted Players fill remaining gaps. The number
+  of rounds, 4 to begin with, and the lottery are data (D-10). A Manager makes
+  their own picks through the call an AI Manager uses (D-04).
+- **Form across a Season** waits until after the gate, as its own task. It
+  changes play, so it would move Tier 2 during the long-run calibration.
 
 **Gate:** a ten-Season run produces a plausible league history - no runaway
-dynasty, no collapse into uniformity, career arcs that read like careers.
+dynasty, no collapse into uniformity, career arcs that read like careers. Item 1
+turns this into measured targets, and Tier 1 and Tier 2 must hold in late
+Seasons as well as the first.
 
 ## Phase 3 - Roster movement
 
