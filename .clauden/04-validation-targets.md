@@ -122,6 +122,13 @@ Goalies appeared in 20 or more.
 | Median Skater with 40+ Fixtures, points | 30 | ±6 | The middle must not be dragged up toward the stars. Measured: 29 (rank 306 of 612). |
 | Forward tier-1 to tier-4 points ratio | 4.4 | ±0.8 | Ice time and quality must compound. Measured: 71.8 against 16.3. |
 | Top-10 goalscorers' share of league goals | 5.7% | ±1.5 pp | Guards against both a flat and a hyper-concentrated distribution. Measured: 460 of 8,085. |
+| Most goals in a Season | 54 | ±8 | A share alone cannot see goals running high. Measured: 53. |
+| Tenth-most goals in a Season | 43 | ±5 | Measured: 42. |
+| Skaters with 40+ goals | 15 | ±6 | Measured: 15. |
+| Top-10 scorers by points, assists per goal | 1.75 | ±0.35 | The best Players must create as well as finish. Measured: 1.75. |
+| Defencemen's share of goals | 15.2% | ±2.5 pp | Measured: 1,226 of 8,086. |
+| Defencemen's share of assists | 31.3% | ±3 pp | Measured. |
+| Defencemen's share of shots on goal | 27.6% | ±3 pp | Measured. |
 | Goalie save percentage spread (p90 − p10) | 0.0335 | ±0.010 | Goalies must be differentiable, which is how the position earns its separate model. |
 | Median goalie save percentage | 0.895 | ±0.008 | Measured over the same 66-Goalie sample. |
 | Best Club points, 84 Fixtures | 124 | ±14 | Talent must translate to standings. Measured: 0.738 points percentage. |
@@ -272,15 +279,52 @@ all 16 at 116.3, so 2 was chosen to centre both rows. Passing on seeds 1 to 8 is
 not a margin.
 
 **The top of the league is still too even.** The leader over the fifth-highest
-scorer is 1.14 against a measured 1.34. No row asserts this. More generational
+scorer is 1.12 against a measured 1.34. No row asserts this. More generational
 Players, a larger bonus or a larger first power-play share did not move it, and
-an exponent on the shooter draw lifts all first-Line forwards together and
-breaks the top-10 share. A single outlying star needs its own mechanism.
+a stronger shooter draw lifts all first-Line forwards together and breaks the
+top-10 share. A single outlying star needs its own mechanism.
 
-**Defencemen score a little too much as a group.** Over 8 Seasons they take 29.1%
-of league points, against 25.3% measured in 2025-26 and 24.8% in 2024-25. The best
-one reaches 88 points against 94 to 97, scaled to 84 Fixtures, and the tenth 69
-against 58 to 62. No row asserts this, and it did not move with calibration.
+### Second calibration: who scores
+
+Issue #74, after a play test found goal totals too high at the top. Scoring was
+right for the league and wrong by Player. Over 16 Seasons (seeds 1 to 16), against
+NHL 2025-26 scaled to 84 Fixtures:
+
+| Figure | NHL | Before | Engine |
+| --- | --- | --- | --- |
+| Most goals | 54 | 63 | 53 |
+| Tenth-most goals | 43 | 51 | 42 |
+| Skaters with 50+ goals | 2 | 11.5 | 2 |
+| Skaters with 40+ goals | 15 | 38 | 16 |
+| Skaters with 30+ goals | 45 | 80 | 57 |
+| Top-10 by points, goals | 41 | 53 | 42 |
+| Top-10 by points, assists | 72 | 53 | 69 |
+| Scoring leader, points | 141 | 119 | 124 |
+| Defencemen's share of shots on goal | 27.6% | 17.8% | 27.3% |
+| Defencemen's share of goals | 15.2% | 8.8% | 14.3% |
+| Defencemen's share of assists | 31.3% | about 40% | 31.0% |
+| Defencemen's share of points | 25.3% | 29.1% | 24.8% |
+| Top-10 goalscorers' share | 5.7% | 6.72% | 5.51% |
+| Forward tier-1 to tier-4 points ratio | 4.4 | 4.86 | 4.79 |
+| Points-per-minute ratio | 2.71 | 3.16 | 3.11 |
+
+The top scorers' shooting percentage was already right, at 17.8% against 17.3%.
+They had too many shots because defencemen took too few, so forwards took them
+instead. The top-10 share stayed inside its band throughout, which is why seven
+rows were added.
+
+What moved: the defenceman shooter weight rose from 0.5 to 0.9, the shooter draw
+became the square root of the attributes divided by `passing` to the power 0.75,
+the assist exponent rose from 2 to 4 with defencemen at half weight, and
+`DANGER_BASE` rose from `logit(0.1255)` to `logit(0.145)` to hold the goal rate.
+Seeds 9 to 16 agree with seeds 1 to 8.
+
+**Assists are now too flat through the middle.** The 50th Skater by assists has 53
+against a measured 44, and the best 84 against 92. A higher exponent lifts the top
+and the middle together, and widens the tier ratio. No row asserts this.
+
+**Too many Skaters still reach 30 goals,** 57 against 45. No row asserts this:
+it needs the talent below the top Lines looked at, not a band.
 
 ## Tier 3 - Tactics are not placebos
 
