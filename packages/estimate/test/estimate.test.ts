@@ -187,3 +187,12 @@ describe('choosing a Roster', () => {
     expect(ageOn('1997-10-02', '2025-10-01')).toBe(27)
   })
 })
+
+describe('generated fill', () => {
+  it('never becomes the starting Goalie', () => {
+    const short = estimateRosters(fixtureSeason({ goaliesPerClub: 2 }), { ...OPTIONS, reference })
+    for (const club of short.clubs) {
+      expect(buildNaiveLineup(club).starter.startsWith('nhl-')).toBe(true)
+    }
+  })
+})

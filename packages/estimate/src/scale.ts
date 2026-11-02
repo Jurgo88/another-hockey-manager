@@ -18,6 +18,15 @@ export function percentiles(samples: readonly Sample[]): Map<number, number> {
 }
 
 /**
+ * A percentile among real Players moved above the generated fill, which takes
+ * the bottom of the distribution: a real Player is never ranked below a Player
+ * invented to stand in for one who does not exist.
+ */
+export function aboveFill(p: number, real: number, fill: number): number {
+  return (p * real + fill) / (real + fill)
+}
+
+/**
  * Removes the part of a 5v5 rate that comes from where a Player starts his
  * shifts (R-07): a slope fitted across the pool, weighted by ice time, and each
  * value moved to what it would be at the pool's mean zone start share.

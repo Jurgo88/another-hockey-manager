@@ -1,14 +1,9 @@
 import {
-  DEFENCE_SLOT_ABILITY,
-  FORWARD_SLOT_ABILITY,
-  GOALIE_ABILITY_NOISE,
   GOALIE_ATTRIBUTE_KEYS,
-  GOALIE_SLOT_ABILITY,
   ROSTER_SHAPE,
   SKATER_ATTRIBUTE_KEYS,
   abilityOfLevel,
   createRng,
-  drawAbility,
   drawHeadroom,
   generateAgeAndHeadroom,
   generateDistinctNames,
@@ -34,6 +29,7 @@ import type { ClubStint, GoalieRecord, SeasonRecords, SkaterRecord } from './nhl
 import { assignPositions, fillPositions } from './positions.js'
 import { buildReference, groupOf, quantile, type PositionGroup, type Reference } from './reference.js'
 import {
+  aboveFill,
   adjustedForZoneStarts,
   confidenceOf,
   evidence,
@@ -346,6 +342,7 @@ function estimateRule(
   entries: readonly SkaterEntry[],
   anchor: ReadonlyMap<number, number>,
   reference: Reference,
+  fill: ReadonlyMap<string, number>,
 ): Map<number, Estimated> {
   const pools = new Map<string, SkaterEntry[]>()
   for (const entry of entries) {
@@ -399,10 +396,12 @@ function estimateRule(
 
     const group = rule.reference ?? pool[0]!.group
     const sorted = reference.attributes[group][rule.key]
+    // Fill sits below a pool only when the pool is a whole position group.
+    const below = rule.pool ? 0 : (fill.get(group) ?? 0)
     for (const [id, p] of percentiles(composite)) {
       const record = pool.find((e) => e.record.playerId === id)!.record
       result.set(id, {
-        value: quantile(sorted, p),
+        value: quantile(sorted, aboveFill(p, composite.length, below)),
         provenance: {
           source: rule.source,
           confidence: confidenceOf(rule.start, shareOfEvidence.get(id)!),
@@ -415,7 +414,10 @@ function estimateRule(
 }
 
 /** A Player's level as ice time ranks him in his group, percentile 0-1. */
-function iceTimeLevels(entries: readonly SkaterEntry[]): Map<number, number> {
+function iceTimeLevels(
+  entries: readonly SkaterEntry[],
+  fill: ReadonlyMap<string, number>,
+): Map<number, number> {
   const levels = new Map<number, number>()
   for (const group of ['C', 'W', 'D'] as const) {
     const pool = entries.filter((e) => e.group === group)
@@ -429,7 +431,9 @@ function iceTimeLevels(entries: readonly SkaterEntry[]): Map<number, number> {
         weight: gp,
       }
     })
-    for (const [id, p] of percentiles(samples)) levels.set(id, p)
+    for (const [id, p] of percentiles(samples)) {
+      levels.set(id, aboveFill(p, samples.length, fill.get(group) ?? 0))
+    }
   }
   return levels
 }
@@ -496,6 +500,7 @@ function estimateGoalies(
   chosen: readonly { player: ChosenPlayer<GoalieRecord>; clubId: string }[],
   reference: Reference,
   options: Required<Pick<EstimateOptions, 'ageDate' | 'seed'>>,
+  fill: number,
 ): Goalie[] {
   const anchor = percentiles(
     chosen.map(({ player }) => ({ id: player.record.playerId, value: player.record.timeOnIce, weight: 1 })),
@@ -520,7 +525,10 @@ function estimateGoalies(
 
   return chosen.map(({ player: { record, stint }, clubId }) => {
     const rng = playerRng(options.seed, record.playerId)
-    const ability = quantile(reference.goalieAbility, final.get(record.playerId)!)
+    const ability = quantile(
+      reference.goalieAbility,
+      aboveFill(final.get(record.playerId)!, chosen.length, fill),
+    )
     const attributes: GoalieAttributes = generateGoalieAttributes(rng.fork('attributes'), ability)
     const shots = record.evShotsAgainst
     const entry: AttributeProvenance =
@@ -553,13 +561,27 @@ function estimateGoalies(
   })
 }
 
-/** Generated Players for what a real Club lacks, at the depth of a call-up (ADR-020). */
+/** Where in its group's distribution a generated fill Skater sits: the depth of a call-up. */
+export const FILL_PERCENTILE = 0.05
+/**
+ * A fill Goalie sits at the very bottom. Goalies are spread so narrowly that at
+ * the fifth percentile the noise in single attributes could still make him the
+ * starter ahead of Goalies who played for the Club all season.
+ */
+export const FILL_GOALIE_PERCENTILE = 0
+
+/**
+ * Generated Players for what a real Club lacks (ADR-020). Their ability is
+ * taken low in the same distribution the real Players are ranked into, so a
+ * fill Player never outranks the real ones he stands in behind.
+ */
 function fillClub(
   clubId: string,
   forwards: readonly SkaterPosition[],
   defence: readonly SkaterPosition[],
   goalies: number,
   seed: number,
+  reference: Reference,
 ): { skaters: Skater[]; goalies: Goalie[] } {
   const total = forwards.length + defence.length + goalies
   if (total === 0) return { skaters: [], goalies: [] }
@@ -567,8 +589,8 @@ function fillClub(
   const rng = createRng(seed).fork(`fill:${clubId}`)
   const names = generateDistinctNames(rng, total)
   let n = 0
-  const skater = (natural: SkaterPosition, slots: readonly number[]) => {
-    const { ability } = drawAbility(rng, slots[slots.length - 1]!, 0)
+  const skater = (natural: SkaterPosition) => {
+    const ability = quantile(reference.ability[groupOf(natural)], FILL_PERCENTILE)
     const { age, headroom } = generateAgeAndHeadroom(rng, ability)
     return generateSkater(rng, {
       id: `${clubId}-fill-${n}`,
@@ -582,12 +604,11 @@ function fillClub(
   }
 
   const skaters = [
-    ...forwards.map((p) => skater(p, FORWARD_SLOT_ABILITY)),
-    ...defence.map((p) => skater(p, DEFENCE_SLOT_ABILITY)),
+    ...forwards.map((p) => skater(p)),
+    ...defence.map((p) => skater(p)),
   ]
   const generatedGoalies = Array.from({ length: goalies }, () => {
-    const slot = GOALIE_SLOT_ABILITY[GOALIE_SLOT_ABILITY.length - 1]!
-    const { ability } = drawAbility(rng, slot, 0, GOALIE_ABILITY_NOISE)
+    const ability = quantile(reference.goalieAbility, FILL_GOALIE_PERCENTILE)
     const { age, headroom } = generateAgeAndHeadroom(rng, ability)
     return generateGoalie(rng, {
       id: `${clubId}-fill-${n}`,
@@ -648,16 +669,28 @@ export function estimateRosters(records: SeasonRecords, options: EstimateOptions
     }
     fills.set(
       club.id,
-      fillClub(club.id, fillForwards, fillDefence, ROSTER_SHAPE.goalies - goalies.length, settings.seed),
+      fillClub(club.id, fillForwards, fillDefence, ROSTER_SHAPE.goalies - goalies.length, settings.seed, reference),
     )
   }
 
-  const levels = iceTimeLevels(entries)
-  const estimates = new Map(RULES.map((rule) => [rule.key, estimateRule(rule, entries, levels, reference)]))
+  const fillCount = new Map<string, number>()
+  for (const { skaters, goalies: fillGoalies } of fills.values()) {
+    for (const s of skaters) {
+      const group = groupOf(s.preferredPositions[0]!)
+      fillCount.set(group, (fillCount.get(group) ?? 0) + 1)
+    }
+    fillCount.set('G', (fillCount.get('G') ?? 0) + fillGoalies.length)
+  }
+
+  const levels = iceTimeLevels(entries, fillCount)
+  const estimates = new Map(
+    RULES.map((rule) => [rule.key, estimateRule(rule, entries, levels, reference, fillCount)]),
+  )
   const goalies = estimateGoalies(
     chosen.flatMap(({ club, goalies: list }) => list.map((player) => ({ player, clubId: club.id }))),
     reference,
     settings,
+    fillCount.get('G') ?? 0,
   )
 
   const clubsById = new Map<string, Club>(
