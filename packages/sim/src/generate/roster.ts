@@ -24,6 +24,7 @@ import {
   generateGoalieAttributes,
   generateSkaterAttributes,
   potentialOf,
+  type Ability,
 } from './talent.js'
 
 /**
@@ -65,6 +66,70 @@ function preferredPositions(
   return rng.chance(0.35) ? [natural, other] : [natural, ...defence.filter((p) => p !== natural && p !== other)]
 }
 
+const SKATER_PROVENANCE = uniformProvenance(SKATER_ATTRIBUTE_KEYS, 'generated')
+const GOALIE_PROVENANCE = uniformProvenance(GOALIE_ATTRIBUTE_KEYS, 'generated')
+
+/** Who a generated Player is, and the ability and age he is generated at. */
+export interface GeneratedPlayerSpec {
+  id: string
+  clubId: string
+  person: { firstName: string; lastName: string }
+  ability: Ability
+  age: number
+  headroom: Ability
+}
+
+/**
+ * One generated Skater at a given ability and age: a Roster slot, a gap in a
+ * real Club, or a draft prospect. Draws handedness, positions and attributes,
+ * in that order, which the random numbers of every Player after depend on.
+ */
+export function generateSkater(
+  rng: Rng,
+  spec: GeneratedPlayerSpec & { natural: SkaterPosition },
+): Skater {
+  const hand = handedness(rng, spec.natural)
+  const positions = preferredPositions(rng, spec.natural)
+  const attributes = generateSkaterAttributes(rng, spec.ability, spec.natural)
+
+  return {
+    kind: 'skater',
+    id: spec.id,
+    clubId: spec.clubId,
+    firstName: spec.person.firstName,
+    lastName: spec.person.lastName,
+    age: spec.age,
+    potential: potentialOf(skaterLevel(attributes), spec.ability, spec.headroom),
+    handedness: hand,
+    form: 50,
+    fatigue: 0,
+    preferredPositions: positions,
+    attributes,
+    provenance: SKATER_PROVENANCE,
+  }
+}
+
+/** One generated Goalie at a given ability and age. */
+export function generateGoalie(rng: Rng, spec: GeneratedPlayerSpec): Goalie {
+  const hand: Handedness = rng.chance(0.75) ? 'left' : 'right'
+  const attributes = generateGoalieAttributes(rng, spec.ability)
+
+  return {
+    kind: 'goalie',
+    id: spec.id,
+    clubId: spec.clubId,
+    firstName: spec.person.firstName,
+    lastName: spec.person.lastName,
+    age: spec.age,
+    potential: potentialOf(goalieLevel(attributes), spec.ability, spec.headroom),
+    handedness: hand,
+    form: 50,
+    fatigue: 0,
+    attributes,
+    provenance: GOALIE_PROVENANCE,
+  }
+}
+
 function generateClub(
   rng: Rng,
   clubId: string,
@@ -78,35 +143,22 @@ function generateClub(
   )
   let nameIndex = 0
 
-  const skaterProvenance = uniformProvenance(SKATER_ATTRIBUTE_KEYS, 'generated')
-  const goalieProvenance = uniformProvenance(GOALIE_ATTRIBUTE_KEYS, 'generated')
-
   const skaters: Skater[] = []
 
   const addSkater = (slot: number, slotAbility: number, natural: SkaterPosition) => {
     const { ability } = drawAbility(rng, slotAbility, clubStrength)
     const { age, headroom } = generateAgeAndHeadroom(rng, ability)
-    const person = names[nameIndex++]!
-    // Drawn in this order, which the random numbers of every Player after depend on.
-    const hand = handedness(rng, natural)
-    const positions = preferredPositions(rng, natural)
-    const attributes = generateSkaterAttributes(rng, ability, natural)
-
-    skaters.push({
-      kind: 'skater',
-      id: `${clubId}-s${String(slot).padStart(2, '0')}`,
-      clubId,
-      firstName: person.firstName,
-      lastName: person.lastName,
-      age,
-      potential: potentialOf(skaterLevel(attributes), ability, headroom),
-      handedness: hand,
-      form: 50,
-      fatigue: 0,
-      preferredPositions: positions,
-      attributes,
-      provenance: skaterProvenance,
-    })
+    skaters.push(
+      generateSkater(rng, {
+        id: `${clubId}-s${String(slot).padStart(2, '0')}`,
+        clubId,
+        person: names[nameIndex++]!,
+        natural,
+        ability,
+        age,
+        headroom,
+      }),
+    )
   }
 
   FORWARD_SLOT_ABILITY.forEach((slotAbility, index) => {
@@ -124,24 +176,14 @@ function generateClub(
   const goalies: Goalie[] = GOALIE_SLOT_ABILITY.map((slotAbility, index) => {
     const { ability } = drawAbility(rng, slotAbility, clubStrength, GOALIE_ABILITY_NOISE)
     const { age, headroom } = generateAgeAndHeadroom(rng, ability)
-    const person = names[nameIndex++]!
-    const hand: Handedness = rng.chance(0.75) ? 'left' : 'right'
-    const attributes = generateGoalieAttributes(rng, ability)
-
-    return {
-      kind: 'goalie',
+    return generateGoalie(rng, {
       id: `${clubId}-g${index}`,
       clubId,
-      firstName: person.firstName,
-      lastName: person.lastName,
+      person: names[nameIndex++]!,
+      ability,
       age,
-      potential: potentialOf(goalieLevel(attributes), ability, headroom),
-      handedness: hand,
-      form: 50,
-      fatigue: 0,
-      attributes,
-      provenance: goalieProvenance,
-    } satisfies Goalie
+      headroom,
+    })
   })
 
   return { id: clubId, code, name, skaters, goalies }

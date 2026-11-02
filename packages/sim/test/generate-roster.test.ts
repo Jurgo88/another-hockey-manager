@@ -5,8 +5,13 @@ import { playerLevel, type Skater } from '../src/domain/player.js'
 import { isUniformSource } from '../src/domain/provenance.js'
 import { ROSTER_SHAPE, ROSTER_SIZE } from '../src/domain/roster.js'
 import { NHL_2026_27, NHL_2026_27_CLUB_SEEDS } from '../src/data/nhl-2026-27.js'
-import { createGeneratedRosterProvider } from '../src/generate/roster.js'
-import { FORWARD_SLOT_ABILITY } from '../src/generate/talent.js'
+import { createGeneratedRosterProvider, generateSkater } from '../src/generate/roster.js'
+import {
+  ABILITY_CURVE,
+  FORWARD_SLOT_ABILITY,
+  abilityOfLevel,
+  drawHeadroom,
+} from '../src/generate/talent.js'
 import { generateDistinctNames, generateName, NATION_CODES } from '../src/generate/names.js'
 import { createRng } from '../src/rng/index.js'
 
@@ -402,5 +407,40 @@ describe('createGeneratedRosterProvider', () => {
       expect(club.name).not.toContain('Bruins')
       expect(club.name).toMatch(/Club$/)
     }
+  })
+})
+
+describe('one generated Player (ADR-021)', () => {
+  it('makes one Skater at a given position, ability and age, marked generated', async () => {
+    const club = (await provider(7).loadCompetition('nhl')).clubs[0]!
+    const first = club.skaters[0]!
+    const rng = createRng(1)
+    const made = generateSkater(rng, {
+      id: 'x',
+      clubId: 'bos',
+      person: { firstName: 'A', lastName: 'B' },
+      natural: 'C',
+      ability: 0.8,
+      age: 20,
+      headroom: 0.1,
+    })
+    expect(made.preferredPositions[0]).toBe('C')
+    expect(made.potential).toBeGreaterThanOrEqual(Math.round(playerLevel(made)))
+    expect(first.provenance).toEqual(made.provenance)
+  })
+
+  it('inverts the attribute curve, so a level maps back to its ability', () => {
+    for (const ability of [0.3, 0.6, 0.9]) {
+      const level = 1 + Math.pow(ability, ABILITY_CURVE) * 19
+      expect(abilityOfLevel(level)).toBeCloseTo(ability)
+    }
+  })
+
+  it('leaves no headroom by age alone past the prime', () => {
+    const rng = createRng(3)
+    const old = Array.from({ length: 200 }, () => drawHeadroom(rng, 32))
+    const young = Array.from({ length: 200 }, () => drawHeadroom(rng, 19))
+    expect(Math.min(...young)).toBeGreaterThan(Math.max(...old) - 0.2)
+    expect(old.reduce((a, b) => a + b, 0) / 200).toBeLessThan(0.05)
   })
 })
