@@ -128,17 +128,22 @@ const MAJOR_CHANCE: Partial<Record<PenaltyKind, number>> = { boarding: 0.5, cros
 // --- Shot attempt ----------------------------------------------------------
 
 /** A defenceman's pull on the shooter draw relative to a forward. */
-const DEFENCE_SHOOTER_WEIGHT = 0.5
+const DEFENCE_SHOOTER_WEIGHT = 0.9
+/** Exponent on the shooter draw: below 1, shots spread over the unit (#74). */
+const SHOOTER_PULL = 0.5
+/** Divides the shooter draw by `passing` to this power: a passer looks for a pass (#74). */
+const PASS_FIRST = 0.75
 /**
  * Exponent on the assist draw: above 1, the best passers on the ice are credited
  * more than their attributes alone would say. Calibrated on the league scoring
- * leader (#15). The shooter draw stays linear, because an exponent there also
- * pushes up the top-10 share of goals.
+ * leader and the split of goals and assists at the top (#15, #74).
  */
-const ASSIST_PULL = 2
+const ASSIST_PULL = 4
+/** A defenceman's pull on the assist draw relative to a forward. */
+const DEFENCE_ASSIST_WEIGHT = 0.5
 
 /** Log-odds of a goal for a typical attempt against an average goalie. */
-const DANGER_BASE = logit(0.1255)
+const DANGER_BASE = logit(0.145)
 const DANGER_SHOOTER = 0.55
 const DANGER_SUPPORT = 0.25
 const DANGER_PRESSURE = 0.3
@@ -540,7 +545,8 @@ export function createPossessionModel(
           rng,
           att.skaters.map(
             (s, i) =>
-              (s.attributes.shooting + s.attributes.offPositioning) *
+              (Math.pow(s.attributes.shooting + s.attributes.offPositioning, SHOOTER_PULL) /
+                Math.pow(s.attributes.passing, PASS_FIRST)) *
               (att.defence[i] ? DEFENCE_SHOOTER_WEIGHT : 1),
           ),
         )
@@ -715,8 +721,10 @@ export function createPossessionModel(
             candidates[
               weightedIndex(
                 rng,
-                candidates.map((s) =>
-                  Math.pow(s.attributes.passing + s.attributes.offPositioning, ASSIST_PULL),
+                candidates.map(
+                  (s) =>
+                    Math.pow(s.attributes.passing + s.attributes.offPositioning, ASSIST_PULL) *
+                    (unit.defence[unit.skaters.indexOf(s)] ? DEFENCE_ASSIST_WEIGHT : 1),
                 ),
               )
             ]!

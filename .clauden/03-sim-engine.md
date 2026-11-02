@@ -125,7 +125,12 @@ Per possession:
      live puck grants one rebound attempt at elevated danger, resolved
      against `recovery` rather than `positioning` - the goalie is moving.
 4. **Assists.** On a goal, up to two assists are credited from the unit on the
-   ice, weighted by `passing` and `offPositioning`.
+   ice, weighted by `passing` and `offPositioning`, with an exponent of 4, at half
+   weight for a defenceman.
+
+The shooter on an attempt is drawn from the unit on the ice by the square root of
+`shooting` plus `offPositioning`, divided by `passing` to the power 0.75, so a
+passer looks for a pass, at 0.9 weight for a defenceman (#74).
 
 ## Man advantage
 

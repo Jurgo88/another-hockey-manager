@@ -84,6 +84,14 @@ describe('Tier 2 distribution', async () => {
         mean(ranked.slice(0, TIER_SIZE)) / mean(ranked.slice(3 * TIER_SIZE, 4 * TIER_SIZE))
 
       const goals = skaters.map((s) => s.goals).sort(descending)
+      const topByPoints = [...skaters]
+        .sort((a, b) => points(b) - points(a))
+        .slice(0, LEADERBOARD_SIZE)
+      const defencemen = [...season.skaters]
+        .filter(([id]) => !appearedForwardIds.has(id))
+        .map(([, s]) => s)
+      const defenceShare = (read: (skater: (typeof skaters)[number]) => number) =>
+        (100 * sum(defencemen.map(read))) / sum(skaters.map(read))
       const savePercentages = [...season.goalies.values()]
         .filter((g) => g.gamesPlayed >= QUALIFYING_GOALIE_FIXTURES)
         .map(savePercentage)
@@ -95,11 +103,20 @@ describe('Tier 2 distribution', async () => {
         pointRatio: tierRatio(byPoints),
         pointsPerMinuteRatio: tierRatio(byPoints) / tierRatio(byIceTime),
         topScorersShare: (100 * sum(goals.slice(0, LEADERBOARD_SIZE))) / sum(goals),
+        mostGoals: goals[0]!,
+        tenthMostGoals: goals[LEADERBOARD_SIZE - 1]!,
+        fortyGoalScorers: goals.filter((total) => total >= 40).length,
+        assistsPerGoalAtTheTop:
+          sum(topByPoints.map((s) => s.assists)) / sum(topByPoints.map((s) => s.goals)),
+        defenceGoals: defenceShare((s) => s.goals),
+        defenceAssists: defenceShare((s) => s.assists),
+        defenceShots: defenceShare((s) => s.shotsOnGoal),
         goalieSpread: percentile(savePercentages, 0.9) - percentile(savePercentages, 0.1),
         medianGoalie: percentile(savePercentages, 0.5),
         regularGoalies: savePercentages.length,
         starterShare:
-          (100 * sum(starterFixtures)) / sum([...season.goalies.values()].map((g) => g.gamesPlayed)),
+          (100 * sum(starterFixtures)) /
+          sum([...season.goalies.values()].map((g) => g.gamesPlayed)),
         missed: 100 * (1 - mean(regulars.map((s) => s.gamesPlayed)) / FIXTURES_PER_CLUB),
         startersGap: poolSavePercentage(true) - poolSavePercentage(false),
       }
@@ -153,6 +170,62 @@ describe('Tier 2 distribution', async () => {
       average((s) => s.topScorersShare),
       5.7,
       1.5,
+    )
+  })
+
+  it('most goals in a Season: 54 ±8', () => {
+    within(
+      average((s) => s.mostGoals),
+      54,
+      8,
+    )
+  })
+
+  it('tenth-most goals in a Season: 43 ±5', () => {
+    within(
+      average((s) => s.tenthMostGoals),
+      43,
+      5,
+    )
+  })
+
+  it('Skaters with 40+ goals: 15 ±6', () => {
+    within(
+      average((s) => s.fortyGoalScorers),
+      15,
+      6,
+    )
+  })
+
+  it('top-10 scorers by points: 1.75 ±0.35 assists per goal', () => {
+    within(
+      average((s) => s.assistsPerGoalAtTheTop),
+      1.75,
+      0.35,
+    )
+  })
+
+  it("defencemen's share of goals: 15.2% ±2.5 pp", () => {
+    within(
+      average((s) => s.defenceGoals),
+      15.2,
+      2.5,
+    )
+  })
+
+  it("defencemen's share of assists: 31.3% ±3 pp", () => {
+    within(
+      average((s) => s.defenceAssists),
+      31.3,
+      3,
+    )
+  })
+
+  it("defencemen's share of shots on goal: 27.6% ±3 pp", () => {
+    within(
+      average((s) => s.defenceShots),
+      27.6,
+      3,
     )
   })
 
