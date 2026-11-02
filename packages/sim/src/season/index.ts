@@ -4,6 +4,7 @@ import type { MatchEvent } from '../domain/event.js'
 import type { Fixture, FixtureChange, FixtureId, FixtureInput } from '../domain/fixture.js'
 import type { ClubId, PlayerId } from '../domain/player.js'
 import type { PlayoffFormat, PlayoffState } from '../domain/playoff.js'
+import type { RosterProvider } from '../domain/roster.js'
 import type { StandingsRow } from '../domain/standings.js'
 import { NHL_2026_27, NHL_2026_27_CLUB_SEEDS, NHL_PLAYOFF_FORMAT } from '../data/nhl-2026-27.js'
 import { afterRest } from '../engine/fatigue.js'
@@ -127,15 +128,20 @@ export class InvalidLineupError extends Error {
   }
 }
 
-/** One full NHL 2026-27 Season of 32 generated Clubs, before its first day. */
-export async function startSeason(seed: number): Promise<SeasonState> {
-  const provider = createGeneratedRosterProvider({
+/**
+ * One full NHL 2026-27 Season before its first day, on the Rosters a provider
+ * gives (D-05), or on 32 generated Clubs.
+ */
+export async function startSeason(
+  seed: number,
+  provider: RosterProvider = createGeneratedRosterProvider({
     structure: NHL_2026_27,
     seed,
     clubIdentities: new Map(
       NHL_2026_27_CLUB_SEEDS.map((club) => [club.id, { code: club.code, name: club.name }]),
     ),
-  })
+  }),
+): Promise<SeasonState> {
   const { clubs } = await provider.loadCompetition(NHL_2026_27.id)
   const fixtures = generateSchedule({
     structure: NHL_2026_27,

@@ -70,7 +70,8 @@ pnpm test                 # all packages
 pnpm --filter @ahm/sim test:watch
 pnpm --filter @ahm/sim test:realism
 pnpm typecheck
-pnpm sim:season           # simulate a Season, print tables
+pnpm sim:season           # simulate a Season, print tables (--roster <file>)
+pnpm sim:roster           # write a generated league as a roster file
 pnpm db:start             # local Supabase, needs Docker
 pnpm web:dev              # the application, needs apps/web/.env
 ```

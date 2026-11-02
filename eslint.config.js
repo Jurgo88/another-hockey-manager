@@ -80,6 +80,24 @@ export default tseslint.config(
   },
 
   {
+    // The roster file reads and writes data, and nothing else (ADR-020).
+    files: ['packages/sim/src/roster/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['../*', '!../domain', '!../domain/**'],
+              message: 'src/roster may import from src/domain only (ADR-020).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  {
     // Repo-root tooling config, plain Node ESM, not part of any tsconfig.
     files: ['eslint.config.js'],
     ...tseslint.configs.disableTypeChecked,
