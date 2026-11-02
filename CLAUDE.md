@@ -47,6 +47,7 @@ rng/      deterministic randomness      - imports nothing internal
 generate/ procedural Rosters and names  - may import domain, rng
 engine/   simulation                    - may import domain, rng
 stats/    folds over the event stream   - may import domain ONLY
+roster/   the roster file (ADR-020)     - may import domain ONLY
 season/   a Season, day by day          - may import domain, rng, generate,
                                           engine, stats
 cli/      entry points                  - may import anything
