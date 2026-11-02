@@ -54,6 +54,9 @@ outcome is interesting - not while testing. If not, the problem is in the
 engine or in the visibility of consequence, and it is fixed there. Adding
 features is not the remedy.
 
+**Gate result:** met on 2026-11-02. The author voluntarily played about 70
+Fixtures of one Season, well past the 20 required.
+
 ## Phase 0.5 - Real roster import
 
 A separate phase because it is a separate modelling project, not a ticket.
