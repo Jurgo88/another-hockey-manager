@@ -1,0 +1,2 @@
+# Raw NHL API responses (ADR-021). Re-fetched with --refresh.
+.cache/

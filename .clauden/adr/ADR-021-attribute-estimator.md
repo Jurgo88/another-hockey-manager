@@ -66,21 +66,23 @@ but it is how much a Player was asked to skate, not how slowly he tires.
 
 **Deployment is adjusted from NHL data only (R-07).** The 5v5 rates are corrected
 for offensive zone starts with a slope fitted across the position group. Every
-metric is shrunk towards the group mean in proportion to the sample behind it, so
-ten Fixtures of hot shooting do not make an elite shooter. Teammate quality is not
-adjusted for. Confidence says so: it starts from the source's default and falls
+metric's percentile is pulled towards the Player's ice-time level (below) by how
+little data stands behind it, so ten Fixtures of hot shooting do not make an elite
+shooter, and a call-up looks like a call-up rather than like the league average.
+Teammate quality is not adjusted for. Confidence says so: it starts from the source's default and falls
 with the sample, to 0.25 at the limit, and no `derived` value starts above 0.5.
 
 **Ice time anchors the level.** Coaches give the most ice to the Players they
 think best overall, which is the judgement hit and block counts cannot make. A
-Player's ice time per Fixture, ranked in his group, gives an ability on the
-generator's scale. The attributes with no public source are generated from that
+Player's ice time per Fixture, pulled towards a depth Player's when he played few
+Fixtures and ranked in his group, gives an ability on the generator's scale. The attributes with no public source are generated from that
 ability at confidence 0.25, so an elite defenceman does not draw a random 6 in
 `defPositioning`. The same ability fills in any metric the data lacks for a
 Player.
 
-**Goalies get one level, not five facts.** Even-strength save percentage, shrunk
-by the shots behind it, ranks the Goalies. The five attributes are generated around
+**Goalies get one level, not five facts.** Even-strength save percentage, pulled
+towards the Goalie's share of ice time by how few shots stand behind it, ranks the
+Goalies. EDGE goalie data is not used. The five attributes are generated around
 the ability at that rank, `derived` at confidence 0.4 or less.
 
 **`potential` is drawn by age, fixed per Player.** The generator's headroom for the
@@ -92,9 +94,10 @@ headroom as a generated one, which Phase 2 development is calibrated on.
 played the most Fixtures for. Each Club keeps its 16 forwards, 10 defencemen and 3
 Goalies with the most ice time there. A defenceman plays the side of his shooting
 hand. Natural positions are then moved as little as needed to give each Club four
-of every forward position and three on each defence side: a centre with the
-fewest draws moves to the wing, a winger with the most draws moves to centre, and
-a moved Player keeps his old position as his second. A Club still short is
+of every forward position and three on each defence side. The winger with the
+most draws moves to centre; a move to a wing or a defence side takes a Player
+whose shooting hand suits it, a winger before a centre, then the one with the
+least ice time. A moved Player keeps his old position as his second. A Club still short is
 completed with generated Players at the depth of a call-up, at confidence 0.25
 (ADR-020).
 
