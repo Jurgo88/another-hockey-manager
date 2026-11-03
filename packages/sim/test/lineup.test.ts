@@ -342,3 +342,56 @@ describe('editing a Lineup by slot', () => {
     expect(wild({ aggression: 0, shiftLength: 100 })).toEqual([])
   })
 })
+
+describe('the naive builder and positions (#81)', () => {
+  /** A Bruins Roster where every Skater's attributes are `level`, set per id. */
+  const withLevels = (levels: Record<string, number>, positions: Record<string, readonly string[]> = {}) => ({
+    ...bruins,
+    skaters: bruins.skaters.map((s) => {
+      const level = levels[s.id]
+      return {
+        ...s,
+        preferredPositions: (positions[s.id] ?? s.preferredPositions) as typeof s.preferredPositions,
+        attributes:
+          level === undefined
+            ? s.attributes
+            : (Object.fromEntries(SKATER_ATTRIBUTE_KEYS.map((k) => [k, level])) as unknown as typeof s.attributes),
+      }
+    }),
+  })
+
+  it('moves a second star at one position to his second position rather than to the second Line', () => {
+    const lws = bruins.skaters.filter((s) => s.preferredPositions[0] === 'LW')
+    const [star, second] = [lws[0]!, lws[1]!]
+    const club = withLevels({ [star.id]: 20, [second.id]: 19 }, { [second.id]: ['LW', 'RW'] })
+    const line = buildNaiveLineup(club).lines[0]
+    expect([line.leftWing, line.rightWing].sort()).toEqual([star.id, second.id].sort())
+  })
+
+  it('keeps natural positions when the difference is small', () => {
+    const lws = bruins.skaters.filter((s) => s.preferredPositions[0] === 'LW')
+    const rws = bruins.skaters.filter((s) => s.preferredPositions[0] === 'RW')
+    const club = withLevels(
+      { [lws[0]!.id]: 15, [lws[1]!.id]: 14.5, [rws[0]!.id]: 14 },
+      { [lws[1]!.id]: ['LW', 'RW'] },
+    )
+    expect(buildNaiveLineup(club).lines[0].rightWing).toBe(rws[0]!.id)
+  })
+
+  it('ranks by level, so faceoffs do not decide a winger', () => {
+    const [a, b] = bruins.skaters.filter((s) => s.preferredPositions[0] === 'LW')
+    const club = {
+      ...bruins,
+      skaters: bruins.skaters.map((s) => {
+        const at = (v: number, faceoffs: number) => ({
+          ...(Object.fromEntries(SKATER_ATTRIBUTE_KEYS.map((k) => [k, v])) as unknown as typeof s.attributes),
+          faceoffs,
+        })
+        if (s.id === a!.id) return { ...s, preferredPositions: ['LW'] as const, attributes: at(18, 1) }
+        if (s.id === b!.id) return { ...s, preferredPositions: ['LW'] as const, attributes: at(17, 20) }
+        return s
+      }),
+    }
+    expect(buildNaiveLineup(club).lines[0].leftWing).toBe(a!.id)
+  })
+})
