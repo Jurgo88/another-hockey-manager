@@ -213,3 +213,12 @@ Per season, 173 Players who played do not play the next, and 137 play their firs
 | 2023-24 | 27.4 | 19.6% | 25.8% | 39 |
 | 2024-25 | 27.5 | 21.4% | 26.2% | 39 |
 | 2025-26 | 27.6 | 24.2% | 25.7% | 40 |
+
+## The age profile the generator draws from
+
+`pnpm sim:measure --ages` writes the ages of every Player-season, split four
+ways, as `packages/sim/src/generate/nhl-age-profile.ts`. Players with 20 or more
+Fixtures fall into three thirds by ice time in their position group, as in the
+leaving tables above, and Players with fewer form a fourth table. The top third
+is oldest, peaking at 27-28; the bottom third peaks at 24; Players with few
+Fixtures are the youngest (#84).
