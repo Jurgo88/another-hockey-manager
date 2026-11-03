@@ -8,7 +8,6 @@ import {
   generateAgeAndHeadroom,
   generateDistinctNames,
   generateGoalie,
-  generateGoalieAttributes,
   generateSkater,
   generateSkaterAttributes,
   goalieLevel,
@@ -57,6 +56,7 @@ export interface EstimateOptions {
   reference?: Reference
   /** Seeds the generated parts. Each Player draws from a stream of his own. */
   seed?: number
+  anchor?: AnchorWeights
 }
 
 export const ESTIMATE_SEED = 17
@@ -169,6 +169,21 @@ function highDangerPer60(r: SkaterRecord): number | undefined {
   return r.shotsPer60At5v5 * (high / shots)
 }
 
+/**
+ * What `offPositioning` is read from (#18). High-danger shots alone rated a
+ * net-front shooter far above a playmaker: Kucherov and Celebrini came out at 9.
+ * Points, all situations included, say who finds dangerous ice.
+ */
+export const OFF_POSITIONING_SHARES = {
+  allSituations: 0.35,
+  production: 0.25,
+  shots: 0.25,
+  highDanger: 0.15,
+}
+
+/** The share of `passing` from assists in all situations, power play included (#18). */
+export const PASSING_ALL_SITUATIONS = 0.5
+
 /** The faceoff pool: forwards with enough draws, wingers included, ranked against centres. */
 export const FACEOFF_MINIMUM = 100
 
@@ -209,12 +224,21 @@ const RULES: readonly Rule[] = [
     start: 0.5,
     components: [
       {
-        share: 0.65,
+        share: 0.5,
         halfWeight: 80,
         sample: (r) => (r.shots > 0 ? { value: r.goals / r.shots, weight: r.shots } : undefined),
       },
       {
         share: 0.35,
+        halfWeight: 600,
+        sample: (r) => {
+          const mins = allMinutes(r)
+          return mins > 0 ? { value: per60(r.goals, mins), weight: mins } : undefined
+        },
+      },
+      {
+        // Shot speed is power, not accuracy: at 0.35 McDavid's 82 mph shot made him a 13.
+        share: 0.15,
         halfWeight: MATCHES_HALF_WEIGHT,
         sample: (r) =>
           r.edge?.topShotSpeed === undefined
@@ -232,7 +256,31 @@ const RULES: readonly Rule[] = [
     start: 0.5,
     components: [
       {
-        share: 1,
+        share: OFF_POSITIONING_SHARES.production,
+        halfWeight: 400,
+        zoneAdjusted: true,
+        sample: (r) => {
+          const mins = fiveOnFiveMinutes(r)
+          return mins > 0 ? { value: per60(r.points5v5, mins), weight: mins } : undefined
+        },
+      },
+      {
+        share: OFF_POSITIONING_SHARES.allSituations,
+        halfWeight: 600,
+        sample: (r) => {
+          const mins = allMinutes(r)
+          return mins > 0 ? { value: per60(r.goals + r.assists, mins), weight: mins } : undefined
+        },
+      },
+      {
+        share: OFF_POSITIONING_SHARES.shots,
+        halfWeight: 300,
+        zoneAdjusted: true,
+        sample: (r) =>
+          r.shotsPer60At5v5 === undefined ? undefined : { value: r.shotsPer60At5v5, weight: fiveOnFiveMinutes(r) },
+      },
+      {
+        share: OFF_POSITIONING_SHARES.highDanger,
         halfWeight: 300,
         zoneAdjusted: true,
         sample: (r) => {
@@ -241,7 +289,9 @@ const RULES: readonly Rule[] = [
         },
       },
     ],
-    note: (r) => `${highDangerPer60(r)?.toFixed(2)} high-danger shots per 60 at 5v5, zone-adjusted`,
+    note: (r) =>
+      `${per60(r.points5v5, fiveOnFiveMinutes(r)).toFixed(2)} points and ` +
+      `${(r.shotsPer60At5v5 ?? 0).toFixed(1)} shots per 60 at 5v5, zone-adjusted`,
   },
   {
     key: 'passing',
@@ -249,7 +299,15 @@ const RULES: readonly Rule[] = [
     start: 0.5,
     components: [
       {
-        share: 1,
+        share: PASSING_ALL_SITUATIONS,
+        halfWeight: 600,
+        sample: (r) => {
+          const mins = allMinutes(r)
+          return mins > 0 ? { value: per60(r.assists, mins), weight: mins } : undefined
+        },
+      },
+      {
+        share: 1 - PASSING_ALL_SITUATIONS,
         halfWeight: 400,
         zoneAdjusted: true,
         sample: (r) => {
@@ -413,26 +471,82 @@ function estimateRule(
   return result
 }
 
-/** A Player's level as ice time ranks him in his group, percentile 0-1. */
-function iceTimeLevels(
+/** What a Player's level is read from, and how much each counts. */
+export interface AnchorWeights {
+  /** Ice time per Fixture: the coach's judgement, but relative to his own Club. */
+  iceTime: number
+  /** Points per 60 at 5v5, zone-adjusted: comparable across Clubs. */
+  production: number
+  /** Share of 5v5 goals that are his Club's while he is on the ice. */
+  goalShare: number
+}
+
+/**
+ * Chosen by the author on the measured comparison (#18). Ice time alone left the
+ * Club order at 0.38 against the real one, because every Club's first Line plays
+ * the most; production and on-ice goal share are comparable across Clubs.
+ */
+export const ANCHOR_WEIGHTS: AnchorWeights = { iceTime: 1, production: 1, goalShare: 1 }
+
+/** A Player's level in his group, percentile 0-1 (ADR-021). */
+function levelsOf(
   entries: readonly SkaterEntry[],
   fill: ReadonlyMap<string, number>,
+  weights: AnchorWeights,
 ): Map<number, number> {
   const levels = new Map<number, number>()
+  const zoneStarts = new Map(
+    entries.flatMap((e) =>
+      e.record.offensiveZoneStarts5v5 === undefined
+        ? []
+        : [[e.record.playerId, e.record.offensiveZoneStarts5v5] as const],
+    ),
+  )
   for (const group of ['C', 'W', 'D'] as const) {
     const pool = entries.filter((e) => e.group === group)
     const toi = pool.map((e) => e.record.toiPerMatch).sort((a, b) => a - b)
     const prior = quantile(toi, 0.2)
-    const samples = pool.map((e) => {
-      const { matchesPlayed: gp, toiPerMatch } = e.record
-      return {
-        id: e.record.playerId,
-        value: (toiPerMatch * gp + prior * MATCHES_HALF_WEIGHT) / (gp + MATCHES_HALF_WEIGHT),
-        weight: gp,
+    const iceTime = percentiles(
+      pool.map((e) => {
+        const { matchesPlayed: gp, toiPerMatch } = e.record
+        return {
+          id: e.record.playerId,
+          value: (toiPerMatch * gp + prior * MATCHES_HALF_WEIGHT) / (gp + MATCHES_HALF_WEIGHT),
+          weight: gp,
+        }
+      }),
+    )
+    const production = adjustedForZoneStarts(
+      pool.flatMap((e) => {
+        const mins = fiveOnFiveMinutes(e.record)
+        return mins > 0 ? [{ id: e.record.playerId, value: per60(e.record.points5v5, mins), weight: mins }] : []
+      }),
+      zoneStarts,
+    )
+    const goalShare = pool.flatMap((e) =>
+      e.record.onIceGoalShare5v5 === undefined
+        ? []
+        : [{ id: e.record.playerId, value: e.record.onIceGoalShare5v5, weight: fiveOnFiveMinutes(e.record) }],
+    )
+    const signals = [
+      { weight: weights.production, samples: production, ranks: percentiles(production), half: 400 },
+      { weight: weights.goalShare, samples: goalShare, ranks: percentiles(goalShare), half: 500 },
+    ]
+    const total = weights.iceTime + weights.production + weights.goalShare
+
+    const composite = pool.map((e) => {
+      const id = e.record.playerId
+      const base = iceTime.get(id)!
+      let value = weights.iceTime * base
+      for (const signal of signals) {
+        const rank = signal.ranks.get(id)
+        const own = rank === undefined ? 0 : evidence(signal.samples.find((s) => s.id === id)!.weight, signal.half)
+        value += signal.weight * (own * (rank ?? 0) + (1 - own) * base)
       }
+      return { id, value: value / total, weight: 1 }
     })
-    for (const [id, p] of percentiles(samples)) {
-      levels.set(id, aboveFill(p, samples.length, fill.get(group) ?? 0))
+    for (const [id, p] of percentiles(composite)) {
+      levels.set(id, aboveFill(p, composite.length, fill.get(group) ?? 0))
     }
   }
   return levels
@@ -525,11 +639,13 @@ function estimateGoalies(
 
   return chosen.map(({ player: { record, stint }, clubId }) => {
     const rng = playerRng(options.seed, record.playerId)
-    const ability = quantile(
-      reference.goalieAbility,
-      aboveFill(final.get(record.playerId)!, chosen.length, fill),
-    )
-    const attributes: GoalieAttributes = generateGoalieAttributes(rng.fork('attributes'), ability)
+    // Every attribute at the Goalie's percentile. Generated around one ability
+    // instead, the noise in single attributes is wider than the whole spread
+    // between Goalies, and the order the data gives would be lost.
+    const p = aboveFill(final.get(record.playerId)!, chosen.length, fill)
+    const attributes = Object.fromEntries(
+      GOALIE_ATTRIBUTE_KEYS.map((key) => [key, quantile(reference.goalieAttributes[key], p)]),
+    ) as unknown as GoalieAttributes
     const shots = record.evShotsAgainst
     const entry: AttributeProvenance =
       shots > 0
@@ -682,7 +798,7 @@ export function estimateRosters(records: SeasonRecords, options: EstimateOptions
     fillCount.set('G', (fillCount.get('G') ?? 0) + fillGoalies.length)
   }
 
-  const levels = iceTimeLevels(entries, fillCount)
+  const levels = levelsOf(entries, fillCount, options.anchor ?? ANCHOR_WEIGHTS)
   const estimates = new Map(
     RULES.map((rule) => [rule.key, estimateRule(rule, entries, levels, reference, fillCount)]),
   )
