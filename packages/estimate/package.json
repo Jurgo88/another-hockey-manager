@@ -1,0 +1,22 @@
+{
+  "name": "@ahm/estimate",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Real NHL Rosters estimated from public data, written as a roster file (ADR-021).",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "sim:estimate": "tsx src/cli.ts"
+  },
+  "dependencies": {
+    "@ahm/sim": "workspace:*"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.1",
+    "vitest": "^2.1.2"
+  }
+}

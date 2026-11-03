@@ -102,3 +102,4 @@ Out (deferred, with the phase that owns them in `05-roadmap.md`):
 | 018 | A Fixture is revealed in steps, and a change can come at any of them |
 | 019 | Skaters ease at the regulation intermissions |
 | 020 | A roster file keeps the provenance it carries |
+| 021 | The attribute estimator ranks real Players into the generated distribution |

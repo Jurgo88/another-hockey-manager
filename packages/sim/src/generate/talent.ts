@@ -227,10 +227,22 @@ export function generateAgeAndHeadroom(
   const primePull = ability * 4
   const age = Math.max(18, Math.min(40, Math.round(22 + primePull + gaussian(rng) * 3.4)))
 
-  const yearsToPrime = Math.max(0, 26 - age)
-  const headroom = (yearsToPrime / 8) * 0.22 + Math.max(0, gaussian(rng)) * 0.05
+  return { age, headroom: drawHeadroom(rng, age) }
+}
 
-  return { age, headroom }
+/** The room a Player of this age has left to grow, in ability units. */
+export function drawHeadroom(rng: Rng, age: number): Ability {
+  const yearsToPrime = Math.max(0, 26 - age)
+  return (yearsToPrime / 8) * 0.22 + Math.max(0, gaussian(rng)) * 0.05
+}
+
+/**
+ * The ability whose neutral attribute is this level, the inverse of the curve.
+ * For a Player whose level is known and whose ability is not, such as a real one.
+ */
+export function abilityOfLevel(level: number): Ability {
+  const curved = Math.max(0, Math.min(1, (level - 1) / 19))
+  return Math.max(0.05, Math.min(0.99, Math.pow(curved, 1 / ABILITY_CURVE)))
 }
 
 /**

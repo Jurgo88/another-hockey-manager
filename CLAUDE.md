@@ -53,6 +53,9 @@ season/   a Season, day by day          - may import domain, rng, generate,
 cli/      entry points                  - may import anything
 ```
 
+`packages/estimate` turns public NHL data into a roster file (ADR-021). It may
+import `@ahm/sim`; nothing imports it.
+
 `stats/` importing from `engine/` breaks D-03. This is the boundary that
 matters most.
 
@@ -72,6 +75,7 @@ pnpm --filter @ahm/sim test:realism
 pnpm typecheck
 pnpm sim:season           # simulate a Season, print tables (--roster <file>)
 pnpm sim:roster           # write a generated league as a roster file
+pnpm sim:estimate         # estimate real NHL Rosters into a roster file (--season)
 pnpm db:start             # local Supabase, needs Docker
 pnpm web:dev              # the application, needs apps/web/.env
 ```

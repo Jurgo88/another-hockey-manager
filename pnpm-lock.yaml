@@ -61,6 +61,19 @@ importers:
         specifier: ^3.0.0
         version: 3.3.14(typescript@5.9.3)
 
+  packages/estimate:
+    dependencies:
+      '@ahm/sim':
+        specifier: workspace:*
+        version: link:../sim
+    devDependencies:
+      tsx:
+        specifier: ^4.19.1
+        version: 4.23.13
+      vitest:
+        specifier: ^2.1.2
+        version: 2.1.9(@types/node@22.20.3)(lightningcss@1.33.0)(terser@5.51.2)
+
   packages/sim:
     devDependencies:
       tsx:
