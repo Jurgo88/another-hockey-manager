@@ -76,6 +76,7 @@ pnpm typecheck
 pnpm sim:season           # simulate a Season, print tables (--roster <file>)
 pnpm sim:roster           # write a generated league as a roster file
 pnpm sim:estimate         # estimate real NHL Rosters into a roster file (--season)
+pnpm sim:validate         # compare Seasons on them with the real one (Phase 0.5 gate)
 pnpm db:start             # local Supabase, needs Docker
 pnpm web:dev              # the application, needs apps/web/.env
 ```
