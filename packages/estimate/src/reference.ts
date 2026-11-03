@@ -2,13 +2,16 @@ import {
   DEFENCE_SLOT_ABILITY,
   FORWARD_SLOT_ABILITY,
   GOALIE_ABILITY_NOISE,
+  GOALIE_ATTRIBUTE_KEYS,
   GOALIE_SLOT_ABILITY,
   SKATER_ATTRIBUTE_KEYS,
   clubStrengths,
   createRng,
   drawAbility,
+  generateGoalieAttributes,
   generateSkaterAttributes,
   type Ability,
+  type GoalieAttributes,
   type SkaterAttributes,
   type SkaterPosition,
 } from '@ahm/sim'
@@ -31,6 +34,8 @@ export interface Reference {
   /** Latent ability of a Skater, sorted, per group. */
   ability: Readonly<Record<PositionGroup, readonly Ability[]>>
   goalieAbility: readonly Ability[]
+  /** Each Goalie attribute, sorted. */
+  goalieAttributes: Readonly<Record<keyof GoalieAttributes, readonly number[]>>
   /** Each attribute, sorted, per group. */
   attributes: Readonly<Record<PositionGroup, Readonly<Record<keyof SkaterAttributes, readonly number[]>>>>
 }
@@ -42,6 +47,9 @@ const DEFENCE_SLOT_POSITIONS: readonly SkaterPosition[] = ['LD', 'RD']
 export function buildReference(leagues = 24, seed = 21, clubCount = 32): Reference {
   const ability: Record<PositionGroup, Ability[]> = { C: [], W: [], D: [] }
   const goalieAbility: Ability[] = []
+  const goalieAttributes = Object.fromEntries(
+    GOALIE_ATTRIBUTE_KEYS.map((key) => [key, [] as number[]]),
+  ) as Record<keyof GoalieAttributes, number[]>
   const emptyAttributes = () =>
     Object.fromEntries(SKATER_ATTRIBUTE_KEYS.map((key) => [key, [] as number[]])) as Record<
       keyof SkaterAttributes,
@@ -62,7 +70,10 @@ export function buildReference(leagues = 24, seed = 21, clubCount = 32): Referen
       FORWARD_SLOT_ABILITY.forEach((slot, i) => add(slot, FORWARD_SLOT_POSITIONS[i % 3]!))
       DEFENCE_SLOT_ABILITY.forEach((slot, i) => add(slot, DEFENCE_SLOT_POSITIONS[i % 2]!))
       for (const slot of GOALIE_SLOT_ABILITY) {
-        goalieAbility.push(drawAbility(rng, slot, strength, GOALIE_ABILITY_NOISE).ability)
+        const drawn = drawAbility(rng, slot, strength, GOALIE_ABILITY_NOISE).ability
+        goalieAbility.push(drawn)
+        const values = generateGoalieAttributes(rng, drawn)
+        for (const key of GOALIE_ATTRIBUTE_KEYS) goalieAttributes[key].push(values[key])
       }
     }
   }
@@ -72,7 +83,8 @@ export function buildReference(leagues = 24, seed = 21, clubCount = 32): Referen
     sorted(ability[group])
     for (const key of SKATER_ATTRIBUTE_KEYS) sorted(attributes[group][key])
   }
-  return { ability, goalieAbility: sorted(goalieAbility), attributes }
+  for (const key of GOALIE_ATTRIBUTE_KEYS) sorted(goalieAttributes[key])
+  return { ability, goalieAbility: sorted(goalieAbility), goalieAttributes, attributes }
 }
 
 /** The value at percentile `p` (0-1, exclusive) of a sorted sample. */

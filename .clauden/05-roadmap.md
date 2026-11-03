@@ -100,6 +100,12 @@ either piece can be verified at all.
 a scoring leaderboard recognisably close to the real Season, and every
 attribute carries a source and a confidence rather than an unmarked guess.
 
+**Gate result:** met on 2026-11-03 in #18, as measured thresholds in
+`04-validation-targets.md`. Over ten Seasons on the estimated 2025-26 Rosters,
+Club points rank at 0.67 against the real table, 13 of the real top 20 scorers
+finish in the simulated top 30, and Goalies' save percentage ranks at 0.88.
+Every attribute carries a source and a confidence.
+
 ## Phase 2 - Multiple Seasons
 
 This is where it becomes a manager rather than a season simulator. Runs after

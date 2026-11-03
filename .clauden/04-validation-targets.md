@@ -326,6 +326,42 @@ and the middle together, and widens the tier ratio. No row asserts this.
 **Too many Skaters still reach 30 goals,** 57 against 45. No row asserts this:
 it needs the talent below the top Lines looked at, not a band.
 
+## Phase 0.5 gate - the real season, simulated
+
+The tiers above test the engine on generated Rosters. This gate tests the
+attribute estimator (ADR-021): ten Seasons on the estimated NHL 2025-26 Rosters
+(`packages/estimate/data/`) against what really happened that season.
+`pnpm sim:validate` prints the full comparison;
+`packages/estimate/test/validation.test.ts` holds the gate.
+
+| Assertion | Gate | Measured |
+| --- | --- | --- |
+| Rank correlation of Club points, simulated mean against real | ≥ 0.6 | 0.67 |
+| Of the real top 20 point scorers, in the simulated top 30 | ≥ 10 | 13 |
+| Rank correlation of save percentage, Goalies with 40 or more real Fixtures | ≥ 0.4 | 0.88 |
+
+**Why these thresholds.** One real season is one sample: luck over 82 Fixtures
+alone keeps the correlation between true strength and points near 0.8, so a
+perfect estimator would not reach 1. The thresholds ask for the right Clubs
+roughly in the right places and the right Players near the top, not for the real
+champion. The attributes are estimated from the same season they are compared
+with, which flatters the result; the question is whether the estimator can
+reproduce the season it read, not whether it predicts the next one.
+
+**Calibration.** The first estimate measured 0.17, 5 and 0.27. What moved it is in
+the ADR-021 amendment: the anchor of a Player's level, production in
+`offPositioning`, the power play in `passing` and `offPositioning`, Goalie
+attributes by percentile, and less shot speed in `shooting`. The engine was not
+changed, and a red row here means calibrating the estimator, as for the tiers
+above.
+
+**Still visible in the comparison.** Simulated scoring is flatter than real:
+the simulated leader has 93 points and McDavid 88 against a real 138, the
+engine's known flat top (Tier 2). Some Players the naive Lineup puts on a second
+Line score far less than they did; Kaprizov is the clearest, 50 against 89. A few
+forwards score far more than they did, Hagel (93 against 74) and Holloway (83
+against 51) among them.
+
 ## Tier 3 - Tactics are not placebos
 
 Each dial must have a measurable, directionally correct effect. Method: hold

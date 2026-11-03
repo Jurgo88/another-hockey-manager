@@ -10,7 +10,8 @@
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "sim:estimate": "tsx src/cli.ts"
+    "sim:estimate": "tsx src/cli.ts",
+    "sim:validate": "tsx src/cli-validate.ts"
   },
   "dependencies": {
     "@ahm/sim": "workspace:*"

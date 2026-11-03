@@ -18,12 +18,18 @@ export interface SkaterRecord {
   /** Seconds per Fixture at 5v5. */
   toi5v5PerMatch: number
   goals: number
+  /** All situations. */
+  assists: number
   shots: number
   primaryAssists5v5: number
+  /** Goals and assists at 5v5. */
+  points5v5: number
   /** Individual shots on goal per 60 minutes at 5v5. */
   shotsPer60At5v5?: number
   /** Share of 5v5 zone starts in the offensive zone, 0-1. */
   offensiveZoneStarts5v5?: number
+  /** Share of the 5v5 goals scored while he is on the ice that are his Club's, 0-1. */
+  onIceGoalShare5v5?: number
   /** On-ice shot attempt share at 5v5 minus the Club's without him. */
   satRelative5v5?: number
   takeaways: number
@@ -195,8 +201,10 @@ export function recordsOf(raw: RawSeason): SeasonRecords {
       toiPerMatch: num(timeOnIce.get(playerId), 'timeOnIcePerGame') ?? num(row, 'timeOnIcePerGame') ?? 0,
       toi5v5PerMatch: num(rate, 'timeOnIcePerGame5v5') ?? 0,
       goals: num(row, 'goals') ?? 0,
+      assists: num(row, 'assists') ?? 0,
       shots: num(row, 'shots') ?? 0,
       primaryAssists5v5: num(rate, 'primaryAssists5v5') ?? 0,
+      points5v5: num(rate, 'points5v5') ?? 0,
       takeaways: num(realtime.get(playerId), 'takeaways') ?? 0,
       giveaways: num(realtime.get(playerId), 'giveaways') ?? 0,
       minorPenalties: num(penalties.get(playerId), 'minorPenalties') ?? 0,
@@ -207,6 +215,7 @@ export function recordsOf(raw: RawSeason): SeasonRecords {
       shotsPer60At5v5: num(possession.get(playerId), 'individualShotsForPer60'),
       offensiveZoneStarts5v5: num(rate, 'offensiveZoneStartPct5v5'),
       satRelative5v5: num(rate, 'satRelative5v5'),
+      onIceGoalShare5v5: num(possession.get(playerId), 'goalsPct'),
       edge: edgeOf(raw.edge[String(playerId)]),
     }
     for (const [key, value] of Object.entries(optional)) {

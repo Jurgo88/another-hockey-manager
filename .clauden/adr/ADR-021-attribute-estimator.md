@@ -1,7 +1,7 @@
 # ADR-021 - The attribute estimator ranks real Players into the generated distribution
 
 - **Status:** Accepted
-- **Date:** 2026-11-03
+- **Date:** 2026-11-03, amended the same day after calibration (#18)
 - **Relates to:** D-05, D-06, D-11, ADR-008, ADR-012, ADR-020, R-07, R-08, issue #17
 
 ## Context
@@ -53,9 +53,9 @@ who sits where in it.
 | --- | --- | --- |
 | `speed` | EDGE top skating speed | `measured` |
 | `faceoffs` | Faceoff win share, forwards with at least 100 draws, mapped onto centres | `measured` |
-| `shooting` | Shooting percentage with top shot speed | `derived` |
-| `offPositioning` | High-danger shots per 60 at 5v5 | `derived` |
-| `passing` | Primary assists per 60 at 5v5 | `derived` |
+| `shooting` | Shooting percentage 50%, goals per 60 35%, top shot speed 15% | `derived` |
+| `offPositioning` | Points per 60 in all situations 35% and at 5v5 25%, shots per 60 at 5v5 25%, high-danger shots per 60 at 5v5 15% | `derived` |
+| `passing` | Assists per 60 in all situations and primary assists per 60 at 5v5, half each | `derived` |
 | `puckControl` | Relative shot attempt share at 5v5, with takeaways against giveaways | `derived` |
 | `discipline` | Minor penalties per 60, inverted | `derived` |
 | `stamina` | Distance skated per Fixture | `derived` |
@@ -66,24 +66,32 @@ but it is how much a Player was asked to skate, not how slowly he tires.
 
 **Deployment is adjusted from NHL data only (R-07).** The 5v5 rates are corrected
 for offensive zone starts with a slope fitted across the position group. Every
-metric's percentile is pulled towards the Player's ice-time level (below) by how
+metric's percentile is pulled towards the Player's level (below) by how
 little data stands behind it, so ten Fixtures of hot shooting do not make an elite
 shooter, and a call-up looks like a call-up rather than like the league average.
 Teammate quality is not adjusted for. Confidence says so: it starts from the source's default and falls
 with the sample, to 0.25 at the limit, and no `derived` value starts above 0.5.
 
-**Ice time anchors the level.** Coaches give the most ice to the Players they
-think best overall, which is the judgement hit and block counts cannot make. A
-Player's ice time per Fixture, pulled towards a depth Player's when he played few
-Fixtures and ranked in his group, gives an ability on the generator's scale. The attributes with no public source are generated from that
+**Ice time, production and on-ice goal share anchor the level, in equal parts.**
+Coaches give the most ice to the Players they think best overall, which is the
+judgement hit and block counts cannot make. But ice time is relative to a Player's
+own Club: every Club's first Line plays the most, so ice time alone made every
+Club equally strong. Points per 60 at 5v5, zone-adjusted, and the share of 5v5
+goals that are his Club's while he is on the ice compare Players across Clubs.
+Ice time is pulled towards a depth Player's when he played few Fixtures; the
+other two towards his ice time by how few minutes stand behind them. The three,
+ranked in his group, give an ability on the generator's scale. The attributes with no public source are generated from that
 ability at confidence 0.25, so an elite defenceman does not draw a random 6 in
 `defPositioning`. The same ability fills in any metric the data lacks for a
 Player.
 
 **Goalies get one level, not five facts.** Even-strength save percentage, pulled
 towards the Goalie's share of ice time by how few shots stand behind it, ranks the
-Goalies. EDGE goalie data is not used. The five attributes are generated around
-the ability at that rank, `derived` at confidence 0.4 or less.
+Goalies. EDGE goalie data is not used. Each of the five attributes takes the
+value at the Goalie's percentile of the generator's distribution for it, `derived`
+at confidence 0.4 or less. Generated around one ability instead, the noise in a
+single attribute is wider than the whole spread between Goalies, and the order the
+data gives is lost.
 
 **`potential` is drawn by age, fixed per Player.** The generator's headroom for the
 Player's age is drawn from a stream seeded by the Player's id and put on top of
@@ -133,3 +141,37 @@ grow by code the game never runs.
   minutes; its confidence is low for that reason.
 - The cached raw data stays out of the repository. The roster file with real names
   is committed; the author has cleared names in the repository.
+
+## Amendment - calibrated against the real season (#18)
+
+Seasons simulated on the first estimate were compared with the real 2025-26
+season (`04-validation-targets.md`, Phase 0.5 gate). Over ten Seasons the rank
+correlation of Club points was 0.17, 5 of the real top 20 scorers were in the
+simulated top 30, and the rank correlation of save percentage was 0.27. Four
+causes were found and changed, each measured:
+
+- **The anchor.** Ice time alone is relative to the Club, so every Club came out
+  alike. The author chose ice time, production and on-ice goal share in equal
+  parts, from these measurements (Club order, leaders, Goalies):
+
+  | Anchor | Clubs | Leaders | Goalies |
+  | --- | --- | --- | --- |
+  | Ice time only | 0.38 | 13 | 0.83 |
+  | Ice time and production | 0.56 | 12 | 0.87 |
+  | Ice time and on-ice goal share | 0.76 | 12 | 0.86 |
+  | **All three, equal parts** | **0.67** | **13** | **0.88** |
+
+  The last rows were measured after the three changes below.
+- **`offPositioning`.** High-danger shots rate a net-front shooter far above a
+  playmaker: Kucherov and Celebrini came out at 9, Lehkonen at 20. Production
+  now leads it, all situations included, because the engine reads
+  `offPositioning` for who shoots, how dangerous the shot is and who assists.
+- **Power play.** Rates at 5v5 left out the Players whose points come on the power
+  play, Edmonton's in particular. `passing` and `offPositioning` now take part of
+  their figure from all situations.
+- **Goalies.** Attributes generated around one ability lost the order of the data
+  in their noise; they now take each attribute at the Goalie's percentile.
+- **`shooting`.** Shot speed is power, not accuracy, and at 35% it made McDavid a
+  13. It is 15% now, and goals per 60 came in at 35%.
+
+The engine was not changed. The gate passes at 0.67, 13 and 0.88.

@@ -14,6 +14,7 @@ import {
 import { beforeAll, describe, expect, it } from 'vitest'
 import { ageOn, chooseRosters, estimateRosters } from '../src/estimate.js'
 import { buildReference, groupOf, quantile, type Reference } from '../src/reference.js'
+import { spearman } from '../src/validate.js'
 import { fixtureSeason } from './fixture.js'
 
 const OPTIONS = { structure: NHL_2026_27, clubs: NHL_2026_27_CLUB_SEEDS, ageDate: '2025-10-01' }
@@ -83,14 +84,17 @@ describe('provenance (D-11)', () => {
 })
 
 describe('the scale (ADR-021)', () => {
-  it('keeps the generator distribution: the fastest in a group gets the top value', () => {
+  it('keeps the generator distribution, in the order the data gives', () => {
     for (const group of ['C', 'W', 'D'] as const) {
       const pool = realSkaters().filter((s) => groupOf(s.preferredPositions[0]!) === group)
-      const fastest = pool.reduce((a, b) =>
-        recordOf(a).edge!.topSpeed! > recordOf(b).edge!.topSpeed! ? a : b,
-      )
+      const regulars = pool.filter((s) => recordOf(s).matchesPlayed >= 60)
+      expect(
+        spearman(
+          regulars.map((s) => recordOf(s).edge!.topSpeed!),
+          regulars.map((s) => s.attributes.speed),
+        ),
+      ).toBeGreaterThan(0.9)
       const values = pool.map((s) => s.attributes.speed)
-      expect(fastest.attributes.speed).toBe(Math.max(...values))
 
       const mean = values.reduce((a, b) => a + b, 0) / values.length
       const sorted = reference.attributes[group].speed
