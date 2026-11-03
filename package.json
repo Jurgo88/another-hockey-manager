@@ -20,6 +20,7 @@
     "sim:roster": "pnpm --filter @ahm/sim sim:roster",
     "sim:estimate": "pnpm --filter @ahm/estimate sim:estimate",
     "sim:validate": "pnpm --filter @ahm/estimate sim:validate",
+    "sim:measure": "pnpm --filter @ahm/estimate sim:measure",
     "db:start": "supabase start",
     "web:dev": "pnpm --filter @ahm/web dev",
     "gh:setup": "node scripts/github/setup-labels-milestones.mjs",

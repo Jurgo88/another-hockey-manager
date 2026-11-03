@@ -362,6 +362,75 @@ McDavid leads with 100 points against a real 138, the engine's known flat top
 (Tier 2). Kaprizov still scores 65 against 89. A few forwards score far more than
 they did, Hagel (89 against 74) and Holloway (77 against 51) among them.
 
+## Phase 2 gate - ten Seasons in a row
+
+A ten-Season run must produce a plausible league history: no runaway dynasty, no
+collapse into uniformity, careers that read like careers. These are the
+measured targets, from `07-league-over-time.md` (NHL 2015-16 to 2025-26), each
+with a band as for Tier 1 and Tier 2. They run on a generated league and on the
+NHL 2025-26 roster file, and Tier 1 and Tier 2 must hold in the tenth Season as
+well as the first. A red row means calibrating development, departures or the
+draft (ADR-022 to ADR-024), not widening the band.
+
+### The age of the league, in the tenth Season
+
+| Assertion | Measured | Band | Note |
+| --- | --- | --- | --- |
+| Mean age, weighted by Fixtures | 27.0 | ±0.7 | Ranged 26.4-27.6 over the decade |
+| Players aged 31 or more | 18% | ±5 pp | Ranged 15.4-24.2% |
+| Players aged 23 or younger | 30% | ±5 pp | Ranged 25.7-34.6% |
+| Oldest Player | 39-45 | at least 38 | |
+
+### Leaving the league, per Season, Players with 20 or more Fixtures
+
+| Age | Measured | Band |
+| --- | --- | --- |
+| 23 or younger | 4.4% | ±3 pp |
+| 24-27 | 7.3% | ±3 pp |
+| 28-30 | 7.4% | ±3 pp |
+| 31-33 | 13.0% | ±4 pp |
+| 34-36 | 23.0% | ±6 pp |
+| 37 or older | 43% | ±12 pp |
+
+| Ice time in his group | Measured | Band |
+| --- | --- | --- |
+| Top third | 1.3% | ±2 pp |
+| Middle third | 5.3% | ±3 pp |
+| Bottom third | 20.1% | ±6 pp |
+
+### The draft, classes of Seasons 1 to 4, read in Season 10
+
+| Round | 200 or more Fixtures, measured | Band | Median Seasons to debut, measured | Band |
+| --- | --- | --- | --- | --- |
+| 1 | 74.9% | ±12 pp | 1 | ±1 |
+| 2 | 38.5% | ±12 pp | 3 | ±1 |
+| 3 | 19.9% | ±10 pp | 3 | ±1 |
+| 4 | 16.5% | ±10 pp | 3 | ±1 |
+
+A class drafted in Season 4 has six Seasons to reach 200 Fixtures; the measured
+classes had eight to sixteen. The run may come in slightly low on round 1 for
+that reason, and the band allows it.
+
+### The table, across the ten Seasons
+
+| Assertion | Measured | Band | What it guards |
+| --- | --- | --- | --- |
+| Correlation of Club point shares, consecutive Seasons | 0.51 | ±0.12 | Neither frozen nor random |
+| Top 8 still top 8 the next Season | 46% | ±12 pp | |
+| Bottom 8 still bottom 8 the next Season | 51% | ±12 pp | |
+| Longest run of any Club in the top 8 | 7 in 11 seasons | at most 9 of 10 | No runaway dynasty |
+| Clubs that finished first | 9 in 11 seasons | at least 5 of 10 | No runaway dynasty |
+| Standard deviation of points over 84 Fixtures, tenth Season | 16.1 | ±3 | No collapse into uniformity |
+
+### The shape of careers
+
+Development is calibrated so that, Season after Season, the level of a generated
+league by age keeps the shape of the measured curves in `07-league-over-time.md`:
+offensive attributes on a plateau from 22 to about 27, the role and defensive
+group peaking at 26-27, and decline accelerating after 30 (ADR-022). The exact
+assertion is written with the calibration in item 8, because the curves are in
+different units and become one by that calibration.
+
 ## Tier 3 - Tactics are not placebos
 
 Each dial must have a measurable, directionally correct effect. Method: hold

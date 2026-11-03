@@ -76,6 +76,7 @@ Out (deferred, with the phase that owns them in `05-roadmap.md`):
 | `04-validation-targets.md` | Statistical targets, as tests |
 | `05-roadmap.md` | Phases 0-4 and their gates |
 | `06-roster-file.md` | The roster file format |
+| `07-league-over-time.md` | How the real league changes over seasons, measured |
 | `adr/` | Architecture decision records |
 
 ## Accepted decisions
@@ -103,3 +104,6 @@ Out (deferred, with the phase that owns them in `05-roadmap.md`):
 | 019 | Skaters ease at the regulation intermissions |
 | 020 | A roster file keeps the provenance it carries |
 | 021 | The attribute estimator ranks real Players into the generated distribution |
+| 022 | Players age along measured curves, by attribute group |
+| 023 | Players leave by age, level and Roster pressure |
+| 024 | The draft gives rights to prospects who develop off the Roster |

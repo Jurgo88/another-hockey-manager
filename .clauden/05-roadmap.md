@@ -145,7 +145,12 @@ item 1:
 **Gate:** a ten-Season run produces a plausible league history - no runaway
 dynasty, no collapse into uniformity, career arcs that read like careers. Item 1
 turns this into measured targets, and Tier 1 and Tier 2 must hold in late
-Seasons as well as the first.
+Seasons as well as the first. Done in #83: the targets are the Phase 2 gate in
+`04-validation-targets.md`, measured in `07-league-over-time.md`, and the choices
+are ADR-022 (development), ADR-023 (leaving) and ADR-024 (draft). On 2026-11-03
+the author added: a prospect is ready when his level reaches the weakest at his
+position on the Club, rights last 4 seasons, and each attribute group follows
+its own measured curve.
 
 ## Phase 3 - Roster movement
 
