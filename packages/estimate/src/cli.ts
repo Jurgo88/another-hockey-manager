@@ -4,7 +4,8 @@ import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
 import { NHL_2026_27, NHL_2026_27_CLUB_SEEDS, writeRosterFile, type CompetitionRosters } from '@ahm/sim'
 import { chooseRosters, estimateRosters } from './estimate.js'
-import { fetchEdge, fetchSeason } from './nhl/api.js'
+import { fetchEdge, fetchOutcome, fetchSeason } from './nhl/api.js'
+import { outcomeOf } from './nhl/outcome.js'
 import { recordsOf } from './nhl/records.js'
 
 /** ADR-021: estimate real NHL Rosters for a season and write them as a roster file. */
@@ -85,6 +86,13 @@ async function main(): Promise<void> {
   writeFileSync(path, writeRosterFile(rosters))
   console.log(summary(rosters))
   console.log(`Wrote ${path}`)
+
+  // What really happened, for pnpm sim:validate to compare with (#18).
+  const outcome = outcomeOf(await fetchOutcome(raw, fetchOptions))
+  const outcomePath = join(PACKAGE, 'data', `nhl-${season}-outcome.json`)
+  writeFileSync(outcomePath, `${JSON.stringify(outcome, null, 1)}
+`)
+  console.log(`Wrote ${outcomePath}`)
 }
 
 main().catch((error: unknown) => {

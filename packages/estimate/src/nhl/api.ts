@@ -1,5 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
+import type { RawOutcome } from './outcome.js'
 import { GOALIE_REPORTS, SKATER_REPORTS, type RawSeason } from './records.js'
 
 /**
@@ -103,4 +104,20 @@ export async function fetchEdge(
   }
   await Promise.all(Array.from({ length: 2 }, worker))
   return edge
+}
+
+/** The real table and leaders, for comparing a simulated Season with (#18). */
+export async function fetchOutcome(raw: RawSeason, options: FetchOptions): Promise<RawOutcome> {
+  const dir = join(options.cacheDir, raw.season)
+  return {
+    season: raw.season,
+    teamSummary: await cached(
+      join(dir, 'team-summary.json'),
+      `${STATS}/team/summary?limit=-1&${seasonFilter(raw.season)}`,
+      options,
+    ),
+    teamList: await cached(join(dir, 'team-list.json'), `${STATS}/team`, options),
+    skaterSummary: raw.skater.summary,
+    goalieSummary: raw.goalie.summary,
+  }
 }

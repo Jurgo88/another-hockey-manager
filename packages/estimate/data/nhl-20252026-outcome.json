@@ -1,0 +1,8375 @@
+{
+ "season": "20252026",
+ "clubs": [
+  {
+   "code": "COL",
+   "matchesPlayed": 82,
+   "points": 121
+  },
+  {
+   "code": "CAR",
+   "matchesPlayed": 82,
+   "points": 113
+  },
+  {
+   "code": "DAL",
+   "matchesPlayed": 82,
+   "points": 112
+  },
+  {
+   "code": "BUF",
+   "matchesPlayed": 82,
+   "points": 109
+  },
+  {
+   "code": "MTL",
+   "matchesPlayed": 82,
+   "points": 106
+  },
+  {
+   "code": "TBL",
+   "matchesPlayed": 82,
+   "points": 106
+  },
+  {
+   "code": "MIN",
+   "matchesPlayed": 82,
+   "points": 104
+  },
+  {
+   "code": "BOS",
+   "matchesPlayed": 82,
+   "points": 100
+  },
+  {
+   "code": "OTT",
+   "matchesPlayed": 82,
+   "points": 99
+  },
+  {
+   "code": "PHI",
+   "matchesPlayed": 82,
+   "points": 98
+  },
+  {
+   "code": "PIT",
+   "matchesPlayed": 82,
+   "points": 98
+  },
+  {
+   "code": "VGK",
+   "matchesPlayed": 82,
+   "points": 95
+  },
+  {
+   "code": "WSH",
+   "matchesPlayed": 82,
+   "points": 95
+  },
+  {
+   "code": "EDM",
+   "matchesPlayed": 82,
+   "points": 93
+  },
+  {
+   "code": "ANA",
+   "matchesPlayed": 82,
+   "points": 92
+  },
+  {
+   "code": "CBJ",
+   "matchesPlayed": 82,
+   "points": 92
+  },
+  {
+   "code": "DET",
+   "matchesPlayed": 82,
+   "points": 92
+  },
+  {
+   "code": "UTA",
+   "matchesPlayed": 82,
+   "points": 92
+  },
+  {
+   "code": "NYI",
+   "matchesPlayed": 82,
+   "points": 91
+  },
+  {
+   "code": "LAK",
+   "matchesPlayed": 82,
+   "points": 90
+  },
+  {
+   "code": "NJD",
+   "matchesPlayed": 82,
+   "points": 87
+  },
+  {
+   "code": "NSH",
+   "matchesPlayed": 82,
+   "points": 86
+  },
+  {
+   "code": "SJS",
+   "matchesPlayed": 82,
+   "points": 86
+  },
+  {
+   "code": "STL",
+   "matchesPlayed": 82,
+   "points": 86
+  },
+  {
+   "code": "FLA",
+   "matchesPlayed": 82,
+   "points": 84
+  },
+  {
+   "code": "WPG",
+   "matchesPlayed": 82,
+   "points": 82
+  },
+  {
+   "code": "SEA",
+   "matchesPlayed": 82,
+   "points": 79
+  },
+  {
+   "code": "TOR",
+   "matchesPlayed": 82,
+   "points": 78
+  },
+  {
+   "code": "CGY",
+   "matchesPlayed": 82,
+   "points": 77
+  },
+  {
+   "code": "NYR",
+   "matchesPlayed": 82,
+   "points": 77
+  },
+  {
+   "code": "CHI",
+   "matchesPlayed": 82,
+   "points": 72
+  },
+  {
+   "code": "VAN",
+   "matchesPlayed": 82,
+   "points": 58
+  }
+ ],
+ "skaters": [
+  {
+   "id": "nhl-8478402",
+   "name": "Connor McDavid",
+   "matchesPlayed": 82,
+   "goals": 48,
+   "assists": 90,
+   "points": 138
+  },
+  {
+   "id": "nhl-8476453",
+   "name": "Nikita Kucherov",
+   "matchesPlayed": 76,
+   "goals": 44,
+   "assists": 86,
+   "points": 130
+  },
+  {
+   "id": "nhl-8477492",
+   "name": "Nathan MacKinnon",
+   "matchesPlayed": 80,
+   "goals": 53,
+   "assists": 74,
+   "points": 127
+  },
+  {
+   "id": "nhl-8484801",
+   "name": "Macklin Celebrini",
+   "matchesPlayed": 82,
+   "goals": 45,
+   "assists": 70,
+   "points": 115
+  },
+  {
+   "id": "nhl-8476460",
+   "name": "Mark Scheifele",
+   "matchesPlayed": 82,
+   "goals": 36,
+   "assists": 67,
+   "points": 103
+  },
+  {
+   "id": "nhl-8480018",
+   "name": "Nick Suzuki",
+   "matchesPlayed": 82,
+   "goals": 29,
+   "assists": 72,
+   "points": 101
+  },
+  {
+   "id": "nhl-8477956",
+   "name": "David Pastrnak",
+   "matchesPlayed": 77,
+   "goals": 29,
+   "assists": 71,
+   "points": 100
+  },
+  {
+   "id": "nhl-8480039",
+   "name": "Martin Necas",
+   "matchesPlayed": 78,
+   "goals": 38,
+   "assists": 62,
+   "points": 100
+  },
+  {
+   "id": "nhl-8477934",
+   "name": "Leon Draisaitl",
+   "matchesPlayed": 65,
+   "goals": 35,
+   "assists": 62,
+   "points": 97
+  },
+  {
+   "id": "nhl-8480027",
+   "name": "Jason Robertson",
+   "matchesPlayed": 82,
+   "goals": 45,
+   "assists": 51,
+   "points": 96
+  },
+  {
+   "id": "nhl-8480803",
+   "name": "Evan Bouchard",
+   "matchesPlayed": 82,
+   "goals": 21,
+   "assists": 74,
+   "points": 95
+  },
+  {
+   "id": "nhl-8478398",
+   "name": "Kyle Connor",
+   "matchesPlayed": 82,
+   "goals": 39,
+   "assists": 53,
+   "points": 92
+  },
+  {
+   "id": "nhl-8478403",
+   "name": "Jack Eichel",
+   "matchesPlayed": 74,
+   "goals": 27,
+   "assists": 63,
+   "points": 90
+  },
+  {
+   "id": "nhl-8478864",
+   "name": "Kirill Kaprizov",
+   "matchesPlayed": 78,
+   "goals": 45,
+   "assists": 44,
+   "points": 89
+  },
+  {
+   "id": "nhl-8477404",
+   "name": "Jake Guentzel",
+   "matchesPlayed": 81,
+   "goals": 38,
+   "assists": 50,
+   "points": 88
+  },
+  {
+   "id": "nhl-8479343",
+   "name": "Clayton Keller",
+   "matchesPlayed": 82,
+   "goals": 26,
+   "assists": 62,
+   "points": 88
+  },
+  {
+   "id": "nhl-8481540",
+   "name": "Cole Caufield",
+   "matchesPlayed": 81,
+   "goals": 51,
+   "assists": 37,
+   "points": 88
+  },
+  {
+   "id": "nhl-8482740",
+   "name": "Wyatt Johnston",
+   "matchesPlayed": 82,
+   "goals": 45,
+   "assists": 41,
+   "points": 86
+  },
+  {
+   "id": "nhl-8479337",
+   "name": "Alex DeBrincat",
+   "matchesPlayed": 82,
+   "goals": 41,
+   "assists": 44,
+   "points": 85
+  },
+  {
+   "id": "nhl-8481557",
+   "name": "Matt Boldy",
+   "matchesPlayed": 76,
+   "goals": 42,
+   "assists": 43,
+   "points": 85
+  },
+  {
+   "id": "nhl-8478550",
+   "name": "Artemi Panarin",
+   "matchesPlayed": 78,
+   "goals": 28,
+   "assists": 56,
+   "points": 84
+  },
+  {
+   "id": "nhl-8482116",
+   "name": "Tim Stützle",
+   "matchesPlayed": 80,
+   "goals": 34,
+   "assists": 49,
+   "points": 83
+  },
+  {
+   "id": "nhl-8478460",
+   "name": "Zach Werenski",
+   "matchesPlayed": 75,
+   "goals": 22,
+   "assists": 59,
+   "points": 81
+  },
+  {
+   "id": "nhl-8479420",
+   "name": "Tage Thompson",
+   "matchesPlayed": 81,
+   "goals": 40,
+   "assists": 41,
+   "points": 81
+  },
+  {
+   "id": "nhl-8478427",
+   "name": "Sebastian Aho",
+   "matchesPlayed": 79,
+   "goals": 27,
+   "assists": 53,
+   "points": 80
+  },
+  {
+   "id": "nhl-8478483",
+   "name": "Mitch Marner",
+   "matchesPlayed": 81,
+   "goals": 24,
+   "assists": 56,
+   "points": 80
+  },
+  {
+   "id": "nhl-8477939",
+   "name": "William Nylander",
+   "matchesPlayed": 65,
+   "goals": 30,
+   "assists": 49,
+   "points": 79
+  },
+  {
+   "id": "nhl-8480069",
+   "name": "Cale Makar",
+   "matchesPlayed": 75,
+   "goals": 20,
+   "assists": 59,
+   "points": 79
+  },
+  {
+   "id": "nhl-8476459",
+   "name": "Mika Zibanejad",
+   "matchesPlayed": 81,
+   "goals": 34,
+   "assists": 44,
+   "points": 78
+  },
+  {
+   "id": "nhl-8483457",
+   "name": "Lane Hutson",
+   "matchesPlayed": 82,
+   "goals": 12,
+   "assists": 66,
+   "points": 78
+  },
+  {
+   "id": "nhl-8478420",
+   "name": "Mikko Rantanen",
+   "matchesPlayed": 64,
+   "goals": 22,
+   "assists": 55,
+   "points": 77
+  },
+  {
+   "id": "nhl-8481559",
+   "name": "Jack Hughes",
+   "matchesPlayed": 61,
+   "goals": 27,
+   "assists": 50,
+   "points": 77
+  },
+  {
+   "id": "nhl-8480800",
+   "name": "Quinn Hughes",
+   "matchesPlayed": 74,
+   "goals": 7,
+   "assists": 69,
+   "points": 76
+  },
+  {
+   "id": "nhl-8482078",
+   "name": "Lucas Raymond",
+   "matchesPlayed": 80,
+   "goals": 25,
+   "assists": 51,
+   "points": 76
+  },
+  {
+   "id": "nhl-8476887",
+   "name": "Filip Forsberg",
+   "matchesPlayed": 82,
+   "goals": 40,
+   "assists": 35,
+   "points": 75
+  },
+  {
+   "id": "nhl-8484144",
+   "name": "Connor Bedard",
+   "matchesPlayed": 69,
+   "goals": 30,
+   "assists": 45,
+   "points": 75
+  },
+  {
+   "id": "nhl-8471675",
+   "name": "Sidney Crosby",
+   "matchesPlayed": 68,
+   "goals": 29,
+   "assists": 45,
+   "points": 74
+  },
+  {
+   "id": "nhl-8475158",
+   "name": "Ryan O'Reilly",
+   "matchesPlayed": 81,
+   "goals": 25,
+   "assists": 49,
+   "points": 74
+  },
+  {
+   "id": "nhl-8477951",
+   "name": "Nick Schmaltz",
+   "matchesPlayed": 82,
+   "goals": 33,
+   "assists": 41,
+   "points": 74
+  },
+  {
+   "id": "nhl-8479542",
+   "name": "Brandon Hagel",
+   "matchesPlayed": 71,
+   "goals": 36,
+   "assists": 38,
+   "points": 74
+  },
+  {
+   "id": "nhl-8480839",
+   "name": "Rasmus Dahlin",
+   "matchesPlayed": 77,
+   "goals": 19,
+   "assists": 55,
+   "points": 74
+  },
+  {
+   "id": "nhl-8475913",
+   "name": "Mark Stone",
+   "matchesPlayed": 60,
+   "goals": 28,
+   "assists": 45,
+   "points": 73
+  },
+  {
+   "id": "nhl-8477960",
+   "name": "Adrian Kempe",
+   "matchesPlayed": 81,
+   "goals": 36,
+   "assists": 37,
+   "points": 73
+  },
+  {
+   "id": "nhl-8482699",
+   "name": "Dylan Guenther",
+   "matchesPlayed": 79,
+   "goals": 40,
+   "assists": 33,
+   "points": 73
+  },
+  {
+   "id": "nhl-8483515",
+   "name": "Juraj Slafkovský",
+   "matchesPlayed": 82,
+   "goals": 30,
+   "assists": 43,
+   "points": 73
+  },
+  {
+   "id": "nhl-8478445",
+   "name": "Mathew Barzal",
+   "matchesPlayed": 81,
+   "goals": 19,
+   "assists": 53,
+   "points": 72
+  },
+  {
+   "id": "nhl-8475166",
+   "name": "John Tavares",
+   "matchesPlayed": 82,
+   "goals": 31,
+   "assists": 40,
+   "points": 71
+  },
+  {
+   "id": "nhl-8477940",
+   "name": "Nikolaj Ehlers",
+   "matchesPlayed": 82,
+   "goals": 26,
+   "assists": 45,
+   "points": 71
+  },
+  {
+   "id": "nhl-8479407",
+   "name": "Jesper Bratt",
+   "matchesPlayed": 82,
+   "goals": 22,
+   "assists": 49,
+   "points": 71
+  },
+  {
+   "id": "nhl-8480208",
+   "name": "Drake Batherson",
+   "matchesPlayed": 79,
+   "goals": 33,
+   "assists": 38,
+   "points": 71
+  },
+  {
+   "id": "nhl-8478178",
+   "name": "Darren Raddysh",
+   "matchesPlayed": 73,
+   "goals": 22,
+   "assists": 48,
+   "points": 70
+  },
+  {
+   "id": "nhl-8480830",
+   "name": "Andrei Svechnikov",
+   "matchesPlayed": 79,
+   "goals": 31,
+   "assists": 39,
+   "points": 70
+  },
+  {
+   "id": "nhl-8480014",
+   "name": "Gabriel Vilardi",
+   "matchesPlayed": 82,
+   "goals": 30,
+   "assists": 39,
+   "points": 69
+  },
+  {
+   "id": "nhl-8483445",
+   "name": "Cutter Gauthier",
+   "matchesPlayed": 76,
+   "goals": 41,
+   "assists": 28,
+   "points": 69
+  },
+  {
+   "id": "nhl-8478439",
+   "name": "Travis Konecny",
+   "matchesPlayed": 77,
+   "goals": 27,
+   "assists": 41,
+   "points": 68
+  },
+  {
+   "id": "nhl-8479987",
+   "name": "Morgan Geekie",
+   "matchesPlayed": 81,
+   "goals": 39,
+   "assists": 29,
+   "points": 68
+  },
+  {
+   "id": "nhl-8477946",
+   "name": "Dylan Larkin",
+   "matchesPlayed": 74,
+   "goals": 34,
+   "assists": 33,
+   "points": 67
+  },
+  {
+   "id": "nhl-8480893",
+   "name": "Kirill Marchenko",
+   "matchesPlayed": 76,
+   "goals": 27,
+   "assists": 40,
+   "points": 67
+  },
+  {
+   "id": "nhl-8481533",
+   "name": "Trevor Zegras",
+   "matchesPlayed": 81,
+   "goals": 26,
+   "assists": 41,
+   "points": 67
+  },
+  {
+   "id": "nhl-8484153",
+   "name": "Leo Carlsson",
+   "matchesPlayed": 70,
+   "goals": 29,
+   "assists": 38,
+   "points": 67
+  },
+  {
+   "id": "nhl-8474564",
+   "name": "Steven Stamkos",
+   "matchesPlayed": 82,
+   "goals": 42,
+   "assists": 24,
+   "points": 66
+  },
+  {
+   "id": "nhl-8474578",
+   "name": "Erik Karlsson",
+   "matchesPlayed": 75,
+   "goals": 15,
+   "assists": 51,
+   "points": 66
+  },
+  {
+   "id": "nhl-8477949",
+   "name": "Alex Tuch",
+   "matchesPlayed": 79,
+   "goals": 33,
+   "assists": 33,
+   "points": 66
+  },
+  {
+   "id": "nhl-8480002",
+   "name": "Nico Hischier",
+   "matchesPlayed": 82,
+   "goals": 28,
+   "assists": 38,
+   "points": 66
+  },
+  {
+   "id": "nhl-8482093",
+   "name": "Seth Jarvis",
+   "matchesPlayed": 71,
+   "goals": 32,
+   "assists": 34,
+   "points": 66
+  },
+  {
+   "id": "nhl-8482720",
+   "name": "Matthew Knies",
+   "matchesPlayed": 79,
+   "goals": 23,
+   "assists": 43,
+   "points": 66
+  },
+  {
+   "id": "nhl-8475754",
+   "name": "Brock Nelson",
+   "matchesPlayed": 81,
+   "goals": 33,
+   "assists": 32,
+   "points": 65
+  },
+  {
+   "id": "nhl-8475810",
+   "name": "Bryan Rust",
+   "matchesPlayed": 72,
+   "goals": 29,
+   "assists": 36,
+   "points": 65
+  },
+  {
+   "id": "nhl-8478401",
+   "name": "Pavel Zacha",
+   "matchesPlayed": 78,
+   "goals": 30,
+   "assists": 35,
+   "points": 65
+  },
+  {
+   "id": "nhl-8471214",
+   "name": "Alex Ovechkin",
+   "matchesPlayed": 82,
+   "goals": 32,
+   "assists": 32,
+   "points": 64
+  },
+  {
+   "id": "nhl-8477511",
+   "name": "Anthony Mantha",
+   "matchesPlayed": 81,
+   "goals": 33,
+   "assists": 31,
+   "points": 64
+  },
+  {
+   "id": "nhl-8480023",
+   "name": "Robert Thomas",
+   "matchesPlayed": 64,
+   "goals": 25,
+   "assists": 39,
+   "points": 64
+  },
+  {
+   "id": "nhl-8481604",
+   "name": "Pavel Dorofeyev",
+   "matchesPlayed": 82,
+   "goals": 37,
+   "assists": 27,
+   "points": 64
+  },
+  {
+   "id": "nhl-8480036",
+   "name": "Miro Heiskanen",
+   "matchesPlayed": 77,
+   "goals": 9,
+   "assists": 54,
+   "points": 63
+  },
+  {
+   "id": "nhl-8476880",
+   "name": "Tom Wilson",
+   "matchesPlayed": 72,
+   "goals": 30,
+   "assists": 32,
+   "points": 62
+  },
+  {
+   "id": "nhl-8484984",
+   "name": "Ivan Demidov",
+   "matchesPlayed": 82,
+   "goals": 19,
+   "assists": 43,
+   "points": 62
+  },
+  {
+   "id": "nhl-8471215",
+   "name": "Evgeni Malkin",
+   "matchesPlayed": 56,
+   "goals": 19,
+   "assists": 42,
+   "points": 61
+  },
+  {
+   "id": "nhl-8477933",
+   "name": "Sam Reinhart",
+   "matchesPlayed": 64,
+   "goals": 29,
+   "assists": 32,
+   "points": 61
+  },
+  {
+   "id": "nhl-8477964",
+   "name": "Ivan Barbashev",
+   "matchesPlayed": 82,
+   "goals": 23,
+   "assists": 38,
+   "points": 61
+  },
+  {
+   "id": "nhl-8479325",
+   "name": "Charlie McAvoy",
+   "matchesPlayed": 69,
+   "goals": 11,
+   "assists": 50,
+   "points": 61
+  },
+  {
+   "id": "nhl-8474590",
+   "name": "John Carlson",
+   "matchesPlayed": 71,
+   "goals": 14,
+   "assists": 46,
+   "points": 60
+  },
+  {
+   "id": "nhl-8479345",
+   "name": "Jakob Chychrun",
+   "matchesPlayed": 80,
+   "goals": 26,
+   "assists": 34,
+   "points": 60
+  },
+  {
+   "id": "nhl-8481542",
+   "name": "Moritz Seider",
+   "matchesPlayed": 82,
+   "goals": 10,
+   "assists": 50,
+   "points": 60
+  },
+  {
+   "id": "nhl-8484762",
+   "name": "Beckett Sennecke",
+   "matchesPlayed": 82,
+   "goals": 23,
+   "assists": 37,
+   "points": 60
+  },
+  {
+   "id": "nhl-8479410",
+   "name": "Mikhail Sergachev",
+   "matchesPlayed": 78,
+   "goals": 10,
+   "assists": 49,
+   "points": 59
+  },
+  {
+   "id": "nhl-8480801",
+   "name": "Brady Tkachuk",
+   "matchesPlayed": 60,
+   "goals": 22,
+   "assists": 37,
+   "points": 59
+  },
+  {
+   "id": "nhl-8481528",
+   "name": "Dylan Cozens",
+   "matchesPlayed": 82,
+   "goals": 28,
+   "assists": 31,
+   "points": 59
+  },
+  {
+   "id": "nhl-8484166",
+   "name": "Adam Fantilli",
+   "matchesPlayed": 82,
+   "goals": 24,
+   "assists": 35,
+   "points": 59
+  },
+  {
+   "id": "nhl-8484227",
+   "name": "Will Smith",
+   "matchesPlayed": 69,
+   "goals": 24,
+   "assists": 35,
+   "points": 59
+  },
+  {
+   "id": "nhl-8485366",
+   "name": "Matthew Schaefer",
+   "matchesPlayed": 82,
+   "goals": 23,
+   "assists": 36,
+   "points": 59
+  },
+  {
+   "id": "nhl-8475745",
+   "name": "Charlie Coyle",
+   "matchesPlayed": 82,
+   "goals": 20,
+   "assists": 38,
+   "points": 58
+  },
+  {
+   "id": "nhl-8476881",
+   "name": "Tomas Hertl",
+   "matchesPlayed": 82,
+   "goals": 24,
+   "assists": 34,
+   "points": 58
+  },
+  {
+   "id": "nhl-8477479",
+   "name": "Tyler Bertuzzi",
+   "matchesPlayed": 79,
+   "goals": 32,
+   "assists": 26,
+   "points": 58
+  },
+  {
+   "id": "nhl-8477935",
+   "name": "Sam Bennett",
+   "matchesPlayed": 76,
+   "goals": 26,
+   "assists": 32,
+   "points": 58
+  },
+  {
+   "id": "nhl-8478440",
+   "name": "Dylan Strome",
+   "matchesPlayed": 80,
+   "goals": 19,
+   "assists": 39,
+   "points": 58
+  },
+  {
+   "id": "nhl-8481605",
+   "name": "Jackson LaCombe",
+   "matchesPlayed": 82,
+   "goals": 10,
+   "assists": 48,
+   "points": 58
+  },
+  {
+   "id": "nhl-8474141",
+   "name": "Patrick Kane",
+   "matchesPlayed": 67,
+   "goals": 16,
+   "assists": 41,
+   "points": 57
+  },
+  {
+   "id": "nhl-8477500",
+   "name": "Bo Horvat",
+   "matchesPlayed": 68,
+   "goals": 31,
+   "assists": 26,
+   "points": 57
+  },
+  {
+   "id": "nhl-8478873",
+   "name": "Troy Terry",
+   "matchesPlayed": 61,
+   "goals": 19,
+   "assists": 38,
+   "points": 57
+  },
+  {
+   "id": "nhl-8482109",
+   "name": "Alexis Lafrenière",
+   "matchesPlayed": 82,
+   "goals": 24,
+   "assists": 33,
+   "points": 57
+  },
+  {
+   "id": "nhl-8476454",
+   "name": "Ryan Nugent-Hopkins",
+   "matchesPlayed": 72,
+   "goals": 20,
+   "assists": 36,
+   "points": 56
+  },
+  {
+   "id": "nhl-8482146",
+   "name": "Luke Evangelista",
+   "matchesPlayed": 81,
+   "goals": 12,
+   "assists": 44,
+   "points": 56
+  },
+  {
+   "id": "nhl-8474586",
+   "name": "Jordan Eberle",
+   "matchesPlayed": 80,
+   "goals": 26,
+   "assists": 29,
+   "points": 55
+  },
+  {
+   "id": "nhl-8474600",
+   "name": "Roman Josi",
+   "matchesPlayed": 68,
+   "goals": 13,
+   "assists": 42,
+   "points": 55
+  },
+  {
+   "id": "nhl-8477409",
+   "name": "Carter Verhaeghe",
+   "matchesPlayed": 77,
+   "goals": 25,
+   "assists": 30,
+   "points": 55
+  },
+  {
+   "id": "nhl-8477504",
+   "name": "Josh Morrissey",
+   "matchesPlayed": 77,
+   "goals": 14,
+   "assists": 41,
+   "points": 55
+  },
+  {
+   "id": "nhl-8477505",
+   "name": "Alexander Wennberg",
+   "matchesPlayed": 80,
+   "goals": 18,
+   "assists": 37,
+   "points": 55
+  },
+  {
+   "id": "nhl-8473419",
+   "name": "Brad Marchand",
+   "matchesPlayed": 52,
+   "goals": 27,
+   "assists": 27,
+   "points": 54
+  },
+  {
+   "id": "nhl-8475692",
+   "name": "Mats Zuccarello",
+   "matchesPlayed": 59,
+   "goals": 15,
+   "assists": 39,
+   "points": 54
+  },
+  {
+   "id": "nhl-8478042",
+   "name": "Viktor Arvidsson",
+   "matchesPlayed": 69,
+   "goals": 25,
+   "assists": 29,
+   "points": 54
+  },
+  {
+   "id": "nhl-8480802",
+   "name": "Ryan McLeod",
+   "matchesPlayed": 81,
+   "goals": 14,
+   "assists": 40,
+   "points": 54
+  },
+  {
+   "id": "nhl-8482105",
+   "name": "Jake Sanderson",
+   "matchesPlayed": 67,
+   "goals": 14,
+   "assists": 40,
+   "points": 54
+  },
+  {
+   "id": "nhl-8476389",
+   "name": "Vincent Trocheck",
+   "matchesPlayed": 67,
+   "goals": 16,
+   "assists": 37,
+   "points": 53
+  },
+  {
+   "id": "nhl-8476468",
+   "name": "J.T. Miller",
+   "matchesPlayed": 68,
+   "goals": 17,
+   "assists": 36,
+   "points": 53
+  },
+  {
+   "id": "nhl-8479318",
+   "name": "Auston Matthews",
+   "matchesPlayed": 60,
+   "goals": 27,
+   "assists": 26,
+   "points": 53
+  },
+  {
+   "id": "nhl-8479323",
+   "name": "Adam Fox",
+   "matchesPlayed": 55,
+   "goals": 9,
+   "assists": 44,
+   "points": 53
+  },
+  {
+   "id": "nhl-8482667",
+   "name": "William Eklund",
+   "matchesPlayed": 78,
+   "goals": 15,
+   "assists": 38,
+   "points": 53
+  },
+  {
+   "id": "nhl-8482809",
+   "name": "Jackson Blake",
+   "matchesPlayed": 81,
+   "goals": 22,
+   "assists": 31,
+   "points": 53
+  },
+  {
+   "id": "nhl-8475786",
+   "name": "Zach Hyman",
+   "matchesPlayed": 58,
+   "goals": 31,
+   "assists": 21,
+   "points": 52
+  },
+  {
+   "id": "nhl-8478519",
+   "name": "Anthony Cirelli",
+   "matchesPlayed": 71,
+   "goals": 23,
+   "assists": 29,
+   "points": 52
+  },
+  {
+   "id": "nhl-8481656",
+   "name": "Aliaksei Protas",
+   "matchesPlayed": 76,
+   "goals": 25,
+   "assists": 27,
+   "points": 52
+  },
+  {
+   "id": "nhl-8482659",
+   "name": "Josh Doan",
+   "matchesPlayed": 82,
+   "goals": 25,
+   "assists": 27,
+   "points": 52
+  },
+  {
+   "id": "nhl-8477989",
+   "name": "Christian Dvorak",
+   "matchesPlayed": 80,
+   "goals": 18,
+   "assists": 33,
+   "points": 51
+  },
+  {
+   "id": "nhl-8478493",
+   "name": "Joel Eriksson Ek",
+   "matchesPlayed": 70,
+   "goals": 19,
+   "assists": 32,
+   "points": 51
+  },
+  {
+   "id": "nhl-8480012",
+   "name": "Elias Pettersson",
+   "matchesPlayed": 74,
+   "goals": 15,
+   "assists": 36,
+   "points": 51
+  },
+  {
+   "id": "nhl-8480015",
+   "name": "Owen Tippett",
+   "matchesPlayed": 81,
+   "goals": 28,
+   "assists": 23,
+   "points": 51
+  },
+  {
+   "id": "nhl-8482077",
+   "name": "Dylan Holloway",
+   "matchesPlayed": 59,
+   "goals": 22,
+   "assists": 29,
+   "points": 51
+  },
+  {
+   "id": "nhl-8482097",
+   "name": "Jack Quinn",
+   "matchesPlayed": 82,
+   "goals": 20,
+   "assists": 31,
+   "points": 51
+  },
+  {
+   "id": "nhl-8482122",
+   "name": "Brock Faber",
+   "matchesPlayed": 80,
+   "goals": 15,
+   "assists": 36,
+   "points": 51
+  },
+  {
+   "id": "nhl-8483516",
+   "name": "Jimmy Snuggerud",
+   "matchesPlayed": 70,
+   "goals": 21,
+   "assists": 30,
+   "points": 51
+  },
+  {
+   "id": "nhl-8484387",
+   "name": "Matvei Michkov",
+   "matchesPlayed": 81,
+   "goals": 20,
+   "assists": 31,
+   "points": 51
+  },
+  {
+   "id": "nhl-8475172",
+   "name": "Nazem Kadri",
+   "matchesPlayed": 77,
+   "goals": 16,
+   "assists": 34,
+   "points": 50
+  },
+  {
+   "id": "nhl-8475184",
+   "name": "Chris Kreider",
+   "matchesPlayed": 75,
+   "goals": 22,
+   "assists": 28,
+   "points": 50
+  },
+  {
+   "id": "nhl-8476906",
+   "name": "Shayne Gostisbehere",
+   "matchesPlayed": 55,
+   "goals": 13,
+   "assists": 37,
+   "points": 50
+  },
+  {
+   "id": "nhl-8478010",
+   "name": "Brayden Point",
+   "matchesPlayed": 63,
+   "goals": 18,
+   "assists": 32,
+   "points": 50
+  },
+  {
+   "id": "nhl-8482665",
+   "name": "Matty Beniers",
+   "matchesPlayed": 82,
+   "goals": 20,
+   "assists": 30,
+   "points": 50
+  },
+  {
+   "id": "nhl-8473512",
+   "name": "Claude Giroux",
+   "matchesPlayed": 82,
+   "goals": 14,
+   "assists": 35,
+   "points": 49
+  },
+  {
+   "id": "nhl-8475149",
+   "name": "Marcus Johansson",
+   "matchesPlayed": 75,
+   "goals": 15,
+   "assists": 34,
+   "points": 49
+  },
+  {
+   "id": "nhl-8475726",
+   "name": "Tyler Toffoli",
+   "matchesPlayed": 79,
+   "goals": 19,
+   "assists": 30,
+   "points": 49
+  },
+  {
+   "id": "nhl-8476905",
+   "name": "Chandler Stephenson",
+   "matchesPlayed": 80,
+   "goals": 16,
+   "assists": 33,
+   "points": 49
+  },
+  {
+   "id": "nhl-8477501",
+   "name": "Valeri Nichushkin",
+   "matchesPlayed": 72,
+   "goals": 17,
+   "assists": 32,
+   "points": 49
+  },
+  {
+   "id": "nhl-8479425",
+   "name": "Filip Hronek",
+   "matchesPlayed": 82,
+   "goals": 8,
+   "assists": 41,
+   "points": 49
+  },
+  {
+   "id": "nhl-8482124",
+   "name": "Quinton Byfield",
+   "matchesPlayed": 79,
+   "goals": 24,
+   "assists": 25,
+   "points": 49
+  },
+  {
+   "id": "nhl-8475791",
+   "name": "Taylor Hall",
+   "matchesPlayed": 80,
+   "goals": 18,
+   "assists": 30,
+   "points": 48
+  },
+  {
+   "id": "nhl-8476483",
+   "name": "Rickard Rakell",
+   "matchesPlayed": 60,
+   "goals": 24,
+   "assists": 24,
+   "points": 48
+  },
+  {
+   "id": "nhl-8477402",
+   "name": "Pavel Buchnevich",
+   "matchesPlayed": 81,
+   "goals": 20,
+   "assists": 28,
+   "points": 48
+  },
+  {
+   "id": "nhl-8477476",
+   "name": "Artturi Lehkonen",
+   "matchesPlayed": 70,
+   "goals": 21,
+   "assists": 27,
+   "points": 48
+  },
+  {
+   "id": "nhl-8477496",
+   "name": "Elias Lindholm",
+   "matchesPlayed": 69,
+   "goals": 17,
+   "assists": 31,
+   "points": 48
+  },
+  {
+   "id": "nhl-8478444",
+   "name": "Brock Boeser",
+   "matchesPlayed": 75,
+   "goals": 22,
+   "assists": 26,
+   "points": 48
+  },
+  {
+   "id": "nhl-8475765",
+   "name": "Vladimir Tarasenko",
+   "matchesPlayed": 75,
+   "goals": 23,
+   "assists": 24,
+   "points": 47
+  },
+  {
+   "id": "nhl-8478397",
+   "name": "Rasmus Andersson",
+   "matchesPlayed": 81,
+   "goals": 17,
+   "assists": 30,
+   "points": 47
+  },
+  {
+   "id": "nhl-8480220",
+   "name": "Noah Cates",
+   "matchesPlayed": 82,
+   "goals": 18,
+   "assists": 29,
+   "points": 47
+  },
+  {
+   "id": "nhl-8480865",
+   "name": "Noah Dobson",
+   "matchesPlayed": 80,
+   "goals": 12,
+   "assists": 35,
+   "points": 47
+  },
+  {
+   "id": "nhl-8482175",
+   "name": "JJ Peterka",
+   "matchesPlayed": 82,
+   "goals": 25,
+   "assists": 22,
+   "points": 47
+  },
+  {
+   "id": "nhl-8479385",
+   "name": "Jordan Kyrou",
+   "matchesPlayed": 72,
+   "goals": 18,
+   "assists": 28,
+   "points": 46
+  },
+  {
+   "id": "nhl-8481580",
+   "name": "Connor McMichael",
+   "matchesPlayed": 78,
+   "goals": 14,
+   "assists": 32,
+   "points": 46
+  },
+  {
+   "id": "nhl-8481596",
+   "name": "Shane Pinto",
+   "matchesPlayed": 72,
+   "goals": 23,
+   "assists": 23,
+   "points": 46
+  },
+  {
+   "id": "nhl-8482259",
+   "name": "Bobby McMann",
+   "matchesPlayed": 78,
+   "goals": 29,
+   "assists": 17,
+   "points": 46
+  },
+  {
+   "id": "nhl-8484911",
+   "name": "Collin Graf",
+   "matchesPlayed": 81,
+   "goals": 21,
+   "assists": 25,
+   "points": 46
+  },
+  {
+   "id": "nhl-8475168",
+   "name": "Matt Duchene",
+   "matchesPlayed": 57,
+   "goals": 16,
+   "assists": 29,
+   "points": 45
+  },
+  {
+   "id": "nhl-8475722",
+   "name": "Jason Zucker",
+   "matchesPlayed": 62,
+   "goals": 24,
+   "assists": 21,
+   "points": 45
+  },
+  {
+   "id": "nhl-8478975",
+   "name": "Mason Marchment",
+   "matchesPlayed": 68,
+   "goals": 19,
+   "assists": 26,
+   "points": 45
+  },
+  {
+   "id": "nhl-8482679",
+   "name": "Matt Coronato",
+   "matchesPlayed": 80,
+   "goals": 18,
+   "assists": 27,
+   "points": 45
+  },
+  {
+   "id": "nhl-8484186",
+   "name": "Ryan Leonard",
+   "matchesPlayed": 75,
+   "goals": 20,
+   "assists": 25,
+   "points": 45
+  },
+  {
+   "id": "nhl-8478407",
+   "name": "Vince Dunn",
+   "matchesPlayed": 81,
+   "goals": 11,
+   "assists": 33,
+   "points": 44
+  },
+  {
+   "id": "nhl-8478414",
+   "name": "Timo Meier",
+   "matchesPlayed": 77,
+   "goals": 24,
+   "assists": 20,
+   "points": 44
+  },
+  {
+   "id": "nhl-8478449",
+   "name": "Roope Hintz",
+   "matchesPlayed": 53,
+   "goals": 15,
+   "assists": 29,
+   "points": 44
+  },
+  {
+   "id": "nhl-8478474",
+   "name": "Lawson Crouse",
+   "matchesPlayed": 81,
+   "goals": 24,
+   "assists": 20,
+   "points": 44
+  },
+  {
+   "id": "nhl-8482113",
+   "name": "Anton Lundell",
+   "matchesPlayed": 64,
+   "goals": 18,
+   "assists": 26,
+   "points": 44
+  },
+  {
+   "id": "nhl-8482155",
+   "name": "Alex Laferriere",
+   "matchesPlayed": 82,
+   "goals": 21,
+   "assists": 23,
+   "points": 44
+  },
+  {
+   "id": "nhl-8482702",
+   "name": "Logan Stankoven",
+   "matchesPlayed": 81,
+   "goals": 21,
+   "assists": 23,
+   "points": 44
+  },
+  {
+   "id": "nhl-8474150",
+   "name": "Mikael Backlund",
+   "matchesPlayed": 82,
+   "goals": 17,
+   "assists": 26,
+   "points": 43
+  },
+  {
+   "id": "nhl-8477015",
+   "name": "Connor Brown",
+   "matchesPlayed": 75,
+   "goals": 18,
+   "assists": 25,
+   "points": 43
+  },
+  {
+   "id": "nhl-8477429",
+   "name": "Andrew Copp",
+   "matchesPlayed": 79,
+   "goals": 9,
+   "assists": 34,
+   "points": 43
+  },
+  {
+   "id": "nhl-8477451",
+   "name": "Ryan Hartman",
+   "matchesPlayed": 76,
+   "goals": 23,
+   "assists": 20,
+   "points": 43
+  },
+  {
+   "id": "nhl-8480028",
+   "name": "Morgan Frost",
+   "matchesPlayed": 82,
+   "goals": 22,
+   "assists": 21,
+   "points": 43
+  },
+  {
+   "id": "nhl-8483431",
+   "name": "Logan Cooley",
+   "matchesPlayed": 54,
+   "goals": 24,
+   "assists": 19,
+   "points": 43
+  },
+  {
+   "id": "nhl-8484145",
+   "name": "Zach Benson",
+   "matchesPlayed": 65,
+   "goals": 13,
+   "assists": 30,
+   "points": 43
+  },
+  {
+   "id": "nhl-8475314",
+   "name": "Anders Lee",
+   "matchesPlayed": 82,
+   "goals": 19,
+   "assists": 23,
+   "points": 42
+  },
+  {
+   "id": "nhl-8478438",
+   "name": "Tommy Novak",
+   "matchesPlayed": 82,
+   "goals": 16,
+   "assists": 26,
+   "points": 42
+  },
+  {
+   "id": "nhl-8478498",
+   "name": "Jake DeBrusk",
+   "matchesPlayed": 81,
+   "goals": 23,
+   "assists": 19,
+   "points": 42
+  },
+  {
+   "id": "nhl-8479999",
+   "name": "Casey Mittelstadt",
+   "matchesPlayed": 71,
+   "goals": 15,
+   "assists": 27,
+   "points": 42
+  },
+  {
+   "id": "nhl-8481524",
+   "name": "Bowen Byram",
+   "matchesPlayed": 82,
+   "goals": 11,
+   "assists": 31,
+   "points": 42
+  },
+  {
+   "id": "nhl-8482110",
+   "name": "Dawson Mercer",
+   "matchesPlayed": 82,
+   "goals": 20,
+   "assists": 22,
+   "points": 42
+  },
+  {
+   "id": "nhl-8482475",
+   "name": "Egor Chinakhov",
+   "matchesPlayed": 72,
+   "goals": 21,
+   "assists": 21,
+   "points": 42
+  },
+  {
+   "id": "nhl-8475218",
+   "name": "Mattias Ekholm",
+   "matchesPlayed": 82,
+   "goals": 6,
+   "assists": 35,
+   "points": 41
+  },
+  {
+   "id": "nhl-8475798",
+   "name": "Mikael Granlund",
+   "matchesPlayed": 58,
+   "goals": 19,
+   "assists": 22,
+   "points": 41
+  },
+  {
+   "id": "nhl-8480807",
+   "name": "Mattias Samuelsson",
+   "matchesPlayed": 78,
+   "goals": 13,
+   "assists": 28,
+   "points": 41
+  },
+  {
+   "id": "nhl-8481601",
+   "name": "Simon Holmstrom",
+   "matchesPlayed": 79,
+   "goals": 19,
+   "assists": 22,
+   "points": 41
+  },
+  {
+   "id": "nhl-8482145",
+   "name": "Mavrik Bourque",
+   "matchesPlayed": 82,
+   "goals": 20,
+   "assists": 21,
+   "points": 41
+  },
+  {
+   "id": "nhl-8482745",
+   "name": "Mason McTavish",
+   "matchesPlayed": 75,
+   "goals": 17,
+   "assists": 24,
+   "points": 41
+  },
+  {
+   "id": "nhl-8483493",
+   "name": "Frank Nazar",
+   "matchesPlayed": 66,
+   "goals": 15,
+   "assists": 26,
+   "points": 41
+  },
+  {
+   "id": "nhl-8475753",
+   "name": "Justin Faulk",
+   "matchesPlayed": 78,
+   "goals": 16,
+   "assists": 24,
+   "points": 40
+  },
+  {
+   "id": "nhl-8477942",
+   "name": "Kevin Fiala",
+   "matchesPlayed": 56,
+   "goals": 18,
+   "assists": 22,
+   "points": 40
+  },
+  {
+   "id": "nhl-8477955",
+   "name": "Jared McCann",
+   "matchesPlayed": 52,
+   "goals": 20,
+   "assists": 20,
+   "points": 40
+  },
+  {
+   "id": "nhl-8481554",
+   "name": "Kaapo Kakko",
+   "matchesPlayed": 65,
+   "goals": 13,
+   "assists": 27,
+   "points": 40
+  },
+  {
+   "id": "nhl-8482730",
+   "name": "Brandt Clarke",
+   "matchesPlayed": 82,
+   "goals": 8,
+   "assists": 32,
+   "points": 40
+  },
+  {
+   "id": "nhl-8484258",
+   "name": "Sam Malinski",
+   "matchesPlayed": 82,
+   "goals": 8,
+   "assists": 32,
+   "points": 40
+  },
+  {
+   "id": "nhl-8475170",
+   "name": "Brayden Schenn",
+   "matchesPlayed": 80,
+   "goals": 18,
+   "assists": 21,
+   "points": 39
+  },
+  {
+   "id": "nhl-8475171",
+   "name": "Oliver Ekman-Larsson",
+   "matchesPlayed": 78,
+   "goals": 8,
+   "assists": 31,
+   "points": 39
+  },
+  {
+   "id": "nhl-8476462",
+   "name": "Dougie Hamilton",
+   "matchesPlayed": 77,
+   "goals": 12,
+   "assists": 27,
+   "points": 39
+  },
+  {
+   "id": "nhl-8477447",
+   "name": "Shea Theodore",
+   "matchesPlayed": 70,
+   "goals": 10,
+   "assists": 29,
+   "points": 39
+  },
+  {
+   "id": "nhl-8481522",
+   "name": "Peyton Krebs",
+   "matchesPlayed": 82,
+   "goals": 12,
+   "assists": 27,
+   "points": 39
+  },
+  {
+   "id": "nhl-8481711",
+   "name": "Matias Maccelli",
+   "matchesPlayed": 71,
+   "goals": 14,
+   "assists": 25,
+   "points": 39
+  },
+  {
+   "id": "nhl-8471685",
+   "name": "Anze Kopitar",
+   "matchesPlayed": 67,
+   "goals": 12,
+   "assists": 26,
+   "points": 38
+  },
+  {
+   "id": "nhl-8475287",
+   "name": "Erik Haula",
+   "matchesPlayed": 81,
+   "goals": 14,
+   "assists": 24,
+   "points": 38
+  },
+  {
+   "id": "nhl-8476432",
+   "name": "Boone Jenner",
+   "matchesPlayed": 67,
+   "goals": 13,
+   "assists": 25,
+   "points": 38
+  },
+  {
+   "id": "nhl-8480797",
+   "name": "Joel Farabee",
+   "matchesPlayed": 82,
+   "goals": 20,
+   "assists": 18,
+   "points": 38
+  },
+  {
+   "id": "nhl-8482157",
+   "name": "Will Cuylle",
+   "matchesPlayed": 82,
+   "goals": 20,
+   "assists": 18,
+   "points": 38
+  },
+  {
+   "id": "nhl-8470621",
+   "name": "Corey Perry",
+   "matchesPlayed": 72,
+   "goals": 17,
+   "assists": 20,
+   "points": 37
+  },
+  {
+   "id": "nhl-8475200",
+   "name": "Dmitry Orlov",
+   "matchesPlayed": 82,
+   "goals": 3,
+   "assists": 34,
+   "points": 37
+  },
+  {
+   "id": "nhl-8476875",
+   "name": "Mike Matheson",
+   "matchesPlayed": 78,
+   "goals": 7,
+   "assists": 30,
+   "points": 37
+  },
+  {
+   "id": "nhl-8477948",
+   "name": "Travis Sanheim",
+   "matchesPlayed": 81,
+   "goals": 11,
+   "assists": 26,
+   "points": 37
+  },
+  {
+   "id": "nhl-8480817",
+   "name": "K'Andre Miller",
+   "matchesPlayed": 72,
+   "goals": 8,
+   "assists": 29,
+   "points": 37
+  },
+  {
+   "id": "nhl-8481617",
+   "name": "Vasily Podkolzin",
+   "matchesPlayed": 82,
+   "goals": 19,
+   "assists": 18,
+   "points": 37
+  },
+  {
+   "id": "nhl-8482775",
+   "name": "Oliver Kapanen",
+   "matchesPlayed": 82,
+   "goals": 22,
+   "assists": 15,
+   "points": 37
+  },
+  {
+   "id": "nhl-8483512",
+   "name": "Matt Savoie",
+   "matchesPlayed": 82,
+   "goals": 18,
+   "assists": 19,
+   "points": 37
+  },
+  {
+   "id": "nhl-8473533",
+   "name": "Jordan Staal",
+   "matchesPlayed": 75,
+   "goals": 20,
+   "assists": 16,
+   "points": 36
+  },
+  {
+   "id": "nhl-8473994",
+   "name": "Jamie Benn",
+   "matchesPlayed": 60,
+   "goals": 15,
+   "assists": 21,
+   "points": 36
+  },
+  {
+   "id": "nhl-8476461",
+   "name": "Sean Couturier",
+   "matchesPlayed": 78,
+   "goals": 12,
+   "assists": 24,
+   "points": 36
+  },
+  {
+   "id": "nhl-8476853",
+   "name": "Morgan Rielly",
+   "matchesPlayed": 78,
+   "goals": 11,
+   "assists": 25,
+   "points": 36
+  },
+  {
+   "id": "nhl-8477497",
+   "name": "Sean Monahan",
+   "matchesPlayed": 78,
+   "goals": 13,
+   "assists": 23,
+   "points": 36
+  },
+  {
+   "id": "nhl-8477503",
+   "name": "Max Domi",
+   "matchesPlayed": 80,
+   "goals": 12,
+   "assists": 24,
+   "points": 36
+  },
+  {
+   "id": "nhl-8478458",
+   "name": "Jack Roslovic",
+   "matchesPlayed": 69,
+   "goals": 21,
+   "assists": 15,
+   "points": 36
+  },
+  {
+   "id": "nhl-8478507",
+   "name": "John Marino",
+   "matchesPlayed": 80,
+   "goals": 4,
+   "assists": 32,
+   "points": 36
+  },
+  {
+   "id": "nhl-8480009",
+   "name": "Eeli Tolvanen",
+   "matchesPlayed": 78,
+   "goals": 12,
+   "assists": 24,
+   "points": 36
+  },
+  {
+   "id": "nhl-8480068",
+   "name": "Ryan Poehling",
+   "matchesPlayed": 75,
+   "goals": 11,
+   "assists": 25,
+   "points": 36
+  },
+  {
+   "id": "nhl-8480748",
+   "name": "Kiefer Sherwood",
+   "matchesPlayed": 72,
+   "goals": 23,
+   "assists": 13,
+   "points": 36
+  },
+  {
+   "id": "nhl-8481581",
+   "name": "Thomas Harley",
+   "matchesPlayed": 70,
+   "goals": 6,
+   "assists": 30,
+   "points": 36
+  },
+  {
+   "id": "nhl-8481624",
+   "name": "Ilya Mikheyev",
+   "matchesPlayed": 77,
+   "goals": 18,
+   "assists": 18,
+   "points": 36
+  },
+  {
+   "id": "nhl-8482089",
+   "name": "Jake Neighbours",
+   "matchesPlayed": 69,
+   "goals": 15,
+   "assists": 21,
+   "points": 36
+  },
+  {
+   "id": "nhl-8470613",
+   "name": "Brent Burns",
+   "matchesPlayed": 82,
+   "goals": 12,
+   "assists": 23,
+   "points": 35
+  },
+  {
+   "id": "nhl-8476399",
+   "name": "Blake Coleman",
+   "matchesPlayed": 69,
+   "goals": 20,
+   "assists": 15,
+   "points": 35
+  },
+  {
+   "id": "nhl-8476419",
+   "name": "Jean-Gabriel Pageau",
+   "matchesPlayed": 74,
+   "goals": 17,
+   "assists": 18,
+   "points": 35
+  },
+  {
+   "id": "nhl-8476455",
+   "name": "Gabriel Landeskog",
+   "matchesPlayed": 60,
+   "goals": 14,
+   "assists": 21,
+   "points": 35
+  },
+  {
+   "id": "nhl-8476882",
+   "name": "Teuvo Teravainen",
+   "matchesPlayed": 75,
+   "goals": 14,
+   "assists": 21,
+   "points": 35
+  },
+  {
+   "id": "nhl-8476885",
+   "name": "Jacob Trouba",
+   "matchesPlayed": 81,
+   "goals": 10,
+   "assists": 25,
+   "points": 35
+  },
+  {
+   "id": "nhl-8477950",
+   "name": "Tony DeAngelo",
+   "matchesPlayed": 76,
+   "goals": 5,
+   "assists": 30,
+   "points": 35
+  },
+  {
+   "id": "nhl-8478020",
+   "name": "Michael Amadio",
+   "matchesPlayed": 81,
+   "goals": 15,
+   "assists": 20,
+   "points": 35
+  },
+  {
+   "id": "nhl-8478854",
+   "name": "Ryan Shea",
+   "matchesPlayed": 80,
+   "goals": 6,
+   "assists": 29,
+   "points": 35
+  },
+  {
+   "id": "nhl-8478882",
+   "name": "Vladislav Gavrikov",
+   "matchesPlayed": 82,
+   "goals": 14,
+   "assists": 21,
+   "points": 35
+  },
+  {
+   "id": "nhl-8480448",
+   "name": "Parker Kelly",
+   "matchesPlayed": 82,
+   "goals": 21,
+   "assists": 14,
+   "points": 35
+  },
+  {
+   "id": "nhl-8481024",
+   "name": "Linus Karlsson",
+   "matchesPlayed": 79,
+   "goals": 15,
+   "assists": 20,
+   "points": 35
+  },
+  {
+   "id": "nhl-8482079",
+   "name": "Marco Rossi",
+   "matchesPlayed": 50,
+   "goals": 12,
+   "assists": 23,
+   "points": 35
+  },
+  {
+   "id": "nhl-8482088",
+   "name": "Justin Sourdif",
+   "matchesPlayed": 78,
+   "goals": 15,
+   "assists": 20,
+   "points": 35
+  },
+  {
+   "id": "nhl-8482092",
+   "name": "Ridly Greig",
+   "matchesPlayed": 77,
+   "goals": 13,
+   "assists": 22,
+   "points": 35
+  },
+  {
+   "id": "nhl-8482684",
+   "name": "Luke Hughes",
+   "matchesPlayed": 68,
+   "goals": 6,
+   "assists": 29,
+   "points": 35
+  },
+  {
+   "id": "nhl-8483489",
+   "name": "Fraser Minten",
+   "matchesPlayed": 82,
+   "goals": 17,
+   "assists": 18,
+   "points": 35
+  },
+  {
+   "id": "nhl-8485414",
+   "name": "Ben Kindel",
+   "matchesPlayed": 77,
+   "goals": 17,
+   "assists": 18,
+   "points": 35
+  },
+  {
+   "id": "nhl-8471724",
+   "name": "Kris Letang",
+   "matchesPlayed": 74,
+   "goals": 3,
+   "assists": 31,
+   "points": 34
+  },
+  {
+   "id": "nhl-8479314",
+   "name": "Matthew Tkachuk",
+   "matchesPlayed": 31,
+   "goals": 13,
+   "assists": 21,
+   "points": 34
+  },
+  {
+   "id": "nhl-8479638",
+   "name": "Justin Brazeau",
+   "matchesPlayed": 64,
+   "goals": 17,
+   "assists": 17,
+   "points": 34
+  },
+  {
+   "id": "nhl-8480064",
+   "name": "Josh Norris",
+   "matchesPlayed": 44,
+   "goals": 13,
+   "assists": 21,
+   "points": 34
+  },
+  {
+   "id": "nhl-8481598",
+   "name": "Philip Broberg",
+   "matchesPlayed": 81,
+   "goals": 6,
+   "assists": 28,
+   "points": 34
+  },
+  {
+   "id": "nhl-8473986",
+   "name": "Alex Killorn",
+   "matchesPlayed": 82,
+   "goals": 15,
+   "assists": 18,
+   "points": 33
+  },
+  {
+   "id": "nhl-8477444",
+   "name": "Andre Burakovsky",
+   "matchesPlayed": 75,
+   "goals": 11,
+   "assists": 22,
+   "points": 33
+  },
+  {
+   "id": "nhl-8478047",
+   "name": "Michael Bunting",
+   "matchesPlayed": 74,
+   "goals": 14,
+   "assists": 19,
+   "points": 33
+  },
+  {
+   "id": "nhl-8478856",
+   "name": "Conor Garland",
+   "matchesPlayed": 71,
+   "goals": 12,
+   "assists": 21,
+   "points": 33
+  },
+  {
+   "id": "nhl-8479351",
+   "name": "Sam Steel",
+   "matchesPlayed": 73,
+   "goals": 12,
+   "assists": 21,
+   "points": 33
+  },
+  {
+   "id": "nhl-8480185",
+   "name": "Eetu Luostarinen",
+   "matchesPlayed": 73,
+   "goals": 11,
+   "assists": 22,
+   "points": 33
+  },
+  {
+   "id": "nhl-8480188",
+   "name": "Fabian Zetterlund",
+   "matchesPlayed": 82,
+   "goals": 17,
+   "assists": 16,
+   "points": 33
+  },
+  {
+   "id": "nhl-8482100",
+   "name": "Alexander Nikishin",
+   "matchesPlayed": 81,
+   "goals": 11,
+   "assists": 22,
+   "points": 33
+  },
+  {
+   "id": "nhl-8482177",
+   "name": "Marat Khusnutdinov",
+   "matchesPlayed": 77,
+   "goals": 15,
+   "assists": 18,
+   "points": 33
+  },
+  {
+   "id": "nhl-8482201",
+   "name": "Gage Goncalves",
+   "matchesPlayed": 74,
+   "goals": 11,
+   "assists": 22,
+   "points": 33
+  },
+  {
+   "id": "nhl-8482705",
+   "name": "Cole Sillinger",
+   "matchesPlayed": 81,
+   "goals": 8,
+   "assists": 25,
+   "points": 33
+  },
+  {
+   "id": "nhl-8476902",
+   "name": "Esa Lindell",
+   "matchesPlayed": 82,
+   "goals": 6,
+   "assists": 26,
+   "points": 32
+  },
+  {
+   "id": "nhl-8476923",
+   "name": "Damon Severson",
+   "matchesPlayed": 71,
+   "goals": 8,
+   "assists": 24,
+   "points": 32
+  },
+  {
+   "id": "nhl-8477416",
+   "name": "Oliver Bjorkstrand",
+   "matchesPlayed": 80,
+   "goals": 12,
+   "assists": 20,
+   "points": 32
+  },
+  {
+   "id": "nhl-8477495",
+   "name": "Seth Jones",
+   "matchesPlayed": 52,
+   "goals": 7,
+   "assists": 25,
+   "points": 32
+  },
+  {
+   "id": "nhl-8477986",
+   "name": "Brandon Montour",
+   "matchesPlayed": 64,
+   "goals": 11,
+   "assists": 21,
+   "points": 32
+  },
+  {
+   "id": "nhl-8478421",
+   "name": "A.J. Greer",
+   "matchesPlayed": 78,
+   "goals": 17,
+   "assists": 15,
+   "points": 32
+  },
+  {
+   "id": "nhl-8479675",
+   "name": "Trevor Moore",
+   "matchesPlayed": 69,
+   "goals": 13,
+   "assists": 19,
+   "points": 32
+  },
+  {
+   "id": "nhl-8481582",
+   "name": "Nick Robertson",
+   "matchesPlayed": 78,
+   "goals": 16,
+   "assists": 16,
+   "points": 32
+  },
+  {
+   "id": "nhl-8481716",
+   "name": "Dmitri Voronkov",
+   "matchesPlayed": 63,
+   "goals": 17,
+   "assists": 15,
+   "points": 32
+  },
+  {
+   "id": "nhl-8482142",
+   "name": "Jamie Drysdale",
+   "matchesPlayed": 78,
+   "goals": 8,
+   "assists": 24,
+   "points": 32
+  },
+  {
+   "id": "nhl-8482149",
+   "name": "Cole Perfetti",
+   "matchesPlayed": 68,
+   "goals": 12,
+   "assists": 20,
+   "points": 32
+  },
+  {
+   "id": "nhl-8482713",
+   "name": "Mackie Samoskevich",
+   "matchesPlayed": 77,
+   "goals": 12,
+   "assists": 20,
+   "points": 32
+  },
+  {
+   "id": "nhl-8474037",
+   "name": "James van Riemsdyk",
+   "matchesPlayed": 72,
+   "goals": 15,
+   "assists": 16,
+   "points": 31
+  },
+  {
+   "id": "nhl-8475169",
+   "name": "Evander Kane",
+   "matchesPlayed": 71,
+   "goals": 13,
+   "assists": 18,
+   "points": 31
+  },
+  {
+   "id": "nhl-8476312",
+   "name": "Josh Manson",
+   "matchesPlayed": 79,
+   "goals": 5,
+   "assists": 26,
+   "points": 31
+  },
+  {
+   "id": "nhl-8476539",
+   "name": "Jonathan Marchessault",
+   "matchesPlayed": 62,
+   "goals": 12,
+   "assists": 19,
+   "points": 31
+  },
+  {
+   "id": "nhl-8478109",
+   "name": "Victor Olofsson",
+   "matchesPlayed": 78,
+   "goals": 13,
+   "assists": 18,
+   "points": 31
+  },
+  {
+   "id": "nhl-8478469",
+   "name": "Thomas Chabot",
+   "matchesPlayed": 57,
+   "goals": 7,
+   "assists": 24,
+   "points": 31
+  },
+  {
+   "id": "nhl-8478500",
+   "name": "Ivan Provorov",
+   "matchesPlayed": 82,
+   "goals": 9,
+   "assists": 22,
+   "points": 31
+  },
+  {
+   "id": "nhl-8478542",
+   "name": "Evan Rodrigues",
+   "matchesPlayed": 69,
+   "goals": 11,
+   "assists": 20,
+   "points": 31
+  },
+  {
+   "id": "nhl-8479619",
+   "name": "Michael Carcone",
+   "matchesPlayed": 79,
+   "goals": 16,
+   "assists": 15,
+   "points": 31
+  },
+  {
+   "id": "nhl-8480336",
+   "name": "Sean Walker",
+   "matchesPlayed": 81,
+   "goals": 9,
+   "assists": 22,
+   "points": 31
+  },
+  {
+   "id": "nhl-8481606",
+   "name": "Jordan Spence",
+   "matchesPlayed": 73,
+   "goals": 7,
+   "assists": 24,
+   "points": 31
+  },
+  {
+   "id": "nhl-8481721",
+   "name": "Arseny Gritsyuk",
+   "matchesPlayed": 66,
+   "goals": 13,
+   "assists": 18,
+   "points": 31
+  },
+  {
+   "id": "nhl-8482476",
+   "name": "Emil Heineman",
+   "matchesPlayed": 82,
+   "goals": 22,
+   "assists": 9,
+   "points": 31
+  },
+  {
+   "id": "nhl-8483485",
+   "name": "Denton Mateychuk",
+   "matchesPlayed": 75,
+   "goals": 13,
+   "assists": 18,
+   "points": 31
+  },
+  {
+   "id": "nhl-8475764",
+   "name": "Cam Fowler",
+   "matchesPlayed": 82,
+   "goals": 4,
+   "assists": 26,
+   "points": 30
+  },
+  {
+   "id": "nhl-8477987",
+   "name": "Ryan Donato",
+   "matchesPlayed": 82,
+   "goals": 15,
+   "assists": 15,
+   "points": 30
+  },
+  {
+   "id": "nhl-8478450",
+   "name": "Parker Wotherspoon",
+   "matchesPlayed": 80,
+   "goals": 3,
+   "assists": 27,
+   "points": 30
+  },
+  {
+   "id": "nhl-8480980",
+   "name": "Connor Dewar",
+   "matchesPlayed": 78,
+   "goals": 14,
+   "assists": 16,
+   "points": 30
+  },
+  {
+   "id": "nhl-8481553",
+   "name": "Bobby Brink",
+   "matchesPlayed": 68,
+   "goals": 15,
+   "assists": 15,
+   "points": 30
+  },
+  {
+   "id": "nhl-8482245",
+   "name": "Artem Zub",
+   "matchesPlayed": 81,
+   "goals": 5,
+   "assists": 25,
+   "points": 30
+  },
+  {
+   "id": "nhl-8482737",
+   "name": "Zachary Bolduc",
+   "matchesPlayed": 78,
+   "goals": 12,
+   "assists": 18,
+   "points": 30
+  },
+  {
+   "id": "nhl-8484221",
+   "name": "Calum Ritchie",
+   "matchesPlayed": 65,
+   "goals": 13,
+   "assists": 17,
+   "points": 30
+  },
+  {
+   "id": "nhl-8484241",
+   "name": "Matthew Wood",
+   "matchesPlayed": 71,
+   "goals": 17,
+   "assists": 13,
+   "points": 30
+  },
+  {
+   "id": "nhl-8484471",
+   "name": "Emmitt Finnie",
+   "matchesPlayed": 82,
+   "goals": 13,
+   "assists": 17,
+   "points": 30
+  },
+  {
+   "id": "nhl-8484829",
+   "name": "Justin Hryckowian",
+   "matchesPlayed": 81,
+   "goals": 14,
+   "assists": 16,
+   "points": 30
+  },
+  {
+   "id": "nhl-8473604",
+   "name": "Jonathan Toews",
+   "matchesPlayed": 82,
+   "goals": 11,
+   "assists": 18,
+   "points": 29
+  },
+  {
+   "id": "nhl-8476921",
+   "name": "Jordan Martinook",
+   "matchesPlayed": 77,
+   "goals": 12,
+   "assists": 17,
+   "points": 29
+  },
+  {
+   "id": "nhl-8480113",
+   "name": "Alex Iafallo",
+   "matchesPlayed": 79,
+   "goals": 13,
+   "assists": 16,
+   "points": 29
+  },
+  {
+   "id": "nhl-8480426",
+   "name": "Charle-Edouard D'Astous",
+   "matchesPlayed": 70,
+   "goals": 6,
+   "assists": 23,
+   "points": 29
+  },
+  {
+   "id": "nhl-8480459",
+   "name": "Pius Suter",
+   "matchesPlayed": 64,
+   "goals": 13,
+   "assists": 16,
+   "points": 29
+  },
+  {
+   "id": "nhl-8480873",
+   "name": "Rasmus Sandin",
+   "matchesPlayed": 73,
+   "goals": 5,
+   "assists": 24,
+   "points": 29
+  },
+  {
+   "id": "nhl-8481068",
+   "name": "Yegor Sharangovich",
+   "matchesPlayed": 78,
+   "goals": 15,
+   "assists": 14,
+   "points": 29
+  },
+  {
+   "id": "nhl-8482055",
+   "name": "Drew O'Connor",
+   "matchesPlayed": 82,
+   "goals": 17,
+   "assists": 12,
+   "points": 29
+  },
+  {
+   "id": "nhl-8482655",
+   "name": "J.J. Moser",
+   "matchesPlayed": 79,
+   "goals": 7,
+   "assists": 22,
+   "points": 29
+  },
+  {
+   "id": "nhl-8482671",
+   "name": "Owen Power",
+   "matchesPlayed": 81,
+   "goals": 8,
+   "assists": 21,
+   "points": 29
+  },
+  {
+   "id": "nhl-8483450",
+   "name": "Ryan Greene",
+   "matchesPlayed": 81,
+   "goals": 12,
+   "assists": 17,
+   "points": 29
+  },
+  {
+   "id": "nhl-8484158",
+   "name": "Easton Cowan",
+   "matchesPlayed": 66,
+   "goals": 11,
+   "assists": 18,
+   "points": 29
+  },
+  {
+   "id": "nhl-8474102",
+   "name": "David Perron",
+   "matchesPlayed": 65,
+   "goals": 13,
+   "assists": 15,
+   "points": 28
+  },
+  {
+   "id": "nhl-8476826",
+   "name": "Yanni Gourde",
+   "matchesPlayed": 82,
+   "goals": 9,
+   "assists": 19,
+   "points": 28
+  },
+  {
+   "id": "nhl-8477346",
+   "name": "MacKenzie Weegar",
+   "matchesPlayed": 79,
+   "goals": 4,
+   "assists": 24,
+   "points": 28
+  },
+  {
+   "id": "nhl-8477456",
+   "name": "J.T. Compher",
+   "matchesPlayed": 82,
+   "goals": 11,
+   "assists": 17,
+   "points": 28
+  },
+  {
+   "id": "nhl-8478055",
+   "name": "Gustav Forsling",
+   "matchesPlayed": 80,
+   "goals": 2,
+   "assists": 26,
+   "points": 28
+  },
+  {
+   "id": "nhl-8478396",
+   "name": "Noah Hanifin",
+   "matchesPlayed": 71,
+   "goals": 3,
+   "assists": 25,
+   "points": 28
+  },
+  {
+   "id": "nhl-8478463",
+   "name": "Anthony Beauvillier",
+   "matchesPlayed": 82,
+   "goals": 15,
+   "assists": 13,
+   "points": 28
+  },
+  {
+   "id": "nhl-8475906",
+   "name": "John Klingberg",
+   "matchesPlayed": 56,
+   "goals": 10,
+   "assists": 17,
+   "points": 27
+  },
+  {
+   "id": "nhl-8477407",
+   "name": "Anthony Duclair",
+   "matchesPlayed": 62,
+   "goals": 12,
+   "assists": 15,
+   "points": 27
+  },
+  {
+   "id": "nhl-8477506",
+   "name": "Ryan Pulock",
+   "matchesPlayed": 76,
+   "goals": 3,
+   "assists": 24,
+   "points": 27
+  },
+  {
+   "id": "nhl-8480434",
+   "name": "Sean Durzi",
+   "matchesPlayed": 60,
+   "goals": 5,
+   "assists": 22,
+   "points": 27
+  },
+  {
+   "id": "nhl-8480796",
+   "name": "Martin Fehervary",
+   "matchesPlayed": 81,
+   "goals": 5,
+   "assists": 22,
+   "points": 27
+  },
+  {
+   "id": "nhl-8480835",
+   "name": "Jack Drury",
+   "matchesPlayed": 82,
+   "goals": 10,
+   "assists": 17,
+   "points": 27
+  },
+  {
+   "id": "nhl-8483500",
+   "name": "Noah Ostlund",
+   "matchesPlayed": 60,
+   "goals": 11,
+   "assists": 16,
+   "points": 27
+  },
+  {
+   "id": "nhl-8483524",
+   "name": "Shane Wright",
+   "matchesPlayed": 74,
+   "goals": 12,
+   "assists": 15,
+   "points": 27
+  },
+  {
+   "id": "nhl-8483525",
+   "name": "Danila Yurov",
+   "matchesPlayed": 73,
+   "goals": 12,
+   "assists": 15,
+   "points": 27
+  },
+  {
+   "id": "nhl-8484210",
+   "name": "Gabe Perreault",
+   "matchesPlayed": 49,
+   "goals": 12,
+   "assists": 15,
+   "points": 27
+  },
+  {
+   "id": "nhl-8475191",
+   "name": "Reilly Smith",
+   "matchesPlayed": 69,
+   "goals": 16,
+   "assists": 10,
+   "points": 26
+  },
+  {
+   "id": "nhl-8475768",
+   "name": "Jaden Schwartz",
+   "matchesPlayed": 50,
+   "goals": 11,
+   "assists": 15,
+   "points": 26
+  },
+  {
+   "id": "nhl-8476854",
+   "name": "Hampus Lindholm",
+   "matchesPlayed": 67,
+   "goals": 5,
+   "assists": 21,
+   "points": 26
+  },
+  {
+   "id": "nhl-8476869",
+   "name": "Brady Skjei",
+   "matchesPlayed": 82,
+   "goals": 3,
+   "assists": 23,
+   "points": 26
+  },
+  {
+   "id": "nhl-8477932",
+   "name": "Aaron Ekblad",
+   "matchesPlayed": 72,
+   "goals": 4,
+   "assists": 22,
+   "points": 26
+  },
+  {
+   "id": "nhl-8479378",
+   "name": "Logan Stanley",
+   "matchesPlayed": 76,
+   "goals": 9,
+   "assists": 17,
+   "points": 26
+  },
+  {
+   "id": "nhl-8479671",
+   "name": "Mathieu Olivier",
+   "matchesPlayed": 61,
+   "goals": 15,
+   "assists": 11,
+   "points": 26
+  },
+  {
+   "id": "nhl-8479996",
+   "name": "Cody Glass",
+   "matchesPlayed": 70,
+   "goals": 19,
+   "assists": 7,
+   "points": 26
+  },
+  {
+   "id": "nhl-8481546",
+   "name": "Cam York",
+   "matchesPlayed": 74,
+   "goals": 4,
+   "assists": 22,
+   "points": 26
+  },
+  {
+   "id": "nhl-8482511",
+   "name": "Mason Lohrei",
+   "matchesPlayed": 73,
+   "goals": 7,
+   "assists": 19,
+   "points": 26
+  },
+  {
+   "id": "nhl-8483495",
+   "name": "Simon Nemec",
+   "matchesPlayed": 68,
+   "goals": 11,
+   "assists": 15,
+   "points": 26
+  },
+  {
+   "id": "nhl-8483890",
+   "name": "Braeden Bowman",
+   "matchesPlayed": 54,
+   "goals": 8,
+   "assists": 18,
+   "points": 26
+  },
+  {
+   "id": "nhl-8484798",
+   "name": "Zeev Buium",
+   "matchesPlayed": 76,
+   "goals": 6,
+   "assists": 20,
+   "points": 26
+  },
+  {
+   "id": "nhl-8476456",
+   "name": "Jonathan Huberdeau",
+   "matchesPlayed": 50,
+   "goals": 10,
+   "assists": 15,
+   "points": 25
+  },
+  {
+   "id": "nhl-8476457",
+   "name": "Adam Larsson",
+   "matchesPlayed": 82,
+   "goals": 7,
+   "assists": 18,
+   "points": 25
+  },
+  {
+   "id": "nhl-8476469",
+   "name": "Joel Armia",
+   "matchesPlayed": 67,
+   "goals": 13,
+   "assists": 12,
+   "points": 25
+  },
+  {
+   "id": "nhl-8476931",
+   "name": "Jake McCabe",
+   "matchesPlayed": 80,
+   "goals": 5,
+   "assists": 20,
+   "points": 25
+  },
+  {
+   "id": "nhl-8478462",
+   "name": "Nicolas Roy",
+   "matchesPlayed": 74,
+   "goals": 8,
+   "assists": 17,
+   "points": 25
+  },
+  {
+   "id": "nhl-8478569",
+   "name": "Noel Acciari",
+   "matchesPlayed": 67,
+   "goals": 13,
+   "assists": 12,
+   "points": 25
+  },
+  {
+   "id": "nhl-8478874",
+   "name": "Adam Gaudette",
+   "matchesPlayed": 66,
+   "goals": 17,
+   "assists": 8,
+   "points": 25
+  },
+  {
+   "id": "nhl-8480849",
+   "name": "Barrett Hayton",
+   "matchesPlayed": 67,
+   "goals": 10,
+   "assists": 15,
+   "points": 25
+  },
+  {
+   "id": "nhl-8480855",
+   "name": "Jack McBain",
+   "matchesPlayed": 75,
+   "goals": 9,
+   "assists": 16,
+   "points": 25
+  },
+  {
+   "id": "nhl-8481618",
+   "name": "Alex Newhook",
+   "matchesPlayed": 42,
+   "goals": 13,
+   "assists": 12,
+   "points": 25
+  },
+  {
+   "id": "nhl-8481806",
+   "name": "Louis Crevier",
+   "matchesPlayed": 78,
+   "goals": 7,
+   "assists": 18,
+   "points": 25
+  },
+  {
+   "id": "nhl-8482074",
+   "name": "Connor Zary",
+   "matchesPlayed": 74,
+   "goals": 12,
+   "assists": 13,
+   "points": 25
+  },
+  {
+   "id": "nhl-8482762",
+   "name": "Simon Edvinsson",
+   "matchesPlayed": 72,
+   "goals": 9,
+   "assists": 16,
+   "points": 25
+  },
+  {
+   "id": "nhl-8483808",
+   "name": "Andrei Kuzmenko",
+   "matchesPlayed": 52,
+   "goals": 13,
+   "assists": 12,
+   "points": 25
+  },
+  {
+   "id": "nhl-8477494",
+   "name": "Jonathan Drouin",
+   "matchesPlayed": 64,
+   "goals": 4,
+   "assists": 20,
+   "points": 24
+  },
+  {
+   "id": "nhl-8477498",
+   "name": "Darnell Nurse",
+   "matchesPlayed": 82,
+   "goals": 7,
+   "assists": 17,
+   "points": 24
+  },
+  {
+   "id": "nhl-8477919",
+   "name": "Freddy Gaudreau",
+   "matchesPlayed": 68,
+   "goals": 7,
+   "assists": 17,
+   "points": 24
+  },
+  {
+   "id": "nhl-8478038",
+   "name": "Devon Toews",
+   "matchesPlayed": 68,
+   "goals": 3,
+   "assists": 21,
+   "points": 24
+  },
+  {
+   "id": "nhl-8478133",
+   "name": "Jake Evans",
+   "matchesPlayed": 68,
+   "goals": 12,
+   "assists": 12,
+   "points": 24
+  },
+  {
+   "id": "nhl-8479525",
+   "name": "Ross Colton",
+   "matchesPlayed": 73,
+   "goals": 9,
+   "assists": 15,
+   "points": 24
+  },
+  {
+   "id": "nhl-8483565",
+   "name": "Nick Blankenburg",
+   "matchesPlayed": 61,
+   "goals": 8,
+   "assists": 16,
+   "points": 24
+  },
+  {
+   "id": "nhl-8483573",
+   "name": "Ethen Frank",
+   "matchesPlayed": 62,
+   "goals": 12,
+   "assists": 12,
+   "points": 24
+  },
+  {
+   "id": "nhl-8483690",
+   "name": "Noah Laba",
+   "matchesPlayed": 74,
+   "goals": 9,
+   "assists": 15,
+   "points": 24
+  },
+  {
+   "id": "nhl-8484783",
+   "name": "Artyom Levshunov",
+   "matchesPlayed": 68,
+   "goals": 2,
+   "assists": 22,
+   "points": 24
+  },
+  {
+   "id": "nhl-8474013",
+   "name": "Ian Cole",
+   "matchesPlayed": 82,
+   "goals": 3,
+   "assists": 20,
+   "points": 23
+  },
+  {
+   "id": "nhl-8474563",
+   "name": "Drew Doughty",
+   "matchesPlayed": 72,
+   "goals": 5,
+   "assists": 18,
+   "points": 23
+  },
+  {
+   "id": "nhl-8475848",
+   "name": "Brendan Gallagher",
+   "matchesPlayed": 77,
+   "goals": 7,
+   "assists": 16,
+   "points": 23
+  },
+  {
+   "id": "nhl-8476393",
+   "name": "Nick Cousins",
+   "matchesPlayed": 81,
+   "goals": 9,
+   "assists": 14,
+   "points": 23
+  },
+  {
+   "id": "nhl-8476441",
+   "name": "Joel Edmundson",
+   "matchesPlayed": 82,
+   "goals": 2,
+   "assists": 21,
+   "points": 23
+  },
+  {
+   "id": "nhl-8476981",
+   "name": "Josh Anderson",
+   "matchesPlayed": 72,
+   "goals": 14,
+   "assists": 9,
+   "points": 23
+  },
+  {
+   "id": "nhl-8478508",
+   "name": "Yakov Trenin",
+   "matchesPlayed": 82,
+   "goals": 6,
+   "assists": 17,
+   "points": 23
+  },
+  {
+   "id": "nhl-8479977",
+   "name": "Kailer Yamamoto",
+   "matchesPlayed": 59,
+   "goals": 13,
+   "assists": 10,
+   "points": 23
+  },
+  {
+   "id": "nhl-8479983",
+   "name": "Mario Ferraro",
+   "matchesPlayed": 82,
+   "goals": 7,
+   "assists": 16,
+   "points": 23
+  },
+  {
+   "id": "nhl-8480289",
+   "name": "Morgan Barron",
+   "matchesPlayed": 65,
+   "goals": 11,
+   "assists": 12,
+   "points": 23
+  },
+  {
+   "id": "nhl-8474716",
+   "name": "Jared Spurgeon",
+   "matchesPlayed": 79,
+   "goals": 6,
+   "assists": 16,
+   "points": 22
+  },
+  {
+   "id": "nhl-8476374",
+   "name": "Sean Kuraly",
+   "matchesPlayed": 82,
+   "goals": 6,
+   "assists": 16,
+   "points": 22
+  },
+  {
+   "id": "nhl-8477220",
+   "name": "Nate Schmidt",
+   "matchesPlayed": 82,
+   "goals": 5,
+   "assists": 17,
+   "points": 22
+  },
+  {
+   "id": "nhl-8477507",
+   "name": "Nikita Zadorov",
+   "matchesPlayed": 81,
+   "goals": 2,
+   "assists": 20,
+   "points": 22
+  },
+  {
+   "id": "nhl-8478851",
+   "name": "Alexandre Carrier",
+   "matchesPlayed": 73,
+   "goals": 7,
+   "assists": 15,
+   "points": 22
+  },
+  {
+   "id": "nhl-8479353",
+   "name": "Brett Howden",
+   "matchesPlayed": 58,
+   "goals": 12,
+   "assists": 10,
+   "points": 22
+  },
+  {
+   "id": "nhl-8479661",
+   "name": "Tanner Jeannot",
+   "matchesPlayed": 77,
+   "goals": 6,
+   "assists": 16,
+   "points": 22
+  },
+  {
+   "id": "nhl-8480355",
+   "name": "Mark Kastelic",
+   "matchesPlayed": 82,
+   "goals": 12,
+   "assists": 10,
+   "points": 22
+  },
+  {
+   "id": "nhl-8480995",
+   "name": "Pontus Holmberg",
+   "matchesPlayed": 70,
+   "goals": 11,
+   "assists": 11,
+   "points": 22
+  },
+  {
+   "id": "nhl-8481013",
+   "name": "Jonatan Berggren",
+   "matchesPlayed": 51,
+   "goals": 8,
+   "assists": 14,
+   "points": 22
+  },
+  {
+   "id": "nhl-8481789",
+   "name": "Tye Kartye",
+   "matchesPlayed": 64,
+   "goals": 8,
+   "assists": 14,
+   "points": 22
+  },
+  {
+   "id": "nhl-8482660",
+   "name": "Kent Johnson",
+   "matchesPlayed": 76,
+   "goals": 7,
+   "assists": 15,
+   "points": 22
+  },
+  {
+   "id": "nhl-8482803",
+   "name": "Olen Zellweger",
+   "matchesPlayed": 76,
+   "goals": 7,
+   "assists": 15,
+   "points": 22
+  },
+  {
+   "id": "nhl-8483490",
+   "name": "Pavel Mintyukov",
+   "matchesPlayed": 73,
+   "goals": 8,
+   "assists": 14,
+   "points": 22
+  },
+  {
+   "id": "nhl-8474151",
+   "name": "Ryan McDonagh",
+   "matchesPlayed": 48,
+   "goals": 6,
+   "assists": 15,
+   "points": 21
+  },
+  {
+   "id": "nhl-8475343",
+   "name": "Nic Dowd",
+   "matchesPlayed": 75,
+   "goals": 5,
+   "assists": 16,
+   "points": 21
+  },
+  {
+   "id": "nhl-8476392",
+   "name": "Adam Lowry",
+   "matchesPlayed": 70,
+   "goals": 5,
+   "assists": 16,
+   "points": 21
+  },
+  {
+   "id": "nhl-8476458",
+   "name": "Ryan Strome",
+   "matchesPlayed": 52,
+   "goals": 8,
+   "assists": 13,
+   "points": 21
+  },
+  {
+   "id": "nhl-8476873",
+   "name": "Mark Jankowski",
+   "matchesPlayed": 68,
+   "goals": 11,
+   "assists": 10,
+   "points": 21
+  },
+  {
+   "id": "nhl-8480074",
+   "name": "Alexandre Texier",
+   "matchesPlayed": 51,
+   "goals": 8,
+   "assists": 13,
+   "points": 21
+  },
+  {
+   "id": "nhl-8481568",
+   "name": "Alex Vlasic",
+   "matchesPlayed": 81,
+   "goals": 2,
+   "assists": 19,
+   "points": 21
+  },
+  {
+   "id": "nhl-8484164",
+   "name": "Dalibor Dvorsky",
+   "matchesPlayed": 71,
+   "goals": 12,
+   "assists": 9,
+   "points": 21
+  },
+  {
+   "id": "nhl-8484223",
+   "name": "Axel Sandin-Pellikka",
+   "matchesPlayed": 68,
+   "goals": 7,
+   "assists": 14,
+   "points": 21
+  },
+  {
+   "id": "nhl-8484240",
+   "name": "Tom Willander",
+   "matchesPlayed": 70,
+   "goals": 5,
+   "assists": 16,
+   "points": 21
+  },
+  {
+   "id": "nhl-8485402",
+   "name": "Michael Misa",
+   "matchesPlayed": 45,
+   "goals": 9,
+   "assists": 12,
+   "points": 21
+  },
+  {
+   "id": "nhl-8476872",
+   "name": "Scott Laughton",
+   "matchesPlayed": 64,
+   "goals": 13,
+   "assists": 7,
+   "points": 20
+  },
+  {
+   "id": "nhl-8476878",
+   "name": "Zemgus Girgensons",
+   "matchesPlayed": 74,
+   "goals": 9,
+   "assists": 11,
+   "points": 20
+  },
+  {
+   "id": "nhl-8478013",
+   "name": "Jake Walman",
+   "matchesPlayed": 53,
+   "goals": 8,
+   "assists": 12,
+   "points": 20
+  },
+  {
+   "id": "nhl-8479998",
+   "name": "Mikey Anderson",
+   "matchesPlayed": 80,
+   "goals": 4,
+   "assists": 16,
+   "points": 20
+  },
+  {
+   "id": "nhl-8480798",
+   "name": "Philipp Kurashev",
+   "matchesPlayed": 43,
+   "goals": 7,
+   "assists": 13,
+   "points": 20
+  },
+  {
+   "id": "nhl-8484860",
+   "name": "Matvei Gridin",
+   "matchesPlayed": 37,
+   "goals": 6,
+   "assists": 14,
+   "points": 20
+  },
+  {
+   "id": "nhl-8475799",
+   "name": "Nino Niederreiter",
+   "matchesPlayed": 61,
+   "goals": 8,
+   "assists": 11,
+   "points": 19
+  },
+  {
+   "id": "nhl-8476331",
+   "name": "Dylan DeMelo",
+   "matchesPlayed": 82,
+   "goals": 3,
+   "assists": 16,
+   "points": 19
+  },
+  {
+   "id": "nhl-8478911",
+   "name": "Matt Roy",
+   "matchesPlayed": 79,
+   "goals": 2,
+   "assists": 17,
+   "points": 19
+  },
+  {
+   "id": "nhl-8479390",
+   "name": "Taylor Raddysh",
+   "matchesPlayed": 68,
+   "goals": 9,
+   "assists": 10,
+   "points": 19
+  },
+  {
+   "id": "nhl-8479398",
+   "name": "Samuel Girard",
+   "matchesPlayed": 60,
+   "goals": 3,
+   "assists": 16,
+   "points": 19
+  },
+  {
+   "id": "nhl-8479400",
+   "name": "Pierre-Luc Dubois",
+   "matchesPlayed": 29,
+   "goals": 5,
+   "assists": 14,
+   "points": 19
+  },
+  {
+   "id": "nhl-8481481",
+   "name": "Blake Lizotte",
+   "matchesPlayed": 55,
+   "goals": 7,
+   "assists": 12,
+   "points": 19
+  },
+  {
+   "id": "nhl-8483464",
+   "name": "Marco Kasper",
+   "matchesPlayed": 81,
+   "goals": 9,
+   "assists": 10,
+   "points": 19
+  },
+  {
+   "id": "nhl-8484136",
+   "name": "Max Sasson",
+   "matchesPlayed": 66,
+   "goals": 13,
+   "assists": 6,
+   "points": 19
+  },
+  {
+   "id": "nhl-8484197",
+   "name": "Oliver Moore",
+   "matchesPlayed": 51,
+   "goals": 5,
+   "assists": 14,
+   "points": 19
+  },
+  {
+   "id": "nhl-8484994",
+   "name": "Igor Chernyshov",
+   "matchesPlayed": 28,
+   "goals": 9,
+   "assists": 10,
+   "points": 19
+  },
+  {
+   "id": "nhl-8475151",
+   "name": "Kyle Palmieri",
+   "matchesPlayed": 25,
+   "goals": 6,
+   "assists": 12,
+   "points": 18
+  },
+  {
+   "id": "nhl-8475231",
+   "name": "Casey Cizikas",
+   "matchesPlayed": 81,
+   "goals": 10,
+   "assists": 8,
+   "points": 18
+  },
+  {
+   "id": "nhl-8476463",
+   "name": "Jonas Brodin",
+   "matchesPlayed": 62,
+   "goals": 4,
+   "assists": 14,
+   "points": 18
+  },
+  {
+   "id": "nhl-8476892",
+   "name": "Colton Parayko",
+   "matchesPlayed": 77,
+   "goals": 4,
+   "assists": 14,
+   "points": 18
+  },
+  {
+   "id": "nhl-8476994",
+   "name": "Vincent Hinostroza",
+   "matchesPlayed": 65,
+   "goals": 6,
+   "assists": 12,
+   "points": 18
+  },
+  {
+   "id": "nhl-8477478",
+   "name": "William Carrier",
+   "matchesPlayed": 70,
+   "goals": 7,
+   "assists": 11,
+   "points": 18
+  },
+  {
+   "id": "nhl-8477839",
+   "name": "Conor Sheary",
+   "matchesPlayed": 62,
+   "goals": 7,
+   "assists": 11,
+   "points": 18
+  },
+  {
+   "id": "nhl-8477969",
+   "name": "Marcus Pettersson",
+   "matchesPlayed": 82,
+   "goals": 3,
+   "assists": 15,
+   "points": 18
+  },
+  {
+   "id": "nhl-8478057",
+   "name": "Dakota Joshua",
+   "matchesPlayed": 55,
+   "goals": 10,
+   "assists": 8,
+   "points": 18
+  },
+  {
+   "id": "nhl-8478831",
+   "name": "Kevin Stenlund",
+   "matchesPlayed": 80,
+   "goals": 4,
+   "assists": 14,
+   "points": 18
+  },
+  {
+   "id": "nhl-8478904",
+   "name": "Steven Lorentz",
+   "matchesPlayed": 71,
+   "goals": 7,
+   "assists": 11,
+   "points": 18
+  },
+  {
+   "id": "nhl-8479591",
+   "name": "Michael Eyssimont",
+   "matchesPlayed": 56,
+   "goals": 8,
+   "assists": 10,
+   "points": 18
+  },
+  {
+   "id": "nhl-8480762",
+   "name": "Eric Robinson",
+   "matchesPlayed": 67,
+   "goals": 12,
+   "assists": 6,
+   "points": 18
+  },
+  {
+   "id": "nhl-8480860",
+   "name": "Kevin Bahl",
+   "matchesPlayed": 76,
+   "goals": 4,
+   "assists": 14,
+   "points": 18
+  },
+  {
+   "id": "nhl-8481525",
+   "name": "Matthew Robertson",
+   "matchesPlayed": 72,
+   "goals": 6,
+   "assists": 12,
+   "points": 18
+  },
+  {
+   "id": "nhl-8482073",
+   "name": "Braden Schneider",
+   "matchesPlayed": 82,
+   "goals": 2,
+   "assists": 16,
+   "points": 18
+  },
+  {
+   "id": "nhl-8482095",
+   "name": "Tyler Kleven",
+   "matchesPlayed": 70,
+   "goals": 3,
+   "assists": 15,
+   "points": 18
+  },
+  {
+   "id": "nhl-8482751",
+   "name": "Ryan Winterton",
+   "matchesPlayed": 68,
+   "goals": 4,
+   "assists": 14,
+   "points": 18
+  },
+  {
+   "id": "nhl-8483499",
+   "name": "Liam Ohgren",
+   "matchesPlayed": 69,
+   "goals": 8,
+   "assists": 10,
+   "points": 18
+  },
+  {
+   "id": "nhl-8483609",
+   "name": "Adam Klapka",
+   "matchesPlayed": 79,
+   "goals": 6,
+   "assists": 12,
+   "points": 18
+  },
+  {
+   "id": "nhl-8485702",
+   "name": "Maxim Shabanov",
+   "matchesPlayed": 44,
+   "goals": 5,
+   "assists": 13,
+   "points": 18
+  },
+  {
+   "id": "nhl-8475167",
+   "name": "Victor Hedman",
+   "matchesPlayed": 33,
+   "goals": 1,
+   "assists": 16,
+   "points": 17
+  },
+  {
+   "id": "nhl-8475208",
+   "name": "Brian Dumoulin",
+   "matchesPlayed": 82,
+   "goals": 2,
+   "assists": 15,
+   "points": 17
+  },
+  {
+   "id": "nhl-8475324",
+   "name": "Nick Jensen",
+   "matchesPlayed": 61,
+   "goals": 4,
+   "assists": 13,
+   "points": 17
+  },
+  {
+   "id": "nhl-8475794",
+   "name": "Tyler Seguin",
+   "matchesPlayed": 27,
+   "goals": 7,
+   "assists": 10,
+   "points": 17
+  },
+  {
+   "id": "nhl-8476473",
+   "name": "Connor Murphy",
+   "matchesPlayed": 80,
+   "goals": 5,
+   "assists": 12,
+   "points": 17
+  },
+  {
+   "id": "nhl-8476479",
+   "name": "Phillip Danault",
+   "matchesPlayed": 75,
+   "goals": 6,
+   "assists": 11,
+   "points": 17
+  },
+  {
+   "id": "nhl-8476889",
+   "name": "Radek Faksa",
+   "matchesPlayed": 58,
+   "goals": 2,
+   "assists": 15,
+   "points": 17
+  },
+  {
+   "id": "nhl-8476897",
+   "name": "Oskar Sundqvist",
+   "matchesPlayed": 52,
+   "goals": 5,
+   "assists": 12,
+   "points": 17
+  },
+  {
+   "id": "nhl-8476927",
+   "name": "Teddy Blueger",
+   "matchesPlayed": 35,
+   "goals": 9,
+   "assists": 8,
+   "points": 17
+  },
+  {
+   "id": "nhl-8477446",
+   "name": "Michael McCarron",
+   "matchesPlayed": 79,
+   "goals": 8,
+   "assists": 9,
+   "points": 17
+  },
+  {
+   "id": "nhl-8477450",
+   "name": "Jason Dickinson",
+   "matchesPlayed": 64,
+   "goals": 7,
+   "assists": 10,
+   "points": 17
+  },
+  {
+   "id": "nhl-8477953",
+   "name": "Kasperi Kapanen",
+   "matchesPlayed": 41,
+   "goals": 8,
+   "assists": 9,
+   "points": 17
+  },
+  {
+   "id": "nhl-8477998",
+   "name": "Warren Foegele",
+   "matchesPlayed": 68,
+   "goals": 13,
+   "assists": 4,
+   "points": 17
+  },
+  {
+   "id": "nhl-8478434",
+   "name": "Keegan Kolesar",
+   "matchesPlayed": 82,
+   "goals": 6,
+   "assists": 11,
+   "points": 17
+  },
+  {
+   "id": "nhl-8478970",
+   "name": "Jalen Chatfield",
+   "matchesPlayed": 72,
+   "goals": 2,
+   "assists": 15,
+   "points": 17
+  },
+  {
+   "id": "nhl-8480727",
+   "name": "Zach Whitecloud",
+   "matchesPlayed": 78,
+   "goals": 2,
+   "assists": 15,
+   "points": 17
+  },
+  {
+   "id": "nhl-8481006",
+   "name": "Tyler Tucker",
+   "matchesPlayed": 69,
+   "goals": 3,
+   "assists": 14,
+   "points": 17
+  },
+  {
+   "id": "nhl-8481043",
+   "name": "Cole Koepke",
+   "matchesPlayed": 66,
+   "goals": 8,
+   "assists": 9,
+   "points": 17
+  },
+  {
+   "id": "nhl-8482159",
+   "name": "Tyson Foerster",
+   "matchesPlayed": 29,
+   "goals": 13,
+   "assists": 4,
+   "points": 17
+  },
+  {
+   "id": "nhl-8482176",
+   "name": "Wyatt Kaiser",
+   "matchesPlayed": 77,
+   "goals": 6,
+   "assists": 11,
+   "points": 17
+  },
+  {
+   "id": "nhl-8482768",
+   "name": "Fedor Svechkov",
+   "matchesPlayed": 70,
+   "goals": 4,
+   "assists": 13,
+   "points": 17
+  },
+  {
+   "id": "nhl-8482858",
+   "name": "Ryker Evans",
+   "matchesPlayed": 67,
+   "goals": 8,
+   "assists": 9,
+   "points": 17
+  },
+  {
+   "id": "nhl-8484142",
+   "name": "Denver Barkey",
+   "matchesPlayed": 43,
+   "goals": 5,
+   "assists": 12,
+   "points": 17
+  },
+  {
+   "id": "nhl-8484800",
+   "name": "Berkly Catton",
+   "matchesPlayed": 66,
+   "goals": 7,
+   "assists": 10,
+   "points": 17
+  },
+  {
+   "id": "nhl-8475842",
+   "name": "Sam Carrick",
+   "matchesPlayed": 73,
+   "goals": 9,
+   "assists": 7,
+   "points": 16
+  },
+  {
+   "id": "nhl-8476917",
+   "name": "Adam Pelech",
+   "matchesPlayed": 82,
+   "goals": 4,
+   "assists": 12,
+   "points": 16
+  },
+  {
+   "id": "nhl-8477380",
+   "name": "Jonny Brodzinski",
+   "matchesPlayed": 55,
+   "goals": 6,
+   "assists": 10,
+   "points": 16
+  },
+  {
+   "id": "nhl-8478136",
+   "name": "Jacob Middleton",
+   "matchesPlayed": 75,
+   "goals": 2,
+   "assists": 14,
+   "points": 16
+  },
+  {
+   "id": "nhl-8478233",
+   "name": "Andrew Mangiapane",
+   "matchesPlayed": 62,
+   "goals": 8,
+   "assists": 8,
+   "points": 16
+  },
+  {
+   "id": "nhl-8478399",
+   "name": "Jonas Siegenthaler",
+   "matchesPlayed": 82,
+   "goals": 0,
+   "assists": 16,
+   "points": 16
+  },
+  {
+   "id": "nhl-8479370",
+   "name": "Tyson Jost",
+   "matchesPlayed": 69,
+   "goals": 8,
+   "assists": 8,
+   "points": 16
+  },
+  {
+   "id": "nhl-8481527",
+   "name": "Kaedan Korczak",
+   "matchesPlayed": 78,
+   "goals": 3,
+   "assists": 13,
+   "points": 16
+  },
+  {
+   "id": "nhl-8482148",
+   "name": "Hendrix Lapierre",
+   "matchesPlayed": 74,
+   "goals": 4,
+   "assists": 12,
+   "points": 16
+  },
+  {
+   "id": "nhl-8482482",
+   "name": "Adam Wilsby",
+   "matchesPlayed": 58,
+   "goals": 1,
+   "assists": 15,
+   "points": 16
+  },
+  {
+   "id": "nhl-8482634",
+   "name": "Alex Steeves",
+   "matchesPlayed": 43,
+   "goals": 9,
+   "assists": 7,
+   "points": 16
+  },
+  {
+   "id": "nhl-8473422",
+   "name": "Nick Foligno",
+   "matchesPlayed": 54,
+   "goals": 4,
+   "assists": 11,
+   "points": 15
+  },
+  {
+   "id": "nhl-8474189",
+   "name": "Lars Eller",
+   "matchesPlayed": 68,
+   "goals": 5,
+   "assists": 10,
+   "points": 15
+  },
+  {
+   "id": "nhl-8474641",
+   "name": "Adam Henrique",
+   "matchesPlayed": 65,
+   "goals": 3,
+   "assists": 12,
+   "points": 15
+  },
+  {
+   "id": "nhl-8475279",
+   "name": "Ben Chiarot",
+   "matchesPlayed": 82,
+   "goals": 5,
+   "assists": 10,
+   "points": 15
+  },
+  {
+   "id": "nhl-8475455",
+   "name": "Brenden Dillon",
+   "matchesPlayed": 82,
+   "goals": 3,
+   "assists": 12,
+   "points": 15
+  },
+  {
+   "id": "nhl-8476278",
+   "name": "Colin Blackwell",
+   "matchesPlayed": 70,
+   "goals": 4,
+   "assists": 11,
+   "points": 15
+  },
+  {
+   "id": "nhl-8476292",
+   "name": "Ondrej Palat",
+   "matchesPlayed": 80,
+   "goals": 5,
+   "assists": 10,
+   "points": 15
+  },
+  {
+   "id": "nhl-8476429",
+   "name": "Scott Mayfield",
+   "matchesPlayed": 80,
+   "goals": 2,
+   "assists": 13,
+   "points": 15
+  },
+  {
+   "id": "nhl-8476467",
+   "name": "Jamie Oleksiak",
+   "matchesPlayed": 78,
+   "goals": 5,
+   "assists": 10,
+   "points": 15
+  },
+  {
+   "id": "nhl-8476871",
+   "name": "Tanner Pearson",
+   "matchesPlayed": 56,
+   "goals": 7,
+   "assists": 8,
+   "points": 15
+  },
+  {
+   "id": "nhl-8476874",
+   "name": "Olli Maatta",
+   "matchesPlayed": 43,
+   "goals": 2,
+   "assists": 13,
+   "points": 15
+  },
+  {
+   "id": "nhl-8477018",
+   "name": "Ben Hutton",
+   "matchesPlayed": 55,
+   "goals": 6,
+   "assists": 9,
+   "points": 15
+  },
+  {
+   "id": "nhl-8477426",
+   "name": "Nick Paul",
+   "matchesPlayed": 51,
+   "goals": 7,
+   "assists": 8,
+   "points": 15
+  },
+  {
+   "id": "nhl-8478840",
+   "name": "William Borgen",
+   "matchesPlayed": 75,
+   "goals": 5,
+   "assists": 10,
+   "points": 15
+  },
+  {
+   "id": "nhl-8479980",
+   "name": "Nicolas Hague",
+   "matchesPlayed": 62,
+   "goals": 3,
+   "assists": 12,
+   "points": 15
+  },
+  {
+   "id": "nhl-8480035",
+   "name": "Henri Jokiharju",
+   "matchesPlayed": 41,
+   "goals": 2,
+   "assists": 13,
+   "points": 15
+  },
+  {
+   "id": "nhl-8481032",
+   "name": "Paul Cotter",
+   "matchesPlayed": 79,
+   "goals": 9,
+   "assists": 6,
+   "points": 15
+  },
+  {
+   "id": "nhl-8481133",
+   "name": "Cole Reinhardt",
+   "matchesPlayed": 59,
+   "goals": 9,
+   "assists": 6,
+   "points": 15
+  },
+  {
+   "id": "nhl-8481523",
+   "name": "Kirby Dach",
+   "matchesPlayed": 37,
+   "goals": 8,
+   "assists": 7,
+   "points": 15
+  },
+  {
+   "id": "nhl-8481563",
+   "name": "Drew Helleson",
+   "matchesPlayed": 60,
+   "goals": 2,
+   "assists": 13,
+   "points": 15
+  },
+  {
+   "id": "nhl-8483570",
+   "name": "Ben Meyers",
+   "matchesPlayed": 52,
+   "goals": 7,
+   "assists": 8,
+   "points": 15
+  },
+  {
+   "id": "nhl-8483752",
+   "name": "Dominic James",
+   "matchesPlayed": 43,
+   "goals": 7,
+   "assists": 8,
+   "points": 15
+  },
+  {
+   "id": "nhl-8484185",
+   "name": "Nick Lardis",
+   "matchesPlayed": 41,
+   "goals": 10,
+   "assists": 5,
+   "points": 15
+  },
+  {
+   "id": "nhl-8484304",
+   "name": "Uvis Balinskis",
+   "matchesPlayed": 54,
+   "goals": 5,
+   "assists": 10,
+   "points": 15
+  },
+  {
+   "id": "nhl-8476480",
+   "name": "Vladislav Namestnikov",
+   "matchesPlayed": 60,
+   "goals": 8,
+   "assists": 6,
+   "points": 14
+  },
+  {
+   "id": "nhl-8477425",
+   "name": "Miles Wood",
+   "matchesPlayed": 54,
+   "goals": 8,
+   "assists": 6,
+   "points": 14
+  },
+  {
+   "id": "nhl-8477499",
+   "name": "Rasmus Ristolainen",
+   "matchesPlayed": 44,
+   "goals": 1,
+   "assists": 13,
+   "points": 14
+  },
+  {
+   "id": "nhl-8477527",
+   "name": "Ross Johnston",
+   "matchesPlayed": 62,
+   "goals": 3,
+   "assists": 11,
+   "points": 14
+  },
+  {
+   "id": "nhl-8477845",
+   "name": "Trevor van Riemsdyk",
+   "matchesPlayed": 68,
+   "goals": 3,
+   "assists": 11,
+   "points": 14
+  },
+  {
+   "id": "nhl-8478891",
+   "name": "Mason Appleton",
+   "matchesPlayed": 65,
+   "goals": 6,
+   "assists": 8,
+   "points": 14
+  },
+  {
+   "id": "nhl-8479359",
+   "name": "Beck Malenstyn",
+   "matchesPlayed": 81,
+   "goals": 7,
+   "assists": 7,
+   "points": 14
+  },
+  {
+   "id": "nhl-8479369",
+   "name": "Andrew Peeke",
+   "matchesPlayed": 77,
+   "goals": 5,
+   "assists": 9,
+   "points": 14
+  },
+  {
+   "id": "nhl-8479442",
+   "name": "Troy Stecher",
+   "matchesPlayed": 64,
+   "goals": 3,
+   "assists": 11,
+   "points": 14
+  },
+  {
+   "id": "nhl-8479992",
+   "name": "Michael Rasmussen",
+   "matchesPlayed": 64,
+   "goals": 6,
+   "assists": 8,
+   "points": 14
+  },
+  {
+   "id": "nhl-8480049",
+   "name": "Dylan Samberg",
+   "matchesPlayed": 66,
+   "goals": 1,
+   "assists": 13,
+   "points": 14
+  },
+  {
+   "id": "nhl-8481532",
+   "name": "Alex Turcotte",
+   "matchesPlayed": 62,
+   "goals": 3,
+   "assists": 11,
+   "points": 14
+  },
+  {
+   "id": "nhl-8482691",
+   "name": "Aatu Räty",
+   "matchesPlayed": 66,
+   "goals": 4,
+   "assists": 10,
+   "points": 14
+  },
+  {
+   "id": "nhl-8483506",
+   "name": "Sam Rinzel",
+   "matchesPlayed": 54,
+   "goals": 4,
+   "assists": 10,
+   "points": 14
+  },
+  {
+   "id": "nhl-8483733",
+   "name": "Nikita Grebenkin",
+   "matchesPlayed": 55,
+   "goals": 4,
+   "assists": 10,
+   "points": 14
+  },
+  {
+   "id": "nhl-8484806",
+   "name": "Sam Dickinson",
+   "matchesPlayed": 72,
+   "goals": 1,
+   "assists": 13,
+   "points": 14
+  },
+  {
+   "id": "nhl-8475220",
+   "name": "Marcus Foligno",
+   "matchesPlayed": 56,
+   "goals": 8,
+   "assists": 5,
+   "points": 13
+  },
+  {
+   "id": "nhl-8475462",
+   "name": "Radko Gudas",
+   "matchesPlayed": 56,
+   "goals": 2,
+   "assists": 11,
+   "points": 13
+  },
+  {
+   "id": "nhl-8475784",
+   "name": "Jeff Skinner",
+   "matchesPlayed": 32,
+   "goals": 6,
+   "assists": 7,
+   "points": 13
+  },
+  {
+   "id": "nhl-8477021",
+   "name": "Alexander Kerfoot",
+   "matchesPlayed": 34,
+   "goals": 7,
+   "assists": 6,
+   "points": 13
+  },
+  {
+   "id": "nhl-8478468",
+   "name": "Jeremy Lauzon",
+   "matchesPlayed": 68,
+   "goals": 1,
+   "assists": 12,
+   "points": 13
+  },
+  {
+   "id": "nhl-8479336",
+   "name": "Carl Grundstrom",
+   "matchesPlayed": 47,
+   "goals": 9,
+   "assists": 4,
+   "points": 13
+  },
+  {
+   "id": "nhl-8480003",
+   "name": "Jesper Boqvist",
+   "matchesPlayed": 73,
+   "goals": 4,
+   "assists": 9,
+   "points": 13
+  },
+  {
+   "id": "nhl-8480246",
+   "name": "Nick Perbix",
+   "matchesPlayed": 79,
+   "goals": 3,
+   "assists": 10,
+   "points": 13
+  },
+  {
+   "id": "nhl-8481219",
+   "name": "Jonathan Aspirot",
+   "matchesPlayed": 61,
+   "goals": 3,
+   "assists": 10,
+   "points": 13
+  },
+  {
+   "id": "nhl-8481725",
+   "name": "Elmer Soderblom",
+   "matchesPlayed": 59,
+   "goals": 7,
+   "assists": 6,
+   "points": 13
+  },
+  {
+   "id": "nhl-8482126",
+   "name": "Emil Andrae",
+   "matchesPlayed": 61,
+   "goals": 2,
+   "assists": 11,
+   "points": 13
+  },
+  {
+   "id": "nhl-8482703",
+   "name": "Colton Dach",
+   "matchesPlayed": 61,
+   "goals": 5,
+   "assists": 8,
+   "points": 13
+  },
+  {
+   "id": "nhl-8482733",
+   "name": "Logan Mailloux",
+   "matchesPlayed": 67,
+   "goals": 5,
+   "assists": 8,
+   "points": 13
+  },
+  {
+   "id": "nhl-8484149",
+   "name": "Gavin Brindley",
+   "matchesPlayed": 56,
+   "goals": 6,
+   "assists": 7,
+   "points": 13
+  },
+  {
+   "id": "nhl-8474679",
+   "name": "Gustav Nyquist",
+   "matchesPlayed": 51,
+   "goals": 1,
+   "assists": 11,
+   "points": 12
+  },
+  {
+   "id": "nhl-8475188",
+   "name": "Brayden McNabb",
+   "matchesPlayed": 63,
+   "goals": 5,
+   "assists": 7,
+   "points": 12
+  },
+  {
+   "id": "nhl-8476624",
+   "name": "Barclay Goodrow",
+   "matchesPlayed": 82,
+   "goals": 5,
+   "assists": 7,
+   "points": 12
+  },
+  {
+   "id": "nhl-8476891",
+   "name": "Matt Grzelcyk",
+   "matchesPlayed": 69,
+   "goals": 0,
+   "assists": 12,
+   "points": 12
+  },
+  {
+   "id": "nhl-8476967",
+   "name": "Brett Kulak",
+   "matchesPlayed": 83,
+   "goals": 1,
+   "assists": 11,
+   "points": 12
+  },
+  {
+   "id": "nhl-8477369",
+   "name": "Carson Soucy",
+   "matchesPlayed": 76,
+   "goals": 5,
+   "assists": 7,
+   "points": 12
+  },
+  {
+   "id": "nhl-8478046",
+   "name": "Danton Heinen",
+   "matchesPlayed": 46,
+   "goals": 6,
+   "assists": 6,
+   "points": 12
+  },
+  {
+   "id": "nhl-8480145",
+   "name": "Neal Pionk",
+   "matchesPlayed": 51,
+   "goals": 3,
+   "assists": 9,
+   "points": 12
+  },
+  {
+   "id": "nhl-8480806",
+   "name": "Isac Lundeström",
+   "matchesPlayed": 68,
+   "goals": 4,
+   "assists": 8,
+   "points": 12
+  },
+  {
+   "id": "nhl-8480834",
+   "name": "Ty Emberson",
+   "matchesPlayed": 72,
+   "goals": 2,
+   "assists": 10,
+   "points": 12
+  },
+  {
+   "id": "nhl-8480840",
+   "name": "Oskar Bäck",
+   "matchesPlayed": 72,
+   "goals": 5,
+   "assists": 7,
+   "points": 12
+  },
+  {
+   "id": "nhl-8481593",
+   "name": "Jayden Struble",
+   "matchesPlayed": 59,
+   "goals": 2,
+   "assists": 10,
+   "points": 12
+  },
+  {
+   "id": "nhl-8482062",
+   "name": "Cole Smith",
+   "matchesPlayed": 63,
+   "goals": 8,
+   "assists": 4,
+   "points": 12
+  },
+  {
+   "id": "nhl-8482165",
+   "name": "Yan Kuznetsov",
+   "matchesPlayed": 57,
+   "goals": 4,
+   "assists": 8,
+   "points": 12
+  },
+  {
+   "id": "nhl-8482166",
+   "name": "Shakir Mukhamadullin",
+   "matchesPlayed": 50,
+   "goals": 5,
+   "assists": 7,
+   "points": 12
+  },
+  {
+   "id": "nhl-8482178",
+   "name": "Ian Moore",
+   "matchesPlayed": 67,
+   "goals": 4,
+   "assists": 8,
+   "points": 12
+  },
+  {
+   "id": "nhl-8482929",
+   "name": "Emil Lilleberg",
+   "matchesPlayed": 50,
+   "goals": 4,
+   "assists": 8,
+   "points": 12
+  },
+  {
+   "id": "nhl-8474574",
+   "name": "Tyler Myers",
+   "matchesPlayed": 73,
+   "goals": 1,
+   "assists": 10,
+   "points": 11
+  },
+  {
+   "id": "nhl-8476925",
+   "name": "Colton Sissons",
+   "matchesPlayed": 66,
+   "goals": 6,
+   "assists": 5,
+   "points": 11
+  },
+  {
+   "id": "nhl-8477573",
+   "name": "Nathan Walker",
+   "matchesPlayed": 46,
+   "goals": 4,
+   "assists": 7,
+   "points": 11
+  },
+  {
+   "id": "nhl-8478416",
+   "name": "Erik Cernak",
+   "matchesPlayed": 61,
+   "goals": 3,
+   "assists": 8,
+   "points": 11
+  },
+  {
+   "id": "nhl-8478472",
+   "name": "Mathieu Joseph",
+   "matchesPlayed": 51,
+   "goals": 2,
+   "assists": 9,
+   "points": 11
+  },
+  {
+   "id": "nhl-8478859",
+   "name": "Niko Mikkola",
+   "matchesPlayed": 68,
+   "goals": 3,
+   "assists": 8,
+   "points": 11
+  },
+  {
+   "id": "nhl-8479371",
+   "name": "Dante Fabbro",
+   "matchesPlayed": 74,
+   "goals": 5,
+   "assists": 6,
+   "points": 11
+  },
+  {
+   "id": "nhl-8480043",
+   "name": "Timothy Liljegren",
+   "matchesPlayed": 47,
+   "goals": 1,
+   "assists": 10,
+   "points": 11
+  },
+  {
+   "id": "nhl-8480281",
+   "name": "Alexey Toropchenko",
+   "matchesPlayed": 65,
+   "goals": 4,
+   "assists": 7,
+   "points": 11
+  },
+  {
+   "id": "nhl-8480848",
+   "name": "Ty Dellandrea",
+   "matchesPlayed": 46,
+   "goals": 2,
+   "assists": 9,
+   "points": 11
+  },
+  {
+   "id": "nhl-8480878",
+   "name": "Nils Lundkvist",
+   "matchesPlayed": 52,
+   "goals": 3,
+   "assists": 8,
+   "points": 11
+  },
+  {
+   "id": "nhl-8481477",
+   "name": "Nico Sturm",
+   "matchesPlayed": 49,
+   "goals": 5,
+   "assists": 6,
+   "points": 11
+  },
+  {
+   "id": "nhl-8481607",
+   "name": "Albert Johansson",
+   "matchesPlayed": 82,
+   "goals": 3,
+   "assists": 8,
+   "points": 11
+  },
+  {
+   "id": "nhl-8482087",
+   "name": "Kaiden Guhle",
+   "matchesPlayed": 39,
+   "goals": 2,
+   "assists": 9,
+   "points": 11
+  },
+  {
+   "id": "nhl-8482715",
+   "name": "Ryan Ufko",
+   "matchesPlayed": 18,
+   "goals": 2,
+   "assists": 9,
+   "points": 11
+  },
+  {
+   "id": "nhl-8483676",
+   "name": "Stephen Halliday",
+   "matchesPlayed": 30,
+   "goals": 4,
+   "assists": 7,
+   "points": 11
+  },
+  {
+   "id": "nhl-8475755",
+   "name": "Alexander Petrovic",
+   "matchesPlayed": 54,
+   "goals": 2,
+   "assists": 8,
+   "points": 10
+  },
+  {
+   "id": "nhl-8476372",
+   "name": "Nick Seeler",
+   "matchesPlayed": 80,
+   "goals": 4,
+   "assists": 6,
+   "points": 10
+  },
+  {
+   "id": "nhl-8478454",
+   "name": "Noah Juulsen",
+   "matchesPlayed": 52,
+   "goals": 1,
+   "assists": 9,
+   "points": 10
+  },
+  {
+   "id": "nhl-8479022",
+   "name": "Rodrigo Abols",
+   "matchesPlayed": 42,
+   "goals": 3,
+   "assists": 7,
+   "points": 10
+  },
+  {
+   "id": "nhl-8479316",
+   "name": "Luke Kunin",
+   "matchesPlayed": 62,
+   "goals": 4,
+   "assists": 6,
+   "points": 10
+  },
+  {
+   "id": "nhl-8479705",
+   "name": "Jeff Viel",
+   "matchesPlayed": 45,
+   "goals": 3,
+   "assists": 7,
+   "points": 10
+  },
+  {
+   "id": "nhl-8481056",
+   "name": "Spencer Stastney",
+   "matchesPlayed": 66,
+   "goals": 2,
+   "assists": 8,
+   "points": 10
+  },
+  {
+   "id": "nhl-8481719",
+   "name": "Max Crozier",
+   "matchesPlayed": 35,
+   "goals": 1,
+   "assists": 9,
+   "points": 10
+  },
+  {
+   "id": "nhl-8482765",
+   "name": "Isak Rosén",
+   "matchesPlayed": 37,
+   "goals": 6,
+   "assists": 4,
+   "points": 10
+  },
+  {
+   "id": "nhl-8482911",
+   "name": "Joel Nystrom",
+   "matchesPlayed": 38,
+   "goals": 1,
+   "assists": 9,
+   "points": 10
+  },
+  {
+   "id": "nhl-8482947",
+   "name": "Zakhar Bardakov",
+   "matchesPlayed": 60,
+   "goals": 1,
+   "assists": 9,
+   "points": 10
+  },
+  {
+   "id": "nhl-8483630",
+   "name": "Pavol Regenda",
+   "matchesPlayed": 24,
+   "goals": 9,
+   "assists": 1,
+   "points": 10
+  },
+  {
+   "id": "nhl-8483678",
+   "name": "Elias Pettersson",
+   "matchesPlayed": 70,
+   "goals": 3,
+   "assists": 7,
+   "points": 10
+  },
+  {
+   "id": "nhl-8484230",
+   "name": "Otto Stenberg",
+   "matchesPlayed": 32,
+   "goals": 3,
+   "assists": 7,
+   "points": 10
+  },
+  {
+   "id": "nhl-8484873",
+   "name": "Cole Hutson",
+   "matchesPlayed": 14,
+   "goals": 3,
+   "assists": 7,
+   "points": 10
+  },
+  {
+   "id": "nhl-8485406",
+   "name": "Porter Martone",
+   "matchesPlayed": 9,
+   "goals": 4,
+   "assists": 6,
+   "points": 10
+  },
+  {
+   "id": "nhl-8473507",
+   "name": "Jeff Petry",
+   "matchesPlayed": 67,
+   "goals": 0,
+   "assists": 9,
+   "points": 9
+  },
+  {
+   "id": "nhl-8475760",
+   "name": "Nick Bjugstad",
+   "matchesPlayed": 61,
+   "goals": 6,
+   "assists": 3,
+   "points": 9
+  },
+  {
+   "id": "nhl-8476422",
+   "name": "Mike Reilly",
+   "matchesPlayed": 42,
+   "goals": 1,
+   "assists": 8,
+   "points": 9
+  },
+  {
+   "id": "nhl-8476438",
+   "name": "Brandon Saad",
+   "matchesPlayed": 49,
+   "goals": 3,
+   "assists": 6,
+   "points": 9
+  },
+  {
+   "id": "nhl-8476822",
+   "name": "Luke Glendening",
+   "matchesPlayed": 70,
+   "goals": 2,
+   "assists": 7,
+   "points": 9
+  },
+  {
+   "id": "nhl-8476879",
+   "name": "Cody Ceci",
+   "matchesPlayed": 82,
+   "goals": 1,
+   "assists": 8,
+   "points": 9
+  },
+  {
+   "id": "nhl-8478366",
+   "name": "Frank Vatrano",
+   "matchesPlayed": 50,
+   "goals": 5,
+   "assists": 4,
+   "points": 9
+  },
+  {
+   "id": "nhl-8479066",
+   "name": "Ryan Lomberg",
+   "matchesPlayed": 57,
+   "goals": 4,
+   "assists": 5,
+   "points": 9
+  },
+  {
+   "id": "nhl-8479324",
+   "name": "Ryan Lindgren",
+   "matchesPlayed": 76,
+   "goals": 2,
+   "assists": 7,
+   "points": 9
+  },
+  {
+   "id": "nhl-8479393",
+   "name": "Noah Gregor",
+   "matchesPlayed": 37,
+   "goals": 4,
+   "assists": 5,
+   "points": 9
+  },
+  {
+   "id": "nhl-8479520",
+   "name": "Brandon Duhaime",
+   "matchesPlayed": 82,
+   "goals": 4,
+   "assists": 5,
+   "points": 9
+  },
+  {
+   "id": "nhl-8480829",
+   "name": "Jesperi Kotkaniemi",
+   "matchesPlayed": 42,
+   "goals": 2,
+   "assists": 7,
+   "points": 9
+  },
+  {
+   "id": "nhl-8480950",
+   "name": "Ilya Lyubushkin",
+   "matchesPlayed": 53,
+   "goals": 1,
+   "assists": 8,
+   "points": 9
+  },
+  {
+   "id": "nhl-8481641",
+   "name": "Joel Kiviranta",
+   "matchesPlayed": 51,
+   "goals": 3,
+   "assists": 6,
+   "points": 9
+  },
+  {
+   "id": "nhl-8481754",
+   "name": "Nikita Nesterenko",
+   "matchesPlayed": 29,
+   "goals": 1,
+   "assists": 8,
+   "points": 9
+  },
+  {
+   "id": "nhl-8482111",
+   "name": "Justin Barron",
+   "matchesPlayed": 52,
+   "goals": 0,
+   "assists": 9,
+   "points": 9
+  },
+  {
+   "id": "nhl-8482125",
+   "name": "Alexander Holtz",
+   "matchesPlayed": 28,
+   "goals": 3,
+   "assists": 6,
+   "points": 9
+  },
+  {
+   "id": "nhl-8482408",
+   "name": "Jeff Malott",
+   "matchesPlayed": 58,
+   "goals": 3,
+   "assists": 6,
+   "points": 9
+  },
+  {
+   "id": "nhl-8482726",
+   "name": "Samuel Helenius",
+   "matchesPlayed": 53,
+   "goals": 5,
+   "assists": 4,
+   "points": 9
+  },
+  {
+   "id": "nhl-8483731",
+   "name": "Alex Bump",
+   "matchesPlayed": 17,
+   "goals": 5,
+   "assists": 4,
+   "points": 9
+  },
+  {
+   "id": "nhl-8484768",
+   "name": "Zayne Parekh",
+   "matchesPlayed": 37,
+   "goals": 4,
+   "assists": 5,
+   "points": 9
+  },
+  {
+   "id": "nhl-8485391",
+   "name": "Anton Frondell",
+   "matchesPlayed": 12,
+   "goals": 3,
+   "assists": 6,
+   "points": 9
+  },
+  {
+   "id": "nhl-8475714",
+   "name": "Calle Jarnkrok",
+   "matchesPlayed": 56,
+   "goals": 6,
+   "assists": 2,
+   "points": 8
+  },
+  {
+   "id": "nhl-8475763",
+   "name": "Kevin Hayes",
+   "matchesPlayed": 28,
+   "goals": 4,
+   "assists": 4,
+   "points": 8
+  },
+  {
+   "id": "nhl-8476958",
+   "name": "Jaccob Slavin",
+   "matchesPlayed": 39,
+   "goals": 1,
+   "assists": 7,
+   "points": 8
+  },
+  {
+   "id": "nhl-8477406",
+   "name": "Mattias Janmark",
+   "matchesPlayed": 43,
+   "goals": 1,
+   "assists": 7,
+   "points": 8
+  },
+  {
+   "id": "nhl-8477454",
+   "name": "Adam Erne",
+   "matchesPlayed": 45,
+   "goals": 6,
+   "assists": 2,
+   "points": 8
+  },
+  {
+   "id": "nhl-8477947",
+   "name": "Sonny Milano",
+   "matchesPlayed": 31,
+   "goals": 4,
+   "assists": 4,
+   "points": 8
+  },
+  {
+   "id": "nhl-8478104",
+   "name": "Samuel Blais",
+   "matchesPlayed": 21,
+   "goals": 3,
+   "assists": 5,
+   "points": 8
+  },
+  {
+   "id": "nhl-8478424",
+   "name": "Jansen Harkins",
+   "matchesPlayed": 44,
+   "goals": 3,
+   "assists": 5,
+   "points": 8
+  },
+  {
+   "id": "nhl-8479982",
+   "name": "Conor Timmins",
+   "matchesPlayed": 39,
+   "goals": 0,
+   "assists": 8,
+   "points": 8
+  },
+  {
+   "id": "nhl-8480084",
+   "name": "Nick DeSimone",
+   "matchesPlayed": 40,
+   "goals": 2,
+   "assists": 6,
+   "points": 8
+  },
+  {
+   "id": "nhl-8480192",
+   "name": "Johnathan Kovacevic",
+   "matchesPlayed": 34,
+   "goals": 0,
+   "assists": 8,
+   "points": 8
+  },
+  {
+   "id": "nhl-8480196",
+   "name": "Jacob Bryson",
+   "matchesPlayed": 50,
+   "goals": 2,
+   "assists": 6,
+   "points": 8
+  },
+  {
+   "id": "nhl-8482117",
+   "name": "Lukas Reichel",
+   "matchesPlayed": 29,
+   "goals": 3,
+   "assists": 5,
+   "points": 8
+  },
+  {
+   "id": "nhl-8482131",
+   "name": "Donovan Sebrango",
+   "matchesPlayed": 42,
+   "goals": 0,
+   "assists": 8,
+   "points": 8
+  },
+  {
+   "id": "nhl-8482470",
+   "name": "Ilya Solovyov",
+   "matchesPlayed": 30,
+   "goals": 1,
+   "assists": 7,
+   "points": 8
+  },
+  {
+   "id": "nhl-8483425",
+   "name": "Lian Bichsel",
+   "matchesPlayed": 50,
+   "goals": 4,
+   "assists": 4,
+   "points": 8
+  },
+  {
+   "id": "nhl-8483513",
+   "name": "Reid Schaefer",
+   "matchesPlayed": 47,
+   "goals": 6,
+   "assists": 2,
+   "points": 8
+  },
+  {
+   "id": "nhl-8484177",
+   "name": "Lenni Hameenaho",
+   "matchesPlayed": 33,
+   "goals": 2,
+   "assists": 6,
+   "points": 8
+  },
+  {
+   "id": "nhl-8474568",
+   "name": "Luke Schenn",
+   "matchesPlayed": 50,
+   "goals": 1,
+   "assists": 6,
+   "points": 7
+  },
+  {
+   "id": "nhl-8475181",
+   "name": "Nick Leddy",
+   "matchesPlayed": 32,
+   "goals": 1,
+   "assists": 6,
+   "points": 7
+  },
+  {
+   "id": "nhl-8476448",
+   "name": "William Karlsson",
+   "matchesPlayed": 14,
+   "goals": 4,
+   "assists": 3,
+   "points": 7
+  },
+  {
+   "id": "nhl-8476474",
+   "name": "Stefan Noesen",
+   "matchesPlayed": 38,
+   "goals": 3,
+   "assists": 4,
+   "points": 7
+  },
+  {
+   "id": "nhl-8477488",
+   "name": "Brett Pesce",
+   "matchesPlayed": 37,
+   "goals": 1,
+   "assists": 6,
+   "points": 7
+  },
+  {
+   "id": "nhl-8477810",
+   "name": "Joel Hanley",
+   "matchesPlayed": 68,
+   "goals": 0,
+   "assists": 7,
+   "points": 7
+  },
+  {
+   "id": "nhl-8478443",
+   "name": "Brandon Carlo",
+   "matchesPlayed": 55,
+   "goals": 0,
+   "assists": 7,
+   "points": 7
+  },
+  {
+   "id": "nhl-8479365",
+   "name": "Trent Frederic",
+   "matchesPlayed": 74,
+   "goals": 4,
+   "assists": 3,
+   "points": 7
+  },
+  {
+   "id": "nhl-8479414",
+   "name": "Nathan Bastian",
+   "matchesPlayed": 36,
+   "goals": 6,
+   "assists": 1,
+   "points": 7
+  },
+  {
+   "id": "nhl-8479576",
+   "name": "Vincent Desharnais",
+   "matchesPlayed": 53,
+   "goals": 1,
+   "assists": 6,
+   "points": 7
+  },
+  {
+   "id": "nhl-8480990",
+   "name": "Declan Chisholm",
+   "matchesPlayed": 26,
+   "goals": 1,
+   "assists": 6,
+   "points": 7
+  },
+  {
+   "id": "nhl-8481030",
+   "name": "Jack St. Ivany",
+   "matchesPlayed": 20,
+   "goals": 0,
+   "assists": 7,
+   "points": 7
+  },
+  {
+   "id": "nhl-8481167",
+   "name": "Brayden Pachal",
+   "matchesPlayed": 39,
+   "goals": 1,
+   "assists": 6,
+   "points": 7
+  },
+  {
+   "id": "nhl-8481237",
+   "name": "Kyle MacLean",
+   "matchesPlayed": 59,
+   "goals": 2,
+   "assists": 5,
+   "points": 7
+  },
+  {
+   "id": "nhl-8481556",
+   "name": "John Beecher",
+   "matchesPlayed": 35,
+   "goals": 3,
+   "assists": 4,
+   "points": 7
+  },
+  {
+   "id": "nhl-8481655",
+   "name": "Cole Schwindt",
+   "matchesPlayed": 29,
+   "goals": 5,
+   "assists": 2,
+   "points": 7
+  },
+  {
+   "id": "nhl-8482172",
+   "name": "Landon Slaggert",
+   "matchesPlayed": 53,
+   "goals": 3,
+   "assists": 4,
+   "points": 7
+  },
+  {
+   "id": "nhl-8482758",
+   "name": "Ville Koivunen",
+   "matchesPlayed": 39,
+   "goals": 2,
+   "assists": 5,
+   "points": 7
+  },
+  {
+   "id": "nhl-8482859",
+   "name": "Zack Ostapchuk",
+   "matchesPlayed": 59,
+   "goals": 4,
+   "assists": 3,
+   "points": 7
+  },
+  {
+   "id": "nhl-8483406",
+   "name": "Taylor Ward",
+   "matchesPlayed": 36,
+   "goals": 3,
+   "assists": 4,
+   "points": 7
+  },
+  {
+   "id": "nhl-8483497",
+   "name": "Jani Nyman",
+   "matchesPlayed": 28,
+   "goals": 4,
+   "assists": 3,
+   "points": 7
+  },
+  {
+   "id": "nhl-8483553",
+   "name": "Marc Gatcomb",
+   "matchesPlayed": 49,
+   "goals": 3,
+   "assists": 4,
+   "points": 7
+  },
+  {
+   "id": "nhl-8484150",
+   "name": "Hunter Brzustewicz",
+   "matchesPlayed": 34,
+   "goals": 2,
+   "assists": 5,
+   "points": 7
+  },
+  {
+   "id": "nhl-8484160",
+   "name": "Nate Danielson",
+   "matchesPlayed": 28,
+   "goals": 2,
+   "assists": 5,
+   "points": 7
+  },
+  {
+   "id": "nhl-8484388",
+   "name": "Daniil But",
+   "matchesPlayed": 29,
+   "goals": 3,
+   "assists": 4,
+   "points": 7
+  },
+  {
+   "id": "nhl-8474567",
+   "name": "Zach Bogosian",
+   "matchesPlayed": 41,
+   "goals": 2,
+   "assists": 4,
+   "points": 6
+  },
+  {
+   "id": "nhl-8476867",
+   "name": "Brendan Gaunce",
+   "matchesPlayed": 25,
+   "goals": 2,
+   "assists": 4,
+   "points": 6
+  },
+  {
+   "id": "nhl-8477365",
+   "name": "Connor Clifton",
+   "matchesPlayed": 50,
+   "goals": 2,
+   "assists": 4,
+   "points": 6
+  },
+  {
+   "id": "nhl-8477508",
+   "name": "Curtis Lazar",
+   "matchesPlayed": 45,
+   "goals": 4,
+   "assists": 2,
+   "points": 6
+  },
+  {
+   "id": "nhl-8478413",
+   "name": "Jordan Greenway",
+   "matchesPlayed": 40,
+   "goals": 1,
+   "assists": 5,
+   "points": 6
+  },
+  {
+   "id": "nhl-8480001",
+   "name": "Urho Vaakanainen",
+   "matchesPlayed": 34,
+   "goals": 0,
+   "assists": 6,
+   "points": 6
+  },
+  {
+   "id": "nhl-8480058",
+   "name": "Pierre-Olivier Joseph",
+   "matchesPlayed": 31,
+   "goals": 1,
+   "assists": 5,
+   "points": 6
+  },
+  {
+   "id": "nhl-8480144",
+   "name": "David Kampf",
+   "matchesPlayed": 40,
+   "goals": 2,
+   "assists": 4,
+   "points": 6
+  },
+  {
+   "id": "nhl-8481122",
+   "name": "Simon Benoit",
+   "matchesPlayed": 73,
+   "goals": 0,
+   "assists": 6,
+   "points": 6
+  },
+  {
+   "id": "nhl-8482094",
+   "name": "Daemon Hunt",
+   "matchesPlayed": 32,
+   "goals": 0,
+   "assists": 6,
+   "points": 6
+  },
+  {
+   "id": "nhl-8482107",
+   "name": "Michael Benning",
+   "matchesPlayed": 18,
+   "goals": 2,
+   "assists": 4,
+   "points": 6
+  },
+  {
+   "id": "nhl-8482666",
+   "name": "Scott Morrow",
+   "matchesPlayed": 29,
+   "goals": 0,
+   "assists": 6,
+   "points": 6
+  },
+  {
+   "id": "nhl-8482877",
+   "name": "Jaroslav Chmelar",
+   "matchesPlayed": 28,
+   "goals": 4,
+   "assists": 2,
+   "points": 6
+  },
+  {
+   "id": "nhl-8482896",
+   "name": "Tyson Kozak",
+   "matchesPlayed": 46,
+   "goals": 2,
+   "assists": 4,
+   "points": 6
+  },
+  {
+   "id": "nhl-8483471",
+   "name": "Brad Lambert",
+   "matchesPlayed": 25,
+   "goals": 3,
+   "assists": 3,
+   "points": 6
+  },
+  {
+   "id": "nhl-8483487",
+   "name": "Rutger McGroarty",
+   "matchesPlayed": 24,
+   "goals": 3,
+   "assists": 3,
+   "points": 6
+  },
+  {
+   "id": "nhl-8484305",
+   "name": "Zach Metsa",
+   "matchesPlayed": 43,
+   "goals": 2,
+   "assists": 4,
+   "points": 6
+  },
+  {
+   "id": "nhl-8477149",
+   "name": "Scott Sabourin",
+   "matchesPlayed": 26,
+   "goals": 1,
+   "assists": 4,
+   "points": 5
+  },
+  {
+   "id": "nhl-8477952",
+   "name": "Robby Fabbri",
+   "matchesPlayed": 21,
+   "goals": 2,
+   "assists": 3,
+   "points": 5
+  },
+  {
+   "id": "nhl-8478476",
+   "name": "Kyle Capobianco",
+   "matchesPlayed": 33,
+   "goals": 2,
+   "assists": 3,
+   "points": 5
+  },
+  {
+   "id": "nhl-8479368",
+   "name": "Max Jones",
+   "matchesPlayed": 21,
+   "goals": 3,
+   "assists": 2,
+   "points": 5
+  },
+  {
+   "id": "nhl-8479550",
+   "name": "Tanner Laczynski",
+   "matchesPlayed": 10,
+   "goals": 0,
+   "assists": 5,
+   "points": 5
+  },
+  {
+   "id": "nhl-8479944",
+   "name": "Zachary Aston-Reese",
+   "matchesPlayed": 27,
+   "goals": 1,
+   "assists": 4,
+   "points": 5
+  },
+  {
+   "id": "nhl-8480813",
+   "name": "Joseph Veleno",
+   "matchesPlayed": 61,
+   "goals": 2,
+   "assists": 3,
+   "points": 5
+  },
+  {
+   "id": "nhl-8480870",
+   "name": "Bo Groulx",
+   "matchesPlayed": 13,
+   "goals": 3,
+   "assists": 2,
+   "points": 5
+  },
+  {
+   "id": "nhl-8480879",
+   "name": "Jacob Bernard-Docker",
+   "matchesPlayed": 63,
+   "goals": 1,
+   "assists": 4,
+   "points": 5
+  },
+  {
+   "id": "nhl-8481535",
+   "name": "Nils Hoglander",
+   "matchesPlayed": 38,
+   "goals": 2,
+   "assists": 3,
+   "points": 5
+  },
+  {
+   "id": "nhl-8481726",
+   "name": "Adam Edstrom",
+   "matchesPlayed": 35,
+   "goals": 3,
+   "assists": 2,
+   "points": 5
+  },
+  {
+   "id": "nhl-8482090",
+   "name": "Jack Finley",
+   "matchesPlayed": 44,
+   "goals": 2,
+   "assists": 3,
+   "points": 5
+  },
+  {
+   "id": "nhl-8482103",
+   "name": "Ozzy Wiesblatt",
+   "matchesPlayed": 40,
+   "goals": 1,
+   "assists": 4,
+   "points": 5
+  },
+  {
+   "id": "nhl-8482742",
+   "name": "Zachary L'Heureux",
+   "matchesPlayed": 25,
+   "goals": 4,
+   "assists": 1,
+   "points": 5
+  },
+  {
+   "id": "nhl-8482874",
+   "name": "Jacob Melanson",
+   "matchesPlayed": 36,
+   "goals": 2,
+   "assists": 3,
+   "points": 5
+  },
+  {
+   "id": "nhl-8482993",
+   "name": "Avery Hayes",
+   "matchesPlayed": 16,
+   "goals": 5,
+   "assists": 0,
+   "points": 5
+  },
+  {
+   "id": "nhl-8483395",
+   "name": "Arshdeep Bains",
+   "matchesPlayed": 28,
+   "goals": 1,
+   "assists": 4,
+   "points": 5
+  },
+  {
+   "id": "nhl-8483455",
+   "name": "Isaac Howard",
+   "matchesPlayed": 29,
+   "goals": 2,
+   "assists": 3,
+   "points": 5
+  },
+  {
+   "id": "nhl-8483468",
+   "name": "Jiri Kulich",
+   "matchesPlayed": 12,
+   "goals": 3,
+   "assists": 2,
+   "points": 5
+  },
+  {
+   "id": "nhl-8483510",
+   "name": "Elias Salomonsson",
+   "matchesPlayed": 32,
+   "goals": 1,
+   "assists": 4,
+   "points": 5
+  },
+  {
+   "id": "nhl-8483771",
+   "name": "Sandis Vilmanis",
+   "matchesPlayed": 19,
+   "goals": 3,
+   "assists": 2,
+   "points": 5
+  },
+  {
+   "id": "nhl-8484321",
+   "name": "Nikolas Matinpalo",
+   "matchesPlayed": 50,
+   "goals": 0,
+   "assists": 5,
+   "points": 5
+  },
+  {
+   "id": "nhl-8484938",
+   "name": "Arttu Hyry",
+   "matchesPlayed": 20,
+   "goals": 3,
+   "assists": 2,
+   "points": 5
+  },
+  {
+   "id": "nhl-8485493",
+   "name": "David Tomasek",
+   "matchesPlayed": 22,
+   "goals": 3,
+   "assists": 2,
+   "points": 5
+  },
+  {
+   "id": "nhl-8485512",
+   "name": "Tim Washe",
+   "matchesPlayed": 39,
+   "goals": 2,
+   "assists": 3,
+   "points": 5
+  },
+  {
+   "id": "nhl-8476907",
+   "name": "Mackenzie MacEachern",
+   "matchesPlayed": 8,
+   "goals": 1,
+   "assists": 3,
+   "points": 4
+  },
+  {
+   "id": "nhl-8477070",
+   "name": "Liam O'Brien",
+   "matchesPlayed": 38,
+   "goals": 3,
+   "assists": 1,
+   "points": 4
+  },
+  {
+   "id": "nhl-8477931",
+   "name": "Tomas Nosek",
+   "matchesPlayed": 21,
+   "goals": 2,
+   "assists": 2,
+   "points": 4
+  },
+  {
+   "id": "nhl-8477938",
+   "name": "Haydn Fleury",
+   "matchesPlayed": 38,
+   "goals": 2,
+   "assists": 2,
+   "points": 4
+  },
+  {
+   "id": "nhl-8478841",
+   "name": "Colton White",
+   "matchesPlayed": 23,
+   "goals": 0,
+   "assists": 4,
+   "points": 4
+  },
+  {
+   "id": "nhl-8480842",
+   "name": "Filip Hallander",
+   "matchesPlayed": 13,
+   "goals": 1,
+   "assists": 3,
+   "points": 4
+  },
+  {
+   "id": "nhl-8480871",
+   "name": "Adam Boqvist",
+   "matchesPlayed": 28,
+   "goals": 0,
+   "assists": 4,
+   "points": 4
+  },
+  {
+   "id": "nhl-8480876",
+   "name": "Curtis Douglas",
+   "matchesPlayed": 43,
+   "goals": 1,
+   "assists": 3,
+   "points": 4
+  },
+  {
+   "id": "nhl-8481077",
+   "name": "John Leonard",
+   "matchesPlayed": 11,
+   "goals": 2,
+   "assists": 2,
+   "points": 4
+  },
+  {
+   "id": "nhl-8481600",
+   "name": "Tobias Bjornfot",
+   "matchesPlayed": 19,
+   "goals": 2,
+   "assists": 2,
+   "points": 4
+  },
+  {
+   "id": "nhl-8482623",
+   "name": "Joshua Dunne",
+   "matchesPlayed": 34,
+   "goals": 1,
+   "assists": 3,
+   "points": 4
+  },
+  {
+   "id": "nhl-8482964",
+   "name": "Arber Xhekaj",
+   "matchesPlayed": 65,
+   "goals": 1,
+   "assists": 3,
+   "points": 4
+  },
+  {
+   "id": "nhl-8483669",
+   "name": "Adam Sykora",
+   "matchesPlayed": 11,
+   "goals": 3,
+   "assists": 1,
+   "points": 4
+  },
+  {
+   "id": "nhl-8483756",
+   "name": "Jared Wright",
+   "matchesPlayed": 23,
+   "goals": 0,
+   "assists": 4,
+   "points": 4
+  },
+  {
+   "id": "nhl-8484180",
+   "name": "Samuel Honzek",
+   "matchesPlayed": 18,
+   "goals": 2,
+   "assists": 2,
+   "points": 4
+  },
+  {
+   "id": "nhl-8484188",
+   "name": "Theo Lindstein",
+   "matchesPlayed": 17,
+   "goals": 2,
+   "assists": 2,
+   "points": 4
+  },
+  {
+   "id": "nhl-8484509",
+   "name": "Josh Samanski",
+   "matchesPlayed": 24,
+   "goals": 2,
+   "assists": 2,
+   "points": 4
+  },
+  {
+   "id": "nhl-8484797",
+   "name": "Konsta Helenius",
+   "matchesPlayed": 9,
+   "goals": 1,
+   "assists": 3,
+   "points": 4
+  },
+  {
+   "id": "nhl-8484958",
+   "name": "Maksim Tsyplakov",
+   "matchesPlayed": 49,
+   "goals": 2,
+   "assists": 2,
+   "points": 4
+  },
+  {
+   "id": "nhl-8484999",
+   "name": "Ilya Protas",
+   "matchesPlayed": 4,
+   "goals": 1,
+   "assists": 3,
+   "points": 4
+  },
+  {
+   "id": "nhl-8471817",
+   "name": "Ryan Reaves",
+   "matchesPlayed": 50,
+   "goals": 3,
+   "assists": 0,
+   "points": 3
+  },
+  {
+   "id": "nhl-8475790",
+   "name": "Erik Gudbranson",
+   "matchesPlayed": 37,
+   "goals": 1,
+   "assists": 2,
+   "points": 3
+  },
+  {
+   "id": "nhl-8476856",
+   "name": "Mathew Dumba",
+   "matchesPlayed": 11,
+   "goals": 1,
+   "assists": 2,
+   "points": 3
+  },
+  {
+   "id": "nhl-8477903",
+   "name": "Garnet Hathaway",
+   "matchesPlayed": 66,
+   "goals": 1,
+   "assists": 2,
+   "points": 3
+  },
+  {
+   "id": "nhl-8479293",
+   "name": "Brandon Tanev",
+   "matchesPlayed": 56,
+   "goals": 0,
+   "assists": 3,
+   "points": 3
+  },
+  {
+   "id": "nhl-8479372",
+   "name": "Josh Mahura",
+   "matchesPlayed": 23,
+   "goals": 1,
+   "assists": 2,
+   "points": 3
+  },
+  {
+   "id": "nhl-8479942",
+   "name": "Dominik Shine",
+   "matchesPlayed": 18,
+   "goals": 3,
+   "assists": 0,
+   "points": 3
+  },
+  {
+   "id": "nhl-8479981",
+   "name": "Jonah Gadjovich",
+   "matchesPlayed": 10,
+   "goals": 0,
+   "assists": 3,
+   "points": 3
+  },
+  {
+   "id": "nhl-8479985",
+   "name": "Cale Fleury",
+   "matchesPlayed": 23,
+   "goals": 1,
+   "assists": 2,
+   "points": 3
+  },
+  {
+   "id": "nhl-8480078",
+   "name": "Filip Chytil",
+   "matchesPlayed": 12,
+   "goals": 3,
+   "assists": 0,
+   "points": 3
+  },
+  {
+   "id": "nhl-8480259",
+   "name": "Ben Jones",
+   "matchesPlayed": 28,
+   "goals": 1,
+   "assists": 2,
+   "points": 3
+  },
+  {
+   "id": "nhl-8480831",
+   "name": "Alec Regula",
+   "matchesPlayed": 29,
+   "goals": 0,
+   "assists": 3,
+   "points": 3
+  },
+  {
+   "id": "nhl-8480887",
+   "name": "Jordan Harris",
+   "matchesPlayed": 8,
+   "goals": 1,
+   "assists": 2,
+   "points": 3
+  },
+  {
+   "id": "nhl-8481028",
+   "name": "Martin Pospisil",
+   "matchesPlayed": 22,
+   "goals": 1,
+   "assists": 2,
+   "points": 3
+  },
+  {
+   "id": "nhl-8481161",
+   "name": "Jake Christiansen",
+   "matchesPlayed": 40,
+   "goals": 0,
+   "assists": 3,
+   "points": 3
+  },
+  {
+   "id": "nhl-8481178",
+   "name": "Egor Zamula",
+   "matchesPlayed": 33,
+   "goals": 0,
+   "assists": 3,
+   "points": 3
+  },
+  {
+   "id": "nhl-8481491",
+   "name": "Noah Philp",
+   "matchesPlayed": 17,
+   "goals": 2,
+   "assists": 1,
+   "points": 3
+  },
+  {
+   "id": "nhl-8481569",
+   "name": "Marshall Warren",
+   "matchesPlayed": 8,
+   "goals": 0,
+   "assists": 3,
+   "points": 3
+  },
+  {
+   "id": "nhl-8481575",
+   "name": "Lassi Thomson",
+   "matchesPlayed": 11,
+   "goals": 0,
+   "assists": 3,
+   "points": 3
+  },
+  {
+   "id": "nhl-8481609",
+   "name": "Vladislav Kolyachonok",
+   "matchesPlayed": 13,
+   "goals": 1,
+   "assists": 2,
+   "points": 3
+  },
+  {
+   "id": "nhl-8481704",
+   "name": "Juuso Parssinen",
+   "matchesPlayed": 20,
+   "goals": 2,
+   "assists": 1,
+   "points": 3
+  },
+  {
+   "id": "nhl-8482516",
+   "name": "Matthew Kessel",
+   "matchesPlayed": 29,
+   "goals": 2,
+   "assists": 1,
+   "points": 3
+  },
+  {
+   "id": "nhl-8482747",
+   "name": "Brennan Othmann",
+   "matchesPlayed": 19,
+   "goals": 2,
+   "assists": 1,
+   "points": 3
+  },
+  {
+   "id": "nhl-8482861",
+   "name": "Vincent Iorio",
+   "matchesPlayed": 27,
+   "goals": 0,
+   "assists": 3,
+   "points": 3
+  },
+  {
+   "id": "nhl-8483398",
+   "name": "Declan Carlile",
+   "matchesPlayed": 42,
+   "goals": 1,
+   "assists": 2,
+   "points": 3
+  },
+  {
+   "id": "nhl-8483447",
+   "name": "Conor Geekie",
+   "matchesPlayed": 14,
+   "goals": 1,
+   "assists": 2,
+   "points": 3
+  },
+  {
+   "id": "nhl-8483465",
+   "name": "Joakim Kemell",
+   "matchesPlayed": 16,
+   "goals": 1,
+   "assists": 2,
+   "points": 3
+  },
+  {
+   "id": "nhl-8483476",
+   "name": "Jonathan Lekkerimaki",
+   "matchesPlayed": 13,
+   "goals": 2,
+   "assists": 1,
+   "points": 3
+  },
+  {
+   "id": "nhl-8483491",
+   "name": "Ivan Miroshnichenko",
+   "matchesPlayed": 13,
+   "goals": 2,
+   "assists": 1,
+   "points": 3
+  },
+  {
+   "id": "nhl-8483687",
+   "name": "Marek Alscher",
+   "matchesPlayed": 4,
+   "goals": 0,
+   "assists": 3,
+   "points": 3
+  },
+  {
+   "id": "nhl-8483768",
+   "name": "Victor Mancini",
+   "matchesPlayed": 24,
+   "goals": 0,
+   "assists": 3,
+   "points": 3
+  },
+  {
+   "id": "nhl-8484203",
+   "name": "Bradly Nadeau",
+   "matchesPlayed": 12,
+   "goals": 3,
+   "assists": 0,
+   "points": 3
+  },
+  {
+   "id": "nhl-8484901",
+   "name": "Jacob Quillan",
+   "matchesPlayed": 23,
+   "goals": 1,
+   "assists": 2,
+   "points": 3
+  },
+  {
+   "id": "nhl-8474090",
+   "name": "Brendan Smith",
+   "matchesPlayed": 15,
+   "goals": 0,
+   "assists": 2,
+   "points": 2
+  },
+  {
+   "id": "nhl-8474612",
+   "name": "Travis Hamonic",
+   "matchesPlayed": 26,
+   "goals": 0,
+   "assists": 2,
+   "points": 2
+  },
+  {
+   "id": "nhl-8475235",
+   "name": "Nicolas Deslauriers",
+   "matchesPlayed": 31,
+   "goals": 0,
+   "assists": 2,
+   "points": 2
+  },
+  {
+   "id": "nhl-8475690",
+   "name": "Chris Tanev",
+   "matchesPlayed": 11,
+   "goals": 0,
+   "assists": 2,
+   "points": 2
+  },
+  {
+   "id": "nhl-8475718",
+   "name": "Justin Holl",
+   "matchesPlayed": 9,
+   "goals": 1,
+   "assists": 1,
+   "points": 2
+  },
+  {
+   "id": "nhl-8475752",
+   "name": "Tyler Pitlick",
+   "matchesPlayed": 32,
+   "goals": 2,
+   "assists": 0,
+   "points": 2
+  },
+  {
+   "id": "nhl-8476525",
+   "name": "Colin Miller",
+   "matchesPlayed": 18,
+   "goals": 0,
+   "assists": 2,
+   "points": 2
+  },
+  {
+   "id": "nhl-8477979",
+   "name": "Nicolas Aube-Kubel",
+   "matchesPlayed": 6,
+   "goals": 0,
+   "assists": 2,
+   "points": 2
+  },
+  {
+   "id": "nhl-8477993",
+   "name": "Justin Kirkland",
+   "matchesPlayed": 20,
+   "goals": 1,
+   "assists": 1,
+   "points": 2
+  },
+  {
+   "id": "nhl-8477996",
+   "name": "Juho Lammikko",
+   "matchesPlayed": 24,
+   "goals": 0,
+   "assists": 2,
+   "points": 2
+  },
+  {
+   "id": "nhl-8478043",
+   "name": "Sam Lafferty",
+   "matchesPlayed": 29,
+   "goals": 1,
+   "assists": 1,
+   "points": 2
+  },
+  {
+   "id": "nhl-8479026",
+   "name": "Philippe Myers",
+   "matchesPlayed": 39,
+   "goals": 0,
+   "assists": 2,
+   "points": 2
+  },
+  {
+   "id": "nhl-8479395",
+   "name": "Dennis Cholowski",
+   "matchesPlayed": 17,
+   "goals": 0,
+   "assists": 2,
+   "points": 2
+  },
+  {
+   "id": "nhl-8479402",
+   "name": "Jake Bean",
+   "matchesPlayed": 16,
+   "goals": 1,
+   "assists": 1,
+   "points": 2
+  },
+  {
+   "id": "nhl-8480245",
+   "name": "Olle Lycksell",
+   "matchesPlayed": 7,
+   "goals": 1,
+   "assists": 1,
+   "points": 2
+  },
+  {
+   "id": "nhl-8480891",
+   "name": "Michael Kesselring",
+   "matchesPlayed": 34,
+   "goals": 0,
+   "assists": 2,
+   "points": 2
+  },
+  {
+   "id": "nhl-8481070",
+   "name": "Hugh McGing",
+   "matchesPlayed": 3,
+   "goals": 1,
+   "assists": 1,
+   "points": 2
+  },
+  {
+   "id": "nhl-8481186",
+   "name": "Logan O'Connor",
+   "matchesPlayed": 13,
+   "goals": 0,
+   "assists": 2,
+   "points": 2
+  },
+  {
+   "id": "nhl-8481732",
+   "name": "Andre Lee",
+   "matchesPlayed": 7,
+   "goals": 1,
+   "assists": 1,
+   "points": 2
+  },
+  {
+   "id": "nhl-8482072",
+   "name": "Jack Ahcan",
+   "matchesPlayed": 11,
+   "goals": 0,
+   "assists": 2,
+   "points": 2
+  },
+  {
+   "id": "nhl-8483452",
+   "name": "Hunter Haight",
+   "matchesPlayed": 9,
+   "goals": 1,
+   "assists": 1,
+   "points": 2
+  },
+  {
+   "id": "nhl-8483466",
+   "name": "Kevin Korchinski",
+   "matchesPlayed": 13,
+   "goals": 0,
+   "assists": 2,
+   "points": 2
+  },
+  {
+   "id": "nhl-8483467",
+   "name": "Kirill Kudryavtsev",
+   "matchesPlayed": 3,
+   "goals": 0,
+   "assists": 2,
+   "points": 2
+  },
+  {
+   "id": "nhl-8483531",
+   "name": "Brian Halonen",
+   "matchesPlayed": 15,
+   "goals": 1,
+   "assists": 1,
+   "points": 2
+  },
+  {
+   "id": "nhl-8484148",
+   "name": "Oliver Bonk",
+   "matchesPlayed": 1,
+   "goals": 1,
+   "assists": 1,
+   "points": 2
+  },
+  {
+   "id": "nhl-8484168",
+   "name": "Oscar Fisker Molgaard",
+   "matchesPlayed": 13,
+   "goals": 0,
+   "assists": 2,
+   "points": 2
+  },
+  {
+   "id": "nhl-8484169",
+   "name": "Drew Fortescue",
+   "matchesPlayed": 9,
+   "goals": 0,
+   "assists": 2,
+   "points": 2
+  },
+  {
+   "id": "nhl-8484380",
+   "name": "Wilmer Skoog",
+   "matchesPlayed": 3,
+   "goals": 0,
+   "assists": 2,
+   "points": 2
+  },
+  {
+   "id": "nhl-8484428",
+   "name": "Charles Alexis Legault",
+   "matchesPlayed": 12,
+   "goals": 1,
+   "assists": 1,
+   "points": 2
+  },
+  {
+   "id": "nhl-8484759",
+   "name": "Carter Yakemchuk",
+   "matchesPlayed": 4,
+   "goals": 1,
+   "assists": 1,
+   "points": 2
+  },
+  {
+   "id": "nhl-8484793",
+   "name": "Sacha Boisvert",
+   "matchesPlayed": 7,
+   "goals": 1,
+   "assists": 1,
+   "points": 2
+  },
+  {
+   "id": "nhl-8474149",
+   "name": "Evgenii Dadonov",
+   "matchesPlayed": 24,
+   "goals": 1,
+   "assists": 0,
+   "points": 1
+  },
+  {
+   "id": "nhl-8476952",
+   "name": "Dominic Toninato",
+   "matchesPlayed": 8,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8477073",
+   "name": "Kurtis MacDermid",
+   "matchesPlayed": 19,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8477320",
+   "name": "Anton Blidh",
+   "matchesPlayed": 4,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8477435",
+   "name": "Ryan Graves",
+   "matchesPlayed": 22,
+   "goals": 1,
+   "assists": 0,
+   "points": 1
+  },
+  {
+   "id": "nhl-8477463",
+   "name": "Steven Santini",
+   "matchesPlayed": 12,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8477541",
+   "name": "Dakota Mermis",
+   "matchesPlayed": 11,
+   "goals": 1,
+   "assists": 0,
+   "points": 1
+  },
+  {
+   "id": "nhl-8478062",
+   "name": "Dysin Mayo",
+   "matchesPlayed": 3,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8478452",
+   "name": "Caleb Jones",
+   "matchesPlayed": 7,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8478502",
+   "name": "Dennis Gilbert",
+   "matchesPlayed": 8,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8478888",
+   "name": "Cameron Hughes",
+   "matchesPlayed": 3,
+   "goals": 1,
+   "assists": 0,
+   "points": 1
+  },
+  {
+   "id": "nhl-8479291",
+   "name": "Kevin Rooney",
+   "matchesPlayed": 1,
+   "goals": 1,
+   "assists": 0,
+   "points": 1
+  },
+  {
+   "id": "nhl-8479339",
+   "name": "Patrik Laine",
+   "matchesPlayed": 5,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8479362",
+   "name": "Riley Tufte",
+   "matchesPlayed": 4,
+   "goals": 1,
+   "assists": 0,
+   "points": 1
+  },
+  {
+   "id": "nhl-8479387",
+   "name": "Keaton Middleton",
+   "matchesPlayed": 3,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8479533",
+   "name": "Joona Koppanen",
+   "matchesPlayed": 13,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8479644",
+   "name": "Matt Luff",
+   "matchesPlayed": 5,
+   "goals": 1,
+   "assists": 0,
+   "points": 1
+  },
+  {
+   "id": "nhl-8479718",
+   "name": "Alex Barre-Boulet",
+   "matchesPlayed": 2,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8480007",
+   "name": "Jonas Rondbjerg",
+   "matchesPlayed": 4,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8480075",
+   "name": "Cameron Crotty",
+   "matchesPlayed": 6,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8480825",
+   "name": "Patrick Giles",
+   "matchesPlayed": 3,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8481014",
+   "name": "Alexander Romanov",
+   "matchesPlayed": 15,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8481065",
+   "name": "Angus Crookshank",
+   "matchesPlayed": 8,
+   "goals": 1,
+   "assists": 0,
+   "points": 1
+  },
+  {
+   "id": "nhl-8481518",
+   "name": "Nolan Foote",
+   "matchesPlayed": 12,
+   "goals": 1,
+   "assists": 0,
+   "points": 1
+  },
+  {
+   "id": "nhl-8481560",
+   "name": "Arthur Kaliyev",
+   "matchesPlayed": 2,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8481577",
+   "name": "Philip Tomasino",
+   "matchesPlayed": 9,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8481599",
+   "name": "Victor Soderstrom",
+   "matchesPlayed": 8,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8482070",
+   "name": "Mitchell Chaffee",
+   "matchesPlayed": 11,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8482118",
+   "name": "Sam Colangelo",
+   "matchesPlayed": 9,
+   "goals": 1,
+   "assists": 0,
+   "points": 1
+  },
+  {
+   "id": "nhl-8482153",
+   "name": "Brendan Brisson",
+   "matchesPlayed": 3,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8482168",
+   "name": "Maxim Groshev",
+   "matchesPlayed": 2,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8482206",
+   "name": "Ethan Cardwell",
+   "matchesPlayed": 7,
+   "goals": 1,
+   "assists": 0,
+   "points": 1
+  },
+  {
+   "id": "nhl-8482451",
+   "name": "Mikael Pyyhtia",
+   "matchesPlayed": 5,
+   "goals": 1,
+   "assists": 0,
+   "points": 1
+  },
+  {
+   "id": "nhl-8482460",
+   "name": "Matt Rempe",
+   "matchesPlayed": 26,
+   "goals": 1,
+   "assists": 0,
+   "points": 1
+  },
+  {
+   "id": "nhl-8482641",
+   "name": "Matt Kiersted",
+   "matchesPlayed": 6,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8482785",
+   "name": "Justin Robidas",
+   "matchesPlayed": 2,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8482807",
+   "name": "Ethan Del Mastro",
+   "matchesPlayed": 19,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8483039",
+   "name": "Tristen Nielsen",
+   "matchesPlayed": 4,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8483424",
+   "name": "Owen Beck",
+   "matchesPlayed": 15,
+   "goals": 1,
+   "assists": 0,
+   "points": 1
+  },
+  {
+   "id": "nhl-8483432",
+   "name": "Luca Del Bel Belluz",
+   "matchesPlayed": 14,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8483448",
+   "name": "Isaiah George",
+   "matchesPlayed": 4,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8483472",
+   "name": "Maveric Lamoureux",
+   "matchesPlayed": 5,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8483482",
+   "name": "Tristan Luneau",
+   "matchesPlayed": 1,
+   "goals": 1,
+   "assists": 0,
+   "points": 1
+  },
+  {
+   "id": "nhl-8483505",
+   "name": "Matthew Poitras",
+   "matchesPlayed": 3,
+   "goals": 1,
+   "assists": 0,
+   "points": 1
+  },
+  {
+   "id": "nhl-8483526",
+   "name": "Danil Zhilkin",
+   "matchesPlayed": 6,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8483686",
+   "name": "Adam Engstrom",
+   "matchesPlayed": 15,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8483696",
+   "name": "Cole O'Hara",
+   "matchesPlayed": 1,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8483699",
+   "name": "Angus Booth",
+   "matchesPlayed": 1,
+   "goals": 1,
+   "assists": 0,
+   "points": 1
+  },
+  {
+   "id": "nhl-8483712",
+   "name": "Ludvig Jansson",
+   "matchesPlayed": 4,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8483728",
+   "name": "Jared Davidson",
+   "matchesPlayed": 10,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8483760",
+   "name": "Hunter McDonald",
+   "matchesPlayed": 1,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8483930",
+   "name": "Ivan Ivan",
+   "matchesPlayed": 9,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8484135",
+   "name": "Parker Ford",
+   "matchesPlayed": 15,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8484220",
+   "name": "David Reinbacher",
+   "matchesPlayed": 2,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8484234",
+   "name": "Aydar Suniev",
+   "matchesPlayed": 6,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8484262",
+   "name": "Travis Mitchell",
+   "matchesPlayed": 9,
+   "goals": 1,
+   "assists": 0,
+   "points": 1
+  },
+  {
+   "id": "nhl-8484386",
+   "name": "Dmitri Simashev",
+   "matchesPlayed": 28,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8484392",
+   "name": "Felix Unger Sörum",
+   "matchesPlayed": 1,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8484403",
+   "name": "Florian Xhekaj",
+   "matchesPlayed": 5,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8484406",
+   "name": "Ty Mueller",
+   "matchesPlayed": 6,
+   "goals": 1,
+   "assists": 0,
+   "points": 1
+  },
+  {
+   "id": "nhl-8484529",
+   "name": "Connor Clattenburg",
+   "matchesPlayed": 5,
+   "goals": 1,
+   "assists": 0,
+   "points": 1
+  },
+  {
+   "id": "nhl-8484794",
+   "name": "Michael Brandsegg-Nygård",
+   "matchesPlayed": 14,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8484839",
+   "name": "Harrison Brunicke",
+   "matchesPlayed": 9,
+   "goals": 1,
+   "assists": 0,
+   "points": 1
+  },
+  {
+   "id": "nhl-8484933",
+   "name": "Mikulas Hovorka",
+   "matchesPlayed": 4,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8485388",
+   "name": "Victor Eklund",
+   "matchesPlayed": 1,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8485395",
+   "name": "James Hagens",
+   "matchesPlayed": 2,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8485405",
+   "name": "Brady Martin",
+   "matchesPlayed": 3,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8485467",
+   "name": "Luke Haymes",
+   "matchesPlayed": 4,
+   "goals": 0,
+   "assists": 1,
+   "points": 1
+  },
+  {
+   "id": "nhl-8485511",
+   "name": "Quinn Hutson",
+   "matchesPlayed": 4,
+   "goals": 1,
+   "assists": 0,
+   "points": 1
+  },
+  {
+   "id": "nhl-8486056",
+   "name": "Tyson Gross",
+   "matchesPlayed": 6,
+   "goals": 1,
+   "assists": 0,
+   "points": 1
+  },
+  {
+   "id": "nhl-8475179",
+   "name": "Dmitry Kulikov",
+   "matchesPlayed": 19,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8475253",
+   "name": "Garrett Wilson",
+   "matchesPlayed": 3,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8475413",
+   "name": "Justin Dowling",
+   "matchesPlayed": 2,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8475461",
+   "name": "Andrew Agozzino",
+   "matchesPlayed": 2,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8475762",
+   "name": "Derek Forbort",
+   "matchesPlayed": 2,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8475795",
+   "name": "Dylan McIlrath",
+   "matchesPlayed": 13,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8475857",
+   "name": "Kevin Gravel",
+   "matchesPlayed": 1,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8476391",
+   "name": "T.J. Tynan",
+   "matchesPlayed": 1,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8476425",
+   "name": "Joseph LaBate",
+   "matchesPlayed": 1,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8476979",
+   "name": "Erik Gustafsson",
+   "matchesPlayed": 2,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8476988",
+   "name": "Matthew Benning",
+   "matchesPlayed": 1,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8477034",
+   "name": "Jaycob Megna",
+   "matchesPlayed": 4,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8477401",
+   "name": "John Hayden",
+   "matchesPlayed": 3,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8477419",
+   "name": "Mason Geertsen",
+   "matchesPlayed": 5,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8477851",
+   "name": "Jordan Oesterle",
+   "matchesPlayed": 1,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8477971",
+   "name": "Andreas Englund",
+   "matchesPlayed": 3,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8478147",
+   "name": "Bokondji Imama",
+   "matchesPlayed": 2,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8478173",
+   "name": "Hayden Hodgson",
+   "matchesPlayed": 10,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8478211",
+   "name": "Dryden Hunt",
+   "matchesPlayed": 3,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8478409",
+   "name": "Anthony Richard",
+   "matchesPlayed": 1,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8478967",
+   "name": "Lane Pederson",
+   "matchesPlayed": 5,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8479383",
+   "name": "Boris Katchouk",
+   "matchesPlayed": 3,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8479388",
+   "name": "Riley Stillman",
+   "matchesPlayed": 4,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8479421",
+   "name": "Jacob Moverare",
+   "matchesPlayed": 15,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8479543",
+   "name": "Michael Pezzetta",
+   "matchesPlayed": 9,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8479639",
+   "name": "Dylan Coghlan",
+   "matchesPlayed": 3,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8479772",
+   "name": "Zack MacEwen",
+   "matchesPlayed": 3,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8479941",
+   "name": "Justin Danforth",
+   "matchesPlayed": 4,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8480021",
+   "name": "Jack Studnicka",
+   "matchesPlayed": 19,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8480291",
+   "name": "Skyler Brind'Amour",
+   "matchesPlayed": 4,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8480326",
+   "name": "Sheldon Dries",
+   "matchesPlayed": 5,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8480828",
+   "name": "Michael Callahan",
+   "matchesPlayed": 5,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8480853",
+   "name": "Liam Foudy",
+   "matchesPlayed": 1,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8480874",
+   "name": "Adam Ginning",
+   "matchesPlayed": 5,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8481004",
+   "name": "Josiah Slavin",
+   "matchesPlayed": 2,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8481093",
+   "name": "Rafael Harvey-Pinard",
+   "matchesPlayed": 1,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8481517",
+   "name": "Brett Leason",
+   "matchesPlayed": 6,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8481534",
+   "name": "Raphael Lavoie",
+   "matchesPlayed": 1,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8481547",
+   "name": "Simon Lundmark",
+   "matchesPlayed": 1,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8481562",
+   "name": "Domenick Fensore",
+   "matchesPlayed": 1,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8481564",
+   "name": "Ryan Johnson",
+   "matchesPlayed": 3,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8481567",
+   "name": "Henry Thrun",
+   "matchesPlayed": 4,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8481572",
+   "name": "Ville Heinola",
+   "matchesPlayed": 5,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8481591",
+   "name": "Samuel Poulin",
+   "matchesPlayed": 2,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8481592",
+   "name": "Jakob Pelletier",
+   "matchesPlayed": 5,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8481594",
+   "name": "Nathan Légaré",
+   "matchesPlayed": 1,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8481712",
+   "name": "Matej Blümel",
+   "matchesPlayed": 4,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8481715",
+   "name": "Hunter Skinner",
+   "matchesPlayed": 1,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8481848",
+   "name": "Jacob Gaucher",
+   "matchesPlayed": 4,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8482067",
+   "name": "Connor Mackey",
+   "matchesPlayed": 3,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8482132",
+   "name": "Brett Berard",
+   "matchesPlayed": 13,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8482162",
+   "name": "Roby Jarventie",
+   "matchesPlayed": 3,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8482167",
+   "name": "Bogdan Trineyev",
+   "matchesPlayed": 2,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8482174",
+   "name": "William Villeneuve",
+   "matchesPlayed": 3,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8482187",
+   "name": "Ronan Seeley",
+   "matchesPlayed": 1,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8482192",
+   "name": "Isaak Phillips",
+   "matchesPlayed": 3,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8482209",
+   "name": "Rory Kerins",
+   "matchesPlayed": 4,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8482479",
+   "name": "Trevor Kuntar",
+   "matchesPlayed": 1,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8482496",
+   "name": "Nils Aman",
+   "matchesPlayed": 2,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8482525",
+   "name": "Ryan Tverberg",
+   "matchesPlayed": 2,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8482624",
+   "name": "Daniil Miromanov",
+   "matchesPlayed": 1,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8482652",
+   "name": "Walker Duehr",
+   "matchesPlayed": 3,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8482663",
+   "name": "Dylan Duke",
+   "matchesPlayed": 1,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8482673",
+   "name": "Xavier Bourgault",
+   "matchesPlayed": 2,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8482698",
+   "name": "Tristan Broz",
+   "matchesPlayed": 1,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8482731",
+   "name": "Tyson Hinds",
+   "matchesPlayed": 6,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8482749",
+   "name": "Joshua Roy",
+   "matchesPlayed": 3,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8482766",
+   "name": "William Stromgren",
+   "matchesPlayed": 3,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8482781",
+   "name": "Carson Lambos",
+   "matchesPlayed": 1,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8482787",
+   "name": "Nikita Chibrikov",
+   "matchesPlayed": 11,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8482802",
+   "name": "Carter Mazur",
+   "matchesPlayed": 8,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8482804",
+   "name": "Ty Murchison",
+   "matchesPlayed": 3,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8482873",
+   "name": "Topias Vilen",
+   "matchesPlayed": 2,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8482941",
+   "name": "Shane Lachance",
+   "matchesPlayed": 1,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8482953",
+   "name": "Taylor Makar",
+   "matchesPlayed": 12,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8483397",
+   "name": "Marc McLaughlin",
+   "matchesPlayed": 7,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8483429",
+   "name": "Seamus Casey",
+   "matchesPlayed": 2,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8483433",
+   "name": "Jack Devine",
+   "matchesPlayed": 6,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8483435",
+   "name": "Jorian Donovan",
+   "matchesPlayed": 2,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8483444",
+   "name": "Nathan Gaucher",
+   "matchesPlayed": 3,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8483460",
+   "name": "David Jiricek",
+   "matchesPlayed": 26,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8483463",
+   "name": "Aleksanteri Kaskimaki",
+   "matchesPlayed": 5,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8483503",
+   "name": "Owen Pickering",
+   "matchesPlayed": 4,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8483546",
+   "name": "Marshall Rifai",
+   "matchesPlayed": 1,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8483567",
+   "name": "Georgii Merkulov",
+   "matchesPlayed": 1,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8483675",
+   "name": "Kenny Connors",
+   "matchesPlayed": 2,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8483709",
+   "name": "Abram Wiebe",
+   "matchesPlayed": 4,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8483766",
+   "name": "David Spacek",
+   "matchesPlayed": 2,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8483841",
+   "name": "Xavier Parent",
+   "matchesPlayed": 5,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8484152",
+   "name": "Luca Cagnoni",
+   "matchesPlayed": 3,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8484214",
+   "name": "Luca Pinelli",
+   "matchesPlayed": 3,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8484242",
+   "name": "Brayden Yager",
+   "matchesPlayed": 3,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8484255",
+   "name": "Jason Polin",
+   "matchesPlayed": 4,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8484287",
+   "name": "Cole McWard",
+   "matchesPlayed": 3,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8484779",
+   "name": "Jett Luchanko",
+   "matchesPlayed": 4,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8484821",
+   "name": "Sam Morton",
+   "matchesPlayed": 3,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8485251",
+   "name": "Kai Uchacz",
+   "matchesPlayed": 3,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8485385",
+   "name": "Braeden Cootes",
+   "matchesPlayed": 3,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8486166",
+   "name": "Viking Gustafsson Nyberg",
+   "matchesPlayed": 2,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  },
+  {
+   "id": "nhl-8486169",
+   "name": "Jake Livanavage",
+   "matchesPlayed": 1,
+   "goals": 0,
+   "assists": 0,
+   "points": 0
+  }
+ ],
+ "goalies": [
+  {
+   "id": "nhl-8478872",
+   "name": "Karel Vejmelka",
+   "matchesPlayed": 64,
+   "shotsAgainst": 1626,
+   "saves": 1458
+  },
+  {
+   "id": "nhl-8477424",
+   "name": "Juuse Saros",
+   "matchesPlayed": 59,
+   "shotsAgainst": 1700,
+   "saves": 1519
+  },
+  {
+   "id": "nhl-8476883",
+   "name": "Andrei Vasilevskiy",
+   "matchesPlayed": 58,
+   "shotsAgainst": 1483,
+   "saves": 1353
+  },
+  {
+   "id": "nhl-8480313",
+   "name": "Logan Thompson",
+   "matchesPlayed": 58,
+   "shotsAgainst": 1587,
+   "saves": 1447
+  },
+  {
+   "id": "nhl-8476434",
+   "name": "John Gibson",
+   "matchesPlayed": 57,
+   "shotsAgainst": 1461,
+   "saves": 1317
+  },
+  {
+   "id": "nhl-8476945",
+   "name": "Connor Hellebuyck",
+   "matchesPlayed": 57,
+   "shotsAgainst": 1547,
+   "saves": 1385
+  },
+  {
+   "id": "nhl-8481692",
+   "name": "Dustin Wolf",
+   "matchesPlayed": 57,
+   "shotsAgainst": 1558,
+   "saves": 1401
+  },
+  {
+   "id": "nhl-8480843",
+   "name": "Lukas Dostal",
+   "matchesPlayed": 56,
+   "shotsAgainst": 1513,
+   "saves": 1344
+  },
+  {
+   "id": "nhl-8478009",
+   "name": "Ilya Sorokin",
+   "matchesPlayed": 55,
+   "shotsAgainst": 1530,
+   "saves": 1386
+  },
+  {
+   "id": "nhl-8480280",
+   "name": "Jeremy Swayman",
+   "matchesPlayed": 55,
+   "shotsAgainst": 1571,
+   "saves": 1426
+  },
+  {
+   "id": "nhl-8481519",
+   "name": "Spencer Knight",
+   "matchesPlayed": 55,
+   "shotsAgainst": 1583,
+   "saves": 1428
+  },
+  {
+   "id": "nhl-8482982",
+   "name": "Jet Greaves",
+   "matchesPlayed": 55,
+   "shotsAgainst": 1539,
+   "saves": 1397
+  },
+  {
+   "id": "nhl-8479979",
+   "name": "Jake Oettinger",
+   "matchesPlayed": 54,
+   "shotsAgainst": 1372,
+   "saves": 1234
+  },
+  {
+   "id": "nhl-8475683",
+   "name": "Sergei Bobrovsky",
+   "matchesPlayed": 52,
+   "shotsAgainst": 1250,
+   "saves": 1096
+  },
+  {
+   "id": "nhl-8478435",
+   "name": "Dan Vladar",
+   "matchesPlayed": 52,
+   "shotsAgainst": 1283,
+   "saves": 1162
+  },
+  {
+   "id": "nhl-8478048",
+   "name": "Igor Shesterkin",
+   "matchesPlayed": 51,
+   "shotsAgainst": 1425,
+   "saves": 1299
+  },
+  {
+   "id": "nhl-8475311",
+   "name": "Darcy Kuemper",
+   "matchesPlayed": 50,
+   "shotsAgainst": 1234,
+   "saves": 1100
+  },
+  {
+   "id": "nhl-8479406",
+   "name": "Filip Gustavsson",
+   "matchesPlayed": 50,
+   "shotsAgainst": 1377,
+   "saves": 1245
+  },
+  {
+   "id": "nhl-8479973",
+   "name": "Stuart Skinner",
+   "matchesPlayed": 50,
+   "shotsAgainst": 1267,
+   "saves": 1125
+  },
+  {
+   "id": "nhl-8476999",
+   "name": "Linus Ullmark",
+   "matchesPlayed": 49,
+   "shotsAgainst": 1198,
+   "saves": 1067
+  },
+  {
+   "id": "nhl-8478916",
+   "name": "Joey Daccord",
+   "matchesPlayed": 47,
+   "shotsAgainst": 1307,
+   "saves": 1173
+  },
+  {
+   "id": "nhl-8480947",
+   "name": "Kevin Lankinen",
+   "matchesPlayed": 47,
+   "shotsAgainst": 1285,
+   "saves": 1125
+  },
+  {
+   "id": "nhl-8482137",
+   "name": "Yaroslav Askarov",
+   "matchesPlayed": 47,
+   "shotsAgainst": 1341,
+   "saves": 1185
+  },
+  {
+   "id": "nhl-8480981",
+   "name": "Joel Hofer",
+   "matchesPlayed": 46,
+   "shotsAgainst": 1250,
+   "saves": 1137
+  },
+  {
+   "id": "nhl-8475809",
+   "name": "Scott Wedgewood",
+   "matchesPlayed": 45,
+   "shotsAgainst": 1093,
+   "saves": 1007
+  },
+  {
+   "id": "nhl-8474593",
+   "name": "Jacob Markstrom",
+   "matchesPlayed": 44,
+   "shotsAgainst": 1113,
+   "saves": 983
+  },
+  {
+   "id": "nhl-8482487",
+   "name": "Jakub Dobes",
+   "matchesPlayed": 43,
+   "shotsAgainst": 1187,
+   "saves": 1070
+  },
+  {
+   "id": "nhl-8476412",
+   "name": "Jordan Binnington",
+   "matchesPlayed": 41,
+   "shotsAgainst": 1010,
+   "saves": 882
+  },
+  {
+   "id": "nhl-8477968",
+   "name": "Alex Nedeljkovic",
+   "matchesPlayed": 40,
+   "shotsAgainst": 1049,
+   "saves": 940
+  },
+  {
+   "id": "nhl-8478406",
+   "name": "Mackenzie Blackwood",
+   "matchesPlayed": 39,
+   "shotsAgainst": 933,
+   "saves": 843
+  },
+  {
+   "id": "nhl-8479361",
+   "name": "Joseph Woll",
+   "matchesPlayed": 39,
+   "shotsAgainst": 1220,
+   "saves": 1097
+  },
+  {
+   "id": "nhl-8481668",
+   "name": "Arturs Silovs",
+   "matchesPlayed": 39,
+   "shotsAgainst": 1020,
+   "saves": 906
+  },
+  {
+   "id": "nhl-8483548",
+   "name": "Brandon Bussi",
+   "matchesPlayed": 39,
+   "shotsAgainst": 912,
+   "saves": 816
+  },
+  {
+   "id": "nhl-8474596",
+   "name": "Jake Allen",
+   "matchesPlayed": 37,
+   "shotsAgainst": 1031,
+   "saves": 932
+  },
+  {
+   "id": "nhl-8476341",
+   "name": "Anton Forsberg",
+   "matchesPlayed": 36,
+   "shotsAgainst": 952,
+   "saves": 866
+  },
+  {
+   "id": "nhl-8479312",
+   "name": "Alex Lyon",
+   "matchesPlayed": 36,
+   "shotsAgainst": 979,
+   "saves": 888
+  },
+  {
+   "id": "nhl-8475883",
+   "name": "Frederik Andersen",
+   "matchesPlayed": 35,
+   "shotsAgainst": 849,
+   "saves": 742
+  },
+  {
+   "id": "nhl-8480045",
+   "name": "Ukko-Pekka Luukkonen",
+   "matchesPlayed": 35,
+   "shotsAgainst": 930,
+   "saves": 846
+  },
+  {
+   "id": "nhl-8482661",
+   "name": "Jesper Wallstedt",
+   "matchesPlayed": 35,
+   "shotsAgainst": 1020,
+   "saves": 934
+  },
+  {
+   "id": "nhl-8475660",
+   "name": "Cam Talbot",
+   "matchesPlayed": 34,
+   "shotsAgainst": 797,
+   "saves": 704
+  },
+  {
+   "id": "nhl-8481033",
+   "name": "Akira Schmid",
+   "matchesPlayed": 34,
+   "shotsAgainst": 791,
+   "saves": 706
+  },
+  {
+   "id": "nhl-8477465",
+   "name": "Tristan Jarry",
+   "matchesPlayed": 33,
+   "shotsAgainst": 832,
+   "saves": 734
+  },
+  {
+   "id": "nhl-8480193",
+   "name": "Daniil Tarasov",
+   "matchesPlayed": 33,
+   "shotsAgainst": 925,
+   "saves": 828
+  },
+  {
+   "id": "nhl-8481035",
+   "name": "Samuel Ersson",
+   "matchesPlayed": 33,
+   "shotsAgainst": 744,
+   "saves": 647
+  },
+  {
+   "id": "nhl-8475831",
+   "name": "Philipp Grubauer",
+   "matchesPlayed": 32,
+   "shotsAgainst": 866,
+   "saves": 787
+  },
+  {
+   "id": "nhl-8478971",
+   "name": "Connor Ingram",
+   "matchesPlayed": 32,
+   "shotsAgainst": 763,
+   "saves": 686
+  },
+  {
+   "id": "nhl-8476914",
+   "name": "Joonas Korpisalo",
+   "matchesPlayed": 31,
+   "shotsAgainst": 851,
+   "saves": 761
+  },
+  {
+   "id": "nhl-8482445",
+   "name": "Devin Cooley",
+   "matchesPlayed": 31,
+   "shotsAgainst": 847,
+   "saves": 770
+  },
+  {
+   "id": "nhl-8478007",
+   "name": "Elvis Merzlikins",
+   "matchesPlayed": 30,
+   "shotsAgainst": 812,
+   "saves": 717
+  },
+  {
+   "id": "nhl-8479193",
+   "name": "Casey DeSmith",
+   "matchesPlayed": 30,
+   "shotsAgainst": 760,
+   "saves": 689
+  },
+  {
+   "id": "nhl-8479496",
+   "name": "David Rittich",
+   "matchesPlayed": 30,
+   "shotsAgainst": 720,
+   "saves": 644
+  },
+  {
+   "id": "nhl-8481020",
+   "name": "Justus Annunen",
+   "matchesPlayed": 28,
+   "shotsAgainst": 711,
+   "saves": 645
+  },
+  {
+   "id": "nhl-8478499",
+   "name": "Adin Hill",
+   "matchesPlayed": 27,
+   "shotsAgainst": 587,
+   "saves": 511
+  },
+  {
+   "id": "nhl-8476932",
+   "name": "Anthony Stolarz",
+   "matchesPlayed": 26,
+   "shotsAgainst": 708,
+   "saves": 632
+  },
+  {
+   "id": "nhl-8482821",
+   "name": "Arvid Soderblom",
+   "matchesPlayed": 26,
+   "shotsAgainst": 774,
+   "saves": 681
+  },
+  {
+   "id": "nhl-8471734",
+   "name": "Jonathan Quick",
+   "matchesPlayed": 25,
+   "shotsAgainst": 671,
+   "saves": 598
+  },
+  {
+   "id": "nhl-8477480",
+   "name": "Eric Comrie",
+   "matchesPlayed": 25,
+   "shotsAgainst": 654,
+   "saves": 582
+  },
+  {
+   "id": "nhl-8477992",
+   "name": "Jonas Johansson",
+   "matchesPlayed": 25,
+   "shotsAgainst": 670,
+   "saves": 592
+  },
+  {
+   "id": "nhl-8478470",
+   "name": "Samuel Montembeault",
+   "matchesPlayed": 25,
+   "shotsAgainst": 635,
+   "saves": 554
+  },
+  {
+   "id": "nhl-8477970",
+   "name": "Vitek Vanecek",
+   "matchesPlayed": 22,
+   "shotsAgainst": 506,
+   "saves": 447
+  },
+  {
+   "id": "nhl-8479292",
+   "name": "Charlie Lindgren",
+   "matchesPlayed": 21,
+   "shotsAgainst": 602,
+   "saves": 529
+  },
+  {
+   "id": "nhl-8484268",
+   "name": "Nikita Tolopilo",
+   "matchesPlayed": 21,
+   "shotsAgainst": 582,
+   "saves": 513
+  },
+  {
+   "id": "nhl-8477967",
+   "name": "Thatcher Demko",
+   "matchesPlayed": 20,
+   "shotsAgainst": 514,
+   "saves": 461
+  },
+  {
+   "id": "nhl-8478024",
+   "name": "Ville Husso",
+   "matchesPlayed": 20,
+   "shotsAgainst": 534,
+   "saves": 472
+  },
+  {
+   "id": "nhl-8482447",
+   "name": "Leevi Merilainen",
+   "matchesPlayed": 20,
+   "shotsAgainst": 457,
+   "saves": 393
+  },
+  {
+   "id": "nhl-8483710",
+   "name": "Dennis Hildeby",
+   "matchesPlayed": 20,
+   "shotsAgainst": 548,
+   "saves": 501
+  },
+  {
+   "id": "nhl-8479394",
+   "name": "Carter Hart",
+   "matchesPlayed": 18,
+   "shotsAgainst": 422,
+   "saves": 376
+  },
+  {
+   "id": "nhl-8484170",
+   "name": "Jacob Fowler",
+   "matchesPlayed": 17,
+   "shotsAgainst": 448,
+   "saves": 407
+  },
+  {
+   "id": "nhl-8475717",
+   "name": "Calvin Pickard",
+   "matchesPlayed": 16,
+   "shotsAgainst": 410,
+   "saves": 357
+  },
+  {
+   "id": "nhl-8481551",
+   "name": "Colten Ellis",
+   "matchesPlayed": 16,
+   "shotsAgainst": 455,
+   "saves": 411
+  },
+  {
+   "id": "nhl-8473503",
+   "name": "James Reimer",
+   "matchesPlayed": 14,
+   "shotsAgainst": 289,
+   "saves": 256
+  },
+  {
+   "id": "nhl-8475852",
+   "name": "Petr Mrazek",
+   "matchesPlayed": 10,
+   "shotsAgainst": 247,
+   "saves": 212
+  },
+  {
+   "id": "nhl-8481611",
+   "name": "Pyotr Kochetkov",
+   "matchesPlayed": 9,
+   "shotsAgainst": 189,
+   "saves": 170
+  },
+  {
+   "id": "nhl-8482761",
+   "name": "Carl Lindbom",
+   "matchesPlayed": 8,
+   "shotsAgainst": 189,
+   "saves": 165
+  },
+  {
+   "id": "nhl-8477484",
+   "name": "Spencer Martin",
+   "matchesPlayed": 6,
+   "shotsAgainst": 147,
+   "saves": 127
+  },
+  {
+   "id": "nhl-8476899",
+   "name": "Matt Murray",
+   "matchesPlayed": 5,
+   "shotsAgainst": 102,
+   "saves": 94
+  },
+  {
+   "id": "nhl-8483703",
+   "name": "Sergei Murashov",
+   "matchesPlayed": 5,
+   "shotsAgainst": 116,
+   "saves": 104
+  },
+  {
+   "id": "nhl-8481529",
+   "name": "Trent Miner",
+   "matchesPlayed": 4,
+   "shotsAgainst": 104,
+   "saves": 97
+  },
+  {
+   "id": "nhl-8482783",
+   "name": "Aleksei Kolosov",
+   "matchesPlayed": 4,
+   "shotsAgainst": 47,
+   "saves": 39
+  },
+  {
+   "id": "nhl-8483532",
+   "name": "Clay Stevenson",
+   "matchesPlayed": 4,
+   "shotsAgainst": 101,
+   "saves": 93
+  },
+  {
+   "id": "nhl-8480051",
+   "name": "Cayden Primeau",
+   "matchesPlayed": 3,
+   "shotsAgainst": 80,
+   "saves": 67
+  },
+  {
+   "id": "nhl-8482076",
+   "name": "Nico Daws",
+   "matchesPlayed": 3,
+   "shotsAgainst": 87,
+   "saves": 79
+  },
+  {
+   "id": "nhl-8482123",
+   "name": "Drew Commesso",
+   "matchesPlayed": 3,
+   "shotsAgainst": 85,
+   "saves": 78
+  },
+  {
+   "id": "nhl-8482193",
+   "name": "Dylan Garand",
+   "matchesPlayed": 3,
+   "shotsAgainst": 96,
+   "saves": 91
+  },
+  {
+   "id": "nhl-8482515",
+   "name": "Artur Akhtyamov",
+   "matchesPlayed": 3,
+   "shotsAgainst": 81,
+   "saves": 71
+  },
+  {
+   "id": "nhl-8483114",
+   "name": "Thomas Milic",
+   "matchesPlayed": 3,
+   "shotsAgainst": 62,
+   "saves": 54
+  },
+  {
+   "id": "nhl-8483668",
+   "name": "Nikke Kokko",
+   "matchesPlayed": 3,
+   "shotsAgainst": 82,
+   "saves": 73
+  },
+  {
+   "id": "nhl-8477990",
+   "name": "Brandon Halverson",
+   "matchesPlayed": 2,
+   "shotsAgainst": 21,
+   "saves": 17
+  },
+  {
+   "id": "nhl-8481544",
+   "name": "Mads Sogaard",
+   "matchesPlayed": 2,
+   "shotsAgainst": 36,
+   "saves": 30
+  },
+  {
+   "id": "nhl-8476316",
+   "name": "Laurent Brossoit",
+   "matchesPlayed": 1,
+   "shotsAgainst": 23,
+   "saves": 18
+  },
+  {
+   "id": "nhl-8477405",
+   "name": "Marcus Hogberg",
+   "matchesPlayed": 1,
+   "shotsAgainst": 7,
+   "saves": 5
+  },
+  {
+   "id": "nhl-8477831",
+   "name": "Pheonix Copley",
+   "matchesPlayed": 1,
+   "shotsAgainst": 28,
+   "saves": 25
+  },
+  {
+   "id": "nhl-8480022",
+   "name": "Michael DiPietro",
+   "matchesPlayed": 1,
+   "shotsAgainst": 2,
+   "saves": 2
+  },
+  {
+   "id": "nhl-8480238",
+   "name": "Jiri Patera",
+   "matchesPlayed": 1,
+   "shotsAgainst": 40,
+   "saves": 33
+  },
+  {
+   "id": "nhl-8482411",
+   "name": "Hunter Shepard",
+   "matchesPlayed": 1,
+   "shotsAgainst": 12,
+   "saves": 10
+  },
+  {
+   "id": "nhl-8482949",
+   "name": "Arsenii Sergeev",
+   "matchesPlayed": 1,
+   "shotsAgainst": 28,
+   "saves": 27
+  },
+  {
+   "id": "nhl-8483746",
+   "name": "Vyacheslav Buteyets",
+   "matchesPlayed": 1,
+   "shotsAgainst": 13,
+   "saves": 10
+  },
+  {
+   "id": "nhl-8484910",
+   "name": "Victor Ostman",
+   "matchesPlayed": 1,
+   "shotsAgainst": 35,
+   "saves": 33
+  }
+ ]
+}
