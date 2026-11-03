@@ -1,4 +1,3 @@
-import { SKATER_ATTRIBUTE_KEYS } from '../domain/attributes.js'
 import { PENALTY_KILL_UNIT_SIZE, POWER_PLAY_UNIT_SIZE } from '../domain/club.js'
 import type {
   Club,
@@ -10,7 +9,7 @@ import type {
   Unit,
 } from '../domain/club.js'
 import type { Line } from '../domain/club.js'
-import type { PlayerId, Skater, SkaterPosition } from '../domain/player.js'
+import { skaterLevel, type PlayerId, type Skater, type SkaterPosition } from '../domain/player.js'
 
 /**
  * Lineup validity rules plus a naive AI builder (FR-20, FR-09).
@@ -460,40 +459,108 @@ function mean(values: readonly number[]): number {
   return values.reduce((sum, v) => sum + v, 0) / values.length
 }
 
-/** Overall quality: the plain mean of every Skater attribute. Deliberately naive - sort by attribute, fill in order. */
+/**
+ * Overall quality: the Skater's level (ADR-020), without `faceoffs` and
+ * `discipline`, which say nothing about how good a winger is (#81).
+ */
 function skaterQuality(skater: Skater): number {
-  return mean(SKATER_ATTRIBUTE_KEYS.map((key) => skater.attributes[key]))
+  return skaterLevel(skater.attributes)
 }
 
 function byQualityDesc(a: Skater, b: Skater): number {
-  return skaterQuality(b) - skaterQuality(a)
-}
-
-function takeByPosition(
-  skaters: readonly Skater[],
-  position: SkaterPosition,
-  count: number,
-): Skater[] {
-  const pool = skaters.filter((s) => s.preferredPositions[0] === position).sort(byQualityDesc)
-  if (pool.length < count) {
-    throw new Error(
-      `Naive Lineup builder needs ${count} natural ${position}s, only ${pool.length} available on this Club.`,
-    )
-  }
-  return pool.slice(0, count)
+  return skaterQuality(b) - skaterQuality(a) || a.id.localeCompare(b.id)
 }
 
 /**
- * Sorts by attribute and fills in order (issue #2 scope - deliberately naive,
- * not a tactical Lineup). Goes through no path a human Manager's Lineup
+ * What playing away from his natural position costs a Skater when the naive
+ * builder weighs him, in level points. Enough that a Club's natural positions
+ * hold when the difference is small, little enough that a second star at the
+ * same position moves to his second one rather than to the second Line (#81).
+ */
+export const SECOND_POSITION_COST = 1
+
+/** How many candidates per slot the builder weighs for one unit. Enough to never miss the best. */
+const CANDIDATES_PER_SLOT = 6
+
+/** Can `units` more units of `positions` still be filled from `pool`? Bipartite matching, slot by slot. */
+function canFill(pool: readonly Skater[], positions: readonly SkaterPosition[], units: number): boolean {
+  const slots = Array.from({ length: units }, () => positions).flat()
+  const holder = new Map<string, number>()
+  const assign = (slot: number, seen: Set<string>): boolean => {
+    for (const skater of pool) {
+      if (!skater.preferredPositions.includes(slots[slot]!) || seen.has(skater.id)) continue
+      seen.add(skater.id)
+      const current = holder.get(skater.id)
+      if (current === undefined || assign(current, seen)) {
+        holder.set(skater.id, slot)
+        return true
+      }
+    }
+    return false
+  }
+  return slots.every((_, slot) => assign(slot, new Set()))
+}
+
+/**
+ * Units filled in order, the first the strongest (#81): for each, the Skaters
+ * at its positions with the greatest level, any preferred position allowed at
+ * `SECOND_POSITION_COST`, as long as the units after it can still be filled.
+ */
+function fillUnits(
+  skaters: readonly Skater[],
+  positions: readonly SkaterPosition[],
+  units: number,
+): Skater[][] {
+  let pool = [...skaters].sort(byQualityDesc)
+  if (!canFill(pool, positions, units)) {
+    throw new Error(
+      `Naive Lineup builder needs ${units} each of ${positions.join(', ')}, and this Club cannot dress them.`,
+    )
+  }
+
+  const value = (skater: Skater, position: SkaterPosition) =>
+    skaterQuality(skater) - (skater.preferredPositions[0] === position ? 0 : SECOND_POSITION_COST)
+
+  const filled: Skater[][] = []
+  for (let unit = 0; unit < units; unit++) {
+    const candidates = positions.map((position) =>
+      pool.filter((s) => s.preferredPositions.includes(position)).slice(0, CANDIDATES_PER_SLOT),
+    )
+    let best: { skaters: Skater[]; value: number } | null = null
+    const search = (slot: number, chosen: Skater[], total: number) => {
+      if (slot === positions.length) {
+        if (best && total <= best.value) return
+        const rest = pool.filter((s) => !chosen.includes(s))
+        if (canFill(rest, positions, units - unit - 1)) best = { skaters: [...chosen], value: total }
+        return
+      }
+      for (const skater of candidates[slot]!) {
+        if (chosen.includes(skater)) continue
+        search(slot + 1, [...chosen, skater], total + value(skater, positions[slot]!))
+      }
+    }
+    search(0, [], 0)
+    const chosen = (best as { skaters: Skater[] } | null)?.skaters
+    if (!chosen) throw new Error(`Naive Lineup builder could not fill unit ${unit + 1}`)
+    filled.push(chosen)
+    pool = pool.filter((s) => !chosen.includes(s))
+  }
+  return filled
+}
+
+/**
+ * Fills the Lines and Pairings in order by level, at second positions where it
+ * pays (#81) - deliberately naive, not a tactical Lineup. Goes through no path a human Manager's Lineup
  * would not also go through (D-04).
  */
 export function buildNaiveLineup(club: Club, tactics: Tactics = DEFAULT_TACTICS): Lineup {
-  const lw = takeByPosition(club.skaters, 'LW', 4)
-  const centres = takeByPosition(club.skaters, 'C', 4)
-  const rw = takeByPosition(club.skaters, 'RW', 4)
-  const ld = takeByPosition(club.skaters, 'LD', 3)
-  const rd = takeByPosition(club.skaters, 'RD', 3)
+  const forwardUnits = fillUnits(club.skaters, ['LW', 'C', 'RW'], 4)
+  const lw = forwardUnits.map((line) => line[0]!)
+  const centres = forwardUnits.map((line) => line[1]!)
+  const rw = forwardUnits.map((line) => line[2]!)
+  const defenceUnits = fillUnits(club.skaters, ['LD', 'RD'], 3)
+  const ld = defenceUnits.map((pairing) => pairing[0]!)
+  const rd = defenceUnits.map((pairing) => pairing[1]!)
 
   const lines: Line[] = [0, 1, 2, 3].map((i) => ({
     leftWing: lw[i]!.id,
