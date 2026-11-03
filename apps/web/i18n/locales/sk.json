@@ -84,7 +84,8 @@
     "player": "Hráč",
     "ice": "Čas",
     "injuries": "Zranenia",
-    "injuryLength": "vynechá zápasy: {fixtures}"
+    "injuryLength": "vynechá zápasy: {fixtures}",
+    "injuryDays": "mimo hry dní: {days}"
   },
   "standings": {
     "club": "Klub",
@@ -116,7 +117,7 @@
     "place": "Zost",
     "age": "Vek",
     "fatigue": "Energia",
-    "out": "mimo {fixtures}",
+    "out": "mimo {days} d",
     "attributes": "Atribúty",
     "notOurs": "Tento hráč nie je na tvojom Rosteri."
   },
@@ -232,6 +233,7 @@
     "chance": "Veľký zákrok proti {player}, {club}",
     "penalty": "{player}, {club}: {kind}, {minutes} min",
     "injury": "{player}, {club}, zranenie, vynechá zápasy: {fixtures}",
+    "injuryDays": "{player}, {club}, zranenie, mimo hry dní: {days}",
     "lineup": "{club} menia zostavu",
     "periodEnd": "Koniec periódy, {home} : {away}",
     "powerPlay": "presilovka",
@@ -256,13 +258,14 @@
   },
   "injuries": {
     "title": "Zranení hráči v zostave: {count}",
-    "out": "mimo ešte na zápasy: {fixtures}",
+    "out": "mimo hry ešte dní: {days}",
     "help": "Títo hráči nemôžu hrať. Ak nič neurobíš, v ďalšom zápase ich automaticky nahradia náhradníci, ale môžeš to nastaviť aj sám.",
     "fix": "Upraviť zostavu automaticky",
     "toLineup": "Upraviť zostavu"
   },
   "notices": {
     "injury": "je zranený: vynechá zápasy: {fixtures}.",
+    "injuryDays": "je zranený, mimo hry dní: {days}.",
     "recovered": "sa zotavil a môže hrať.",
     "empty": "Zatiaľ nič. Správy o tvojom klube prídu sem.",
     "latest": "Nové správy",

@@ -157,14 +157,14 @@ export interface PowerPlayEndEvent extends EventBase {
 
 /**
  * A Player is hurt (ADR-012). Off the ice it comes before the opening faceoff
- * and the Player misses this Fixture too; `fixtures` counts only the ones after.
+ * and the Player misses this Fixture too.
  */
 export interface InjuryEvent extends EventBase {
   type: 'injury'
   clubId: ClubId
   player: PlayerId
-  /** Club Fixtures missed after this one. */
-  fixtures: number
+  /** Calendar days out: the Player is back for a Fixture on the day of this one plus `days`. */
+  days: number
   offIce: boolean
 }
 

@@ -7,6 +7,7 @@ import {
   advanceDay,
   advanceToFixtureOf,
   assistantLineup,
+  daysOut,
   fatigueBeforeNext,
   InvalidLineupError,
   noticesOf,
@@ -216,6 +217,8 @@ describe('noticesOf', () => {
     const injuries = day.played.flatMap((p) => p.match.injuries)
     for (const notice of found) {
       expect(notice).toMatchObject({ kind: 'injury', day: day.day })
+      if (notice.kind === 'injury')
+        expect(day.state.absent[notice.playerId]).toBe(day.day + notice.days)
       expect(injuries).toContainEqual(
         expect.objectContaining({ playerId: notice.playerId, clubId: club.id }),
       )
@@ -252,6 +255,17 @@ describe('injured Players in a Lineup', () => {
     expect(JSON.stringify(healthy)).not.toContain(out)
     expect(healthy.lines[0].centre).toBe(lineup().lines[0].centre)
     expect(setLineup(state, clubId(), healthy).lineups[clubId()]).toEqual(healthy)
+  })
+
+  it('keeps them out until the day they are back, however many Fixtures fall before it (#97)', () => {
+    const out = lineup().lines[0].leftWing
+    const day = start.fixtures[0]!.day
+    const state = { ...start, absent: { [out]: day + 1 } }
+
+    expect(daysOut(state, out, day)).toBe(1)
+    expect(JSON.stringify(replaceInjured(state, clubId(), lineup(), day))).not.toContain(out)
+    expect(daysOut(state, out, day + 1)).toBe(0)
+    expect(replaceInjured(state, clubId(), lineup(), day + 1)).toEqual(lineup())
   })
 
   it('leaves a Lineup with nobody out as it was', () => {

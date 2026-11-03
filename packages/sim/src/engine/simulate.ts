@@ -4,7 +4,7 @@ import type { Fixture, FixtureInput } from '../domain/fixture.js'
 import type { PlayerId } from '../domain/player.js'
 import { createRng, type Rng } from '../rng/index.js'
 import {
-  absenceLength,
+  absenceDays,
   goalieInjuryChance,
   OFF_ICE_INJURY_CHANCE,
   skaterInjuryChance,
@@ -73,8 +73,7 @@ export function simulateFixture(declared: FixtureInput, seed: number): MatchEven
         strength: 'even',
         clubId: club.id,
         player,
-        // This Fixture is the first one missed.
-        fixtures: absenceLength(injuryRng) - 1,
+        days: absenceDays(injuryRng, true),
         offIce: true,
       })
     }
@@ -191,7 +190,7 @@ export function simulateFixture(declared: FixtureInput, seed: number): MatchEven
         strength: box.strength(side),
         clubId: clubIds[side],
         player,
-        fixtures: absenceLength(injuryRng),
+        days: absenceDays(injuryRng),
         offIce: false,
       })
 

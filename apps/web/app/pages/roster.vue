@@ -44,7 +44,7 @@ const strong = (value: number) => (value >= 17 ? 'strong' : value <= 10 ? 'muted
         <tr v-for="skater in skaters" :key="skater.id">
           <td class="name">
             <NuxtLink :to="`/players/${skater.id}`">{{ skater.name }}</NuxtLink>
-            <span v-if="skater.out" class="tag-out"> {{ t('roster.out', { fixtures: skater.out }) }}</span>
+            <span v-if="skater.out" class="tag-out"> {{ t('roster.out', { days: skater.out }) }}</span>
           </td>
           <td>{{ skater.position }}</td>
           <td>{{ skater.place ?? '-' }}</td>
@@ -84,7 +84,7 @@ const strong = (value: number) => (value >= 17 ? 'strong' : value <= 10 ? 'muted
         <tr v-for="goalie in roster?.goalies" :key="goalie.id">
           <td class="name">
             <NuxtLink :to="`/players/${goalie.id}`">{{ goalie.name }}</NuxtLink>
-            <span v-if="goalie.out" class="tag-out"> {{ t('roster.out', { fixtures: goalie.out }) }}</span>
+            <span v-if="goalie.out" class="tag-out"> {{ t('roster.out', { days: goalie.out }) }}</span>
           </td>
           <td>{{ goalie.place ?? '-' }}</td>
           <td>{{ goalie.age }}</td>

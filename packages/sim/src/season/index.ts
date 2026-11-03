@@ -61,7 +61,10 @@ export interface SeasonState {
   /** The last day each Club played. */
   lastPlayed: Readonly<Record<ClubId, number>>
   goalieHistory: Readonly<Record<ClubId, GoalieHistory>>
-  /** Fixtures each injured Player still has to miss, folded from the stream. */
+  /**
+   * The day each injured Player is back, folded from the stream (#97): out for
+   * every Fixture before it, however many the Club plays meanwhile.
+   */
   absent: Readonly<Record<PlayerId, number>>
   /** The regular-Season table. */
   standings: readonly StandingsRow[]
@@ -114,7 +117,7 @@ export interface PlayedDay {
 
 /** What a Manager is told about a day. A new kind of news is one more member here. */
 export type ClubNotice =
-  | { kind: 'injury'; day: number; playerId: PlayerId; fixtures: number }
+  | { kind: 'injury'; day: number; playerId: PlayerId; days: number }
   | { kind: 'recovered'; day: number; playerId: PlayerId }
 
 /** A Lineup that breaks the rules of the game: the Manager has to change it. */
@@ -190,10 +193,20 @@ export function setLineup(state: SeasonState, clubId: ClubId, lineup: Lineup): S
  * A Lineup with everyone currently out replaced, as it would be for the next
  * Fixture anyway (ADR-012). Offered to a Manager so they need not click it through.
  */
-export function replaceInjured(state: SeasonState, clubId: ClubId, lineup: Lineup): Lineup {
+export function replaceInjured(
+  state: SeasonState,
+  clubId: ClubId,
+  lineup: Lineup,
+  day = nextDay(state),
+): Lineup {
   const club = clubOf(state, clubId)
-  const out = new Set(rosterIds(club).filter((id) => state.absent[id] !== undefined))
+  const out = new Set(rosterIds(club).filter((id) => daysOut(state, id, day) > 0))
   return withoutInjured(club, lineup, out)
+}
+
+/** Calendar days a Player is still out from `day`, by default the next day with Fixtures; 0 if fit. */
+export function daysOut(state: SeasonState, playerId: PlayerId, day = nextDay(state)): number {
+  return Math.max(0, (state.absent[playerId] ?? day) - day)
 }
 
 /**
@@ -205,7 +218,7 @@ export function replaceInjured(state: SeasonState, clubId: ClubId, lineup: Lineu
 export function assistantLineup(state: SeasonState, clubId: ClubId, tactics: Tactics): Lineup {
   const club = clubOf(state, clubId)
   const fit = <T extends { id: PlayerId }>(players: readonly T[]) =>
-    players.filter((player) => state.absent[player.id] === undefined)
+    players.filter((player) => daysOut(state, player.id) === 0)
   try {
     return buildNaiveLineup(
       { ...club, skaters: fit(club.skaters), goalies: fit(club.goalies) },
@@ -360,9 +373,7 @@ export function noticesOf(before: SeasonState, played: PlayedDay, clubId: ClubId
   const injured = played.played
     .flatMap(({ match }) => match.injuries)
     .filter((injury) => injury.clubId === clubId)
-    .map(
-      ({ playerId, fixtures }): ClubNotice => ({ kind: 'injury', day, playerId, fixtures }),
-    )
+    .map(({ playerId, days }): ClubNotice => ({ kind: 'injury', day, playerId, days }))
   return [...recovered, ...injured]
 }
 
@@ -398,7 +409,7 @@ export function advanceDay(state: SeasonState): PlayedDay {
   if (!next) throw new Error(`Season s${state.seed} has no Fixtures left`)
 
   const played: PlayedFixture[] = []
-  let current = state
+  let current = recovered(state, next.day)
   for (;;) {
     const fixture = current.fixtures[current.nextFixture]
     if (fixture?.day !== next.day) break
@@ -476,6 +487,19 @@ function notDressed(lineup: Lineup, before: Lineup): LineupViolation[] {
     }))
 }
 
+/** The next day with Fixtures, or the day after the last one once there are none. */
+function nextDay(state: SeasonState): number {
+  return state.fixtures[state.nextFixture]?.day ?? state.fixtures.at(-1)!.day + 1
+}
+
+/** The state with everyone back by `day` no longer absent. */
+function recovered(state: SeasonState, day: number): SeasonState {
+  const absent = Object.fromEntries(Object.entries(state.absent).filter(([, back]) => back > day))
+  return Object.keys(absent).length === Object.keys(state.absent).length
+    ? state
+    : { ...state, absent }
+}
+
 function fixtureOf(state: SeasonState, fixtureId: FixtureId): Fixture {
   const fixture = state.fixtures.find((candidate) => candidate.id === fixtureId)
   if (!fixture) throw new Error(`No Fixture ${fixtureId} in Season s${state.seed}`)
@@ -525,7 +549,7 @@ function rested(state: SeasonState, clubId: ClubId, day: number): Club {
 
 /** The Lineup a Club dresses on `day`, once injuries and Goalie rotation have had their say. */
 function lineupFor(state: SeasonState, clubId: ClubId, day: number): Lineup {
-  const healthy = replaceInjured(state, clubId, state.lineups[clubId]!)
+  const healthy = replaceInjured(state, clubId, state.lineups[clubId]!, day)
   // Rotation is a regular-Season rule: nobody rests a starter in the playoffs.
   if (state.playoffs !== null) return healthy
   return lineupForFixture(healthy, day, state.goalieHistory[clubId] ?? null)
@@ -542,17 +566,7 @@ function playFixture(
   const match = foldMatch(fixture, events)
 
   const absent = { ...state.absent }
-  for (const clubId of [homeClubId, awayClubId]) {
-    for (const id of rosterIds(clubOf(state, clubId))) {
-      const left = absent[id]
-      if (left === undefined) continue
-      if (left > 1) absent[id] = left - 1
-      else delete absent[id]
-    }
-  }
-  for (const { playerId, fixtures } of match.injuries) {
-    if (fixtures > 0) absent[playerId] = fixtures
-  }
+  for (const { playerId, days } of match.injuries) absent[playerId] = day + days
   const live = { ...state.live }
   delete live[fixture.id]
 

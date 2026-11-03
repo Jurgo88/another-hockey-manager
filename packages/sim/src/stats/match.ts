@@ -120,11 +120,11 @@ export interface MatchStats {
   injuries: readonly Injury[]
 }
 
-/** Who a Match put out, and for how many of the Club's Fixtures after it (ADR-012). */
+/** Who a Match put out, and for how many calendar days from its day (ADR-012). */
 export interface Injury {
   playerId: PlayerId
   clubId: ClubId
-  fixtures: number
+  days: number
 }
 
 /** A Match as plain JSON, for storing a box score. */
@@ -328,7 +328,7 @@ export function foldMatch(fixture: Fixture, events: readonly MatchEvent[]): Matc
         break
 
       case 'injury':
-        injuries.push({ playerId: event.player, clubId: event.clubId, fixtures: event.fixtures })
+        injuries.push({ playerId: event.player, clubId: event.clubId, days: event.days })
         break
 
       case 'shift_change':
