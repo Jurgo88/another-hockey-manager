@@ -725,7 +725,7 @@ function fillClub(
   ]
   const generatedGoalies = Array.from({ length: goalies }, () => {
     const ability = quantile(reference.goalieAbility, FILL_GOALIE_PERCENTILE)
-    const { age, headroom } = generateAgeAndHeadroom(rng, ability)
+    const { age, headroom } = generateAgeAndHeadroom(rng, ability, 'goalie')
     return generateGoalie(rng, {
       id: `${clubId}-fill-${n}`,
       clubId,

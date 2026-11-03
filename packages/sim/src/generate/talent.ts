@@ -5,6 +5,7 @@ import {
 } from '../domain/attributes.js'
 import type { SkaterPosition } from '../domain/player.js'
 import type { Rng } from '../rng/index.js'
+import { NHL_AGES_BY_TIER } from './nhl-age-profile.js'
 
 /**
  * The talent model: how a league's ability is distributed.
@@ -214,18 +215,53 @@ export function generateGoalieAttributes(rng: Rng, ability: Ability): GoalieAttr
 }
 
 /**
+ * Where the depth chart splits, in ability: into thirds between the fourth and
+ * fifth, and the eighth and ninth, of the twelve forward slots that dress, and
+ * below the dressed slots for the spares and call-ups, who stand in for the
+ * real Players of fewer than 20 Fixtures. Goalies split between starter, backup
+ * and third, the third being the one who rarely plays.
+ */
+export const SKATER_TIER_ABILITY: readonly [Ability, Ability, Ability] = [0.725, 0.655, 0.55]
+export const GOALIE_TIER_ABILITY: readonly [Ability, Ability, Ability] = [0.835, 0.825, 0.815]
+
+/** Standard normal CDF, Abramowitz and Stegun 7.1.26: deterministic, error below 2e-7. */
+function normalCdf(z: number): number {
+  const x = Math.abs(z) / Math.SQRT2
+  const t = 1 / (1 + 0.3275911 * x)
+  const poly = t * (0.254829592 + t * (-0.284496736 + t * (1.421413741 + t * (-1.453152027 + t * 1.061405429))))
+  const erf = 1 - poly * Math.exp(-x * x)
+  return z >= 0 ? (1 + erf) / 2 : (1 - erf) / 2
+}
+
+/** The age at cumulative share `u` of a measured age table. */
+function ageAt(table: readonly (readonly [number, number])[], u: number): number {
+  const total = table.reduce((sum, [, count]) => sum + count, 0)
+  let running = 0
+  for (const [age, count] of table) {
+    running += count
+    if (u * total < running) return age
+  }
+  return table[table.length - 1]![0]
+}
+
+/**
  * Age and the room left to grow.
  *
- * Ability and age are correlated in a league: the best Players are mostly in
- * their prime, and a young Player at a high slot is a prospect who arrived
- * early. Headroom is furthest above ability for the youngest.
+ * The age comes from the measured ages of NHL Players at the same depth: the
+ * top third by ice time is older and the bottom third younger (#84,
+ * `07-league-over-time.md`). It is read off one Gaussian draw through its
+ * cumulative share, the same draw as before, so the random numbers of every
+ * Player after it do not move. Headroom is furthest above ability for the youngest.
  */
 export function generateAgeAndHeadroom(
   rng: Rng,
   ability: Ability,
+  kind: 'skater' | 'goalie' = 'skater',
 ): { age: number; headroom: Ability } {
-  const primePull = ability * 4
-  const age = Math.max(18, Math.min(40, Math.round(22 + primePull + gaussian(rng) * 3.4)))
+  const thresholds = kind === 'goalie' ? GOALIE_TIER_ABILITY : SKATER_TIER_ABILITY
+  const tier = thresholds.findIndex((threshold) => ability >= threshold)
+  const table = NHL_AGES_BY_TIER[tier === -1 ? thresholds.length : tier]!
+  const age = ageAt(table, normalCdf(gaussian(rng)))
 
   return { age, headroom: drawHeadroom(rng, age) }
 }

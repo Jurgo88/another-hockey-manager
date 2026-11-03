@@ -4,6 +4,7 @@ import { parseArgs } from 'node:util'
 import {
   ageCurve,
   ageProfiles,
+  agesByTier,
   draftOutcomes,
   goalieChanges,
   iceTimeChanges,
@@ -24,6 +25,7 @@ const HELP = `Usage: pnpm sim:measure [options]
 
   --first <year>   First season, by its starting year (default 2015)
   --last <year>    Last season, by its starting year (default 2025)
+  --ages           Print the age profile by tier as a data module for @ahm/sim
   --refresh        Fetch again instead of reading the cache
   --help           Show this message`
 
@@ -58,6 +60,36 @@ function leavingTable(title: string, rows: readonly LeavingRow[]): string {
   ].join('\n')
 }
 
+/** The age profile as `packages/sim/src/generate/nhl-age-profile.ts`. */
+function ageModule(tiers: readonly Map<number, number>[], first: number, last: number): string {
+  const span = (year: number) => `${year}-${String(year + 1).slice(2)}`
+  const rows = tiers.map((tier) =>
+    [...tier]
+      .sort((a, b) => a[0] - b[0])
+      .map(([age, count]) => `[${age}, ${count}]`)
+      .join(', '),
+  )
+  return [
+    '/**',
+    ` * Ages of NHL Players, ${span(first)} to ${span(last)} (#84): those with 20 or more`,
+    ' * Fixtures in a season by their ice-time third in their position group, and',
+    " * those with fewer, who stand in for a Roster's spares. Each entry is",
+    ' * [age, Player-seasons]. Written by `pnpm sim:measure --ages` into src/generate.',
+    ' */',
+    'export const NHL_AGES_BY_TIER: readonly (readonly (readonly [number, number])[])[] = [',
+    '  // Top third by ice time',
+    `  [${rows[0]}],`,
+    '  // Middle third',
+    `  [${rows[1]}],`,
+    '  // Bottom third',
+    `  [${rows[2]}],`,
+    '  // Fewer than 20 Fixtures',
+    `  [${rows[3]}],`,
+    ']',
+    '',
+  ].join('\n')
+}
+
 async function main(): Promise<void> {
   const { values } = parseArgs({
     args: process.argv.slice(2).filter((arg) => arg !== '--'),
@@ -65,6 +97,7 @@ async function main(): Promise<void> {
       first: { type: 'string', default: '2015' },
       last: { type: 'string', default: '2025' },
       refresh: { type: 'boolean', default: false },
+      ages: { type: 'boolean', default: false },
       help: { type: 'boolean', default: false },
     },
   })
@@ -82,6 +115,10 @@ async function main(): Promise<void> {
     log: (message: string) => console.error(message),
   })
   const history = historyOf(raw)
+  if (values.ages) {
+    console.log(ageModule(agesByTier(history), first, last))
+    return
+  }
 
   const players = turnoverOfPlayers(history)
   const table = tableTurnover(history)

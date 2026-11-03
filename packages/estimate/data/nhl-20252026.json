@@ -6502,7 +6502,7 @@
           "id": "det-fill-0",
           "firstName": "Reid",
           "lastName": "Caldmore",
-          "age": 28,
+          "age": 30,
           "potential": 6,
           "handedness": "left",
           "positions": [
@@ -6730,7 +6730,7 @@
           "id": "det-fill-2",
           "firstName": "Grayson",
           "lastName": "Kesslake",
-          "age": 28,
+          "age": 27,
           "potential": 14,
           "handedness": "left",
           "attributes": {
@@ -11086,8 +11086,8 @@
           "id": "mtl-fill-0",
           "firstName": "Vilém",
           "lastName": "Provec",
-          "age": 25,
-          "potential": 6,
+          "age": 26,
+          "potential": 5,
           "handedness": "left",
           "positions": [
             "RD"
@@ -36006,7 +36006,7 @@
           "id": "wsh-fill-0",
           "firstName": "Aleksi",
           "lastName": "Heitiranta",
-          "age": 27,
+          "age": 28,
           "potential": 6,
           "handedness": "left",
           "positions": [
@@ -38261,7 +38261,7 @@
           "id": "chi-fill-0",
           "firstName": "Brady",
           "lastName": "Deverley",
-          "age": 31,
+          "age": 34,
           "potential": 5,
           "handedness": "right",
           "positions": [
@@ -40517,7 +40517,7 @@
           "id": "col-fill-0",
           "firstName": "Rylan",
           "lastName": "Cormley",
-          "age": 28,
+          "age": 30,
           "potential": 6,
           "handedness": "left",
           "positions": [
@@ -42928,8 +42928,8 @@
           "id": "dal-fill-1",
           "firstName": "Samuel",
           "lastName": "Miháko",
-          "age": 18,
-          "potential": 18,
+          "age": 19,
+          "potential": 17,
           "handedness": "right",
           "attributes": {
             "reflexes": 11,
@@ -47452,7 +47452,7 @@
           "id": "nsh-fill-0",
           "firstName": "Griffin",
           "lastName": "Renton",
-          "age": 28,
+          "age": 27,
           "potential": 13,
           "handedness": "left",
           "attributes": {
@@ -49714,8 +49714,8 @@
           "id": "stl-fill-0",
           "firstName": "Quinton",
           "lastName": "Cormwick",
-          "age": 23,
-          "potential": 16,
+          "age": 22,
+          "potential": 17,
           "handedness": "left",
           "attributes": {
             "reflexes": 13,
@@ -51808,8 +51808,8 @@
           "id": "uta-fill-0",
           "firstName": "Axel",
           "lastName": "Ålvgren",
-          "age": 20,
-          "potential": 11,
+          "age": 21,
+          "potential": 10,
           "handedness": "right",
           "positions": [
             "RD"
@@ -56325,8 +56325,8 @@
           "id": "ana-fill-0",
           "firstName": "Gustav",
           "lastName": "Hallstad",
-          "age": 20,
-          "potential": 9,
+          "age": 21,
+          "potential": 8,
           "handedness": "left",
           "positions": [
             "LD"
@@ -60847,8 +60847,8 @@
           "id": "edm-fill-0",
           "firstName": "Landon",
           "lastName": "Whitfield",
-          "age": 25,
-          "potential": 7,
+          "age": 26,
+          "potential": 6,
           "handedness": "left",
           "positions": [
             "RD"
@@ -67600,7 +67600,7 @@
           "id": "sea-fill-1",
           "firstName": "Camden",
           "lastName": "Talstad",
-          "age": 31,
+          "age": 35,
           "potential": 6,
           "handedness": "right",
           "positions": [

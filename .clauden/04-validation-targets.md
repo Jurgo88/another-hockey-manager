@@ -381,6 +381,15 @@ draft (ADR-022 to ADR-024), not widening the band.
 | Players aged 23 or younger | 30% | ±5 pp | Ranged 25.7-34.6% |
 | Oldest Player | 39-45 | at least 38 | |
 
+The same targets hold for a newly generated league (#84,
+`test/realism/age-profile.test.ts`). The generator draws a Player's age from the
+measured ages of NHL Players at his depth: the three ice-time thirds of
+Players with 20 or more Fixtures for the slots that dress, and Players with
+fewer for the spares and call-ups (`generate/nhl-age-profile.ts`, written by
+`pnpm sim:measure --ages`). Over three seeds it measures a mean of 26.4-26.8,
+16-19% aged 31 or more, 28-34% aged 23 or younger, and an oldest of 40-42. The
+mean sits low in its band: development has to carry it, not fall from it.
+
 ### Leaving the league, per Season, Players with 20 or more Fixtures
 
 | Age | Measured | Band |
