@@ -403,3 +403,16 @@ export function ageProfiles(history: LeagueHistory): AgeProfile[] {
     }
   })
 }
+
+/**
+ * How old Players are, the age profile the generator draws from (#84): those
+ * of 20 or more Fixtures by their ice-time third in their group, and as a
+ * fourth table those who played fewer, who stand in for a Roster's spares.
+ */
+export function agesByTier(history: LeagueHistory, regular = 20): Map<number, number>[] {
+  const tiers = [0, 1, 2, 3].map(() => new Map<number, number>())
+  const add = (tier: number, age: number) => tiers[tier]!.set(age, (tiers[tier]!.get(age) ?? 0) + 1)
+  for (const a of appearances(history, regular)) add(a.tier, a.age)
+  for (const a of appearances(history, 1)) if (a.matchesPlayed < regular) add(3, a.age)
+  return tiers
+}

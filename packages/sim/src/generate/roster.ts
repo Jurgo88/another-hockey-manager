@@ -175,7 +175,7 @@ function generateClub(
 
   const goalies: Goalie[] = GOALIE_SLOT_ABILITY.map((slotAbility, index) => {
     const { ability } = drawAbility(rng, slotAbility, clubStrength, GOALIE_ABILITY_NOISE)
-    const { age, headroom } = generateAgeAndHeadroom(rng, ability)
+    const { age, headroom } = generateAgeAndHeadroom(rng, ability, 'goalie')
     return generateGoalie(rng, {
       id: `${clubId}-g${index}`,
       clubId,

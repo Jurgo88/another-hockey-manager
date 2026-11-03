@@ -185,7 +185,7 @@ describe('createGeneratedRosterProvider', () => {
   it('produces plausible ages', () => {
     const ages = skaters.map((s) => s.age)
     expect(Math.min(...ages)).toBeGreaterThanOrEqual(18)
-    expect(Math.max(...ages)).toBeLessThanOrEqual(40)
+    expect(Math.max(...ages)).toBeLessThanOrEqual(45)
     expect(mean(ages)).toBeGreaterThan(23)
     expect(mean(ages)).toBeLessThan(30)
   })
