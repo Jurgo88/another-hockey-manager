@@ -336,9 +336,9 @@ attribute estimator (ADR-021): ten Seasons on the estimated NHL 2025-26 Rosters
 
 | Assertion | Gate | Measured |
 | --- | --- | --- |
-| Rank correlation of Club points, simulated mean against real | ≥ 0.6 | 0.67 |
-| Of the real top 20 point scorers, in the simulated top 30 | ≥ 10 | 13 |
-| Rank correlation of save percentage, Goalies with 40 or more real Fixtures | ≥ 0.4 | 0.88 |
+| Rank correlation of Club points, simulated mean against real | ≥ 0.6 | 0.72 |
+| Of the real top 20 point scorers, in the simulated top 30 | ≥ 10 | 15 |
+| Rank correlation of save percentage, Goalies with 40 or more real Fixtures | ≥ 0.4 | 0.85 |
 
 **Why these thresholds.** One real season is one sample: luck over 82 Fixtures
 alone keeps the correlation between true strength and points near 0.8, so a
@@ -351,16 +351,16 @@ reproduce the season it read, not whether it predicts the next one.
 **Calibration.** The first estimate measured 0.17, 5 and 0.27. What moved it is in
 the ADR-021 amendment: the anchor of a Player's level, production in
 `offPositioning`, the power play in `passing` and `offPositioning`, Goalie
-attributes by percentile, and less shot speed in `shooting`. The engine was not
-changed, and a red row here means calibrating the estimator, as for the tiers
-above.
+attributes by percentile, and less shot speed in `shooting`. That reached 0.67,
+13 and 0.88 with the engine unchanged. The naive Lineup then learned to use second
+positions and to rank by level (#81), which put Kaprizov on Minnesota's first Line
+beside Boldy and moved the gate to the figures above. A red row here means
+calibrating the estimator, as for the tiers above.
 
 **Still visible in the comparison.** Simulated scoring is flatter than real:
-the simulated leader has 93 points and McDavid 88 against a real 138, the
-engine's known flat top (Tier 2). Some Players the naive Lineup puts on a second
-Line score far less than they did; Kaprizov is the clearest, 50 against 89. A few
-forwards score far more than they did, Hagel (93 against 74) and Holloway (83
-against 51) among them.
+McDavid leads with 100 points against a real 138, the engine's known flat top
+(Tier 2). Kaprizov still scores 65 against 89. A few forwards score far more than
+they did, Hagel (89 against 74) and Holloway (77 against 51) among them.
 
 ## Tier 3 - Tactics are not placebos
 
