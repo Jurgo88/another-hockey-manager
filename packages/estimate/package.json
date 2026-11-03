@@ -11,7 +11,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "sim:estimate": "tsx src/cli.ts",
-    "sim:validate": "tsx src/cli-validate.ts"
+    "sim:validate": "tsx src/cli-validate.ts",
+    "sim:measure": "tsx src/cli-measure.ts"
   },
   "dependencies": {
     "@ahm/sim": "workspace:*"

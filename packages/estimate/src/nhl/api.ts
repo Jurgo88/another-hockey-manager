@@ -1,5 +1,6 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
+import type { RawHistory } from './history.js'
 import type { RawOutcome } from './outcome.js'
 import { GOALIE_REPORTS, SKATER_REPORTS, type RawSeason } from './records.js'
 
@@ -120,4 +121,77 @@ export async function fetchOutcome(raw: RawSeason, options: FetchOptions): Promi
     skaterSummary: raw.skater.summary,
     goalieSummary: raw.goalie.summary,
   }
+}
+
+const rangeFilter = (first: string, last: string) =>
+  `cayenneExp=${encodeURIComponent(`seasonId>=${first} and seasonId<=${last} and gameTypeId=2`)}`
+
+/**
+ * Everything the Phase 2 measurements read (#83): per-season reports, careers
+ * across the range with their drafts, draft classes, and NHL EDGE for the
+ * Skaters of the last season in the season before it.
+ */
+export async function fetchHistory(
+  seasons: readonly string[],
+  careerRange: { first: string; last: string },
+  draftYears: readonly number[],
+  options: FetchOptions,
+): Promise<RawHistory> {
+  const dir = join(options.cacheDir, 'history')
+  const report = (season: string, kind: string, name: string) =>
+    cached(
+      join(options.cacheDir, season, `${kind}-${name}.json`),
+      `${STATS}/${kind}/${name}?limit=-1&${seasonFilter(season)}`,
+      options,
+    )
+
+  const bySeason: Record<string, RawHistory['seasons'][string]> = {}
+  for (const season of seasons) {
+    options.log(`Season ${season}`)
+    bySeason[season] = {
+      skaterSummary: await report(season, 'skater', 'summary'),
+      skaterBios: await report(season, 'skater', 'bios'),
+      skaterRates: await report(season, 'skater', 'scoringRates'),
+      goalieSummary: await report(season, 'goalie', 'summary'),
+      goalieBios: await report(season, 'goalie', 'bios'),
+      goalieSaves: await report(season, 'goalie', 'savesByStrength'),
+      teamSummary: await report(season, 'team', 'summary'),
+    }
+  }
+
+  const range = rangeFilter(careerRange.first, careerRange.last)
+  const career = (kind: string) =>
+    cached(
+      join(dir, `career-${kind}-${careerRange.first}-${careerRange.last}.json`),
+      `${STATS}/${kind}/bios?isAggregate=true&limit=-1&${range}`,
+      options,
+    )
+
+  options.log(`Careers ${careerRange.first}-${careerRange.last}, drafts ${draftYears[0]}-${draftYears.at(-1)}`)
+  const drafts: Record<string, unknown> = {}
+  for (const year of draftYears) {
+    drafts[String(year)] = await cached(join(dir, `draft-${year}.json`), `${WEB}/draft/picks/${year}/all`, options)
+  }
+
+  // EDGE has no league-wide report, so one pair of seasons: the last one's
+  // Skaters, already fetched for the roster file, and the season before.
+  const last = seasons[seasons.length - 1]!
+  const before = seasons[seasons.length - 2]!
+  const lastEdge = await fetchEdge(last, edgeIdsOf(options.cacheDir, last), options)
+  const beforeEdge = await fetchEdge(before, Object.keys(lastEdge).map(Number), options)
+
+  return {
+    seasons: bySeason,
+    teamList: await cached(join(dir, 'team-list.json'), `${STATS}/team`, options),
+    careerSkaters: await career('skater'),
+    careerGoalies: await career('goalie'),
+    drafts,
+    edge: { [before]: beforeEdge, [last]: lastEdge },
+  }
+}
+
+/** Player ids with EDGE already cached for a season. */
+function edgeIdsOf(cacheDir: string, season: string): number[] {
+  const dir = join(cacheDir, season, 'edge')
+  return existsSync(dir) ? readdirSync(dir).map((file) => Number(file.replace('.json', ''))) : []
 }
