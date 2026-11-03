@@ -89,3 +89,25 @@ works for the naive Lineup and overwrites a human Manager's decisions.
 - `ATTEMPT_BASE` rises to 0.36 to hold the Tier 1 goal rate.
 - Injuries reach neither fatigue nor form, and a Player returns at full strength.
 - Goalies' relief appearances now exist, so a Goalie can appear without a start.
+
+## Amendment, 2026-11-03: an absence keeps a return date (#97)
+
+A count of the Club's Fixtures heals only as the Club plays, so a summer with no
+Fixtures could heal nobody, and a Player out for 30 Fixtures in April would miss
+30 in October. Seasons follow one another from Phase 2 (#85), so the author
+decided on 2026-11-03 that an absence is kept as a date.
+
+- The `injury` event carries `days`, the calendar days out from the day of its
+  Fixture. The Fixtures missed are still drawn from the measured lengths above,
+  and become days through the measured calendar, 2.1 days per Club Fixture: the
+  Player is back half a Fixture's days after the last one missed, so the next
+  Fixture is missed however the calendar falls. Off the ice this Fixture is the
+  first one missed, as before.
+- The Season keeps each absent Player's return day. They miss every Fixture
+  before it, however many the Club plays meanwhile.
+- The first conversion, with no half Fixture, let a one-Fixture injury end on the
+  day of the next Fixture, and regular Skaters missed 10.8% of Fixtures. With the
+  half Fixture they miss 11.6%, against 11.9% before the change and 12.8% measured,
+  and Clubs lose 0.48 Players per Fixture as before.
+- The measured lengths stop at 60 Fixtures, so nobody is yet out across a
+  summer. Injuries long enough for that are #98.
