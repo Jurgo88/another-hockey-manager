@@ -83,7 +83,7 @@ describe('the calendar (ADR-010)', () => {
 
   it('reads the calendar as data (D-10)', () => {
     const everyFixtureEarly = generateSchedule({
-      structure: { ...NHL_2026_27, calendar: { daysPerRound: 3, lastDayShare: 0 } },
+      structure: { ...NHL_2026_27, calendar: { ...NHL_2026_27.calendar, daysPerRound: 3, lastDayShare: 0 } },
       seasonId: 's1',
       rng: createRng(7),
     })

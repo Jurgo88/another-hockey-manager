@@ -1,12 +1,5 @@
 import type { Club, ClubId, PlayedDay, PlayerId, SeasonState } from '@ahm/sim'
-import {
-  daysOut,
-  displayName,
-  isSeasonOver,
-  noticesOf,
-  plainMatchStats,
-  playsNext,
-} from '@ahm/sim'
+import { daysOut, displayName, isSeasonOver, noticesOf, plainMatchStats, playsNext } from '@ahm/sim'
 
 const RESULTS_PER_INSERT = 200
 
@@ -21,7 +14,8 @@ interface SeasonRow {
   id: string
   club_id: string
   version: number
-  state: SeasonState
+  /** Seasons stored before #85 have no `year` and no `past`: they are the first of their run. */
+  state: Omit<SeasonState, 'year' | 'past'> & Partial<Pick<SeasonState, 'year' | 'past'>>
   live: SeasonState['live']
 }
 
@@ -37,7 +31,12 @@ export async function loadSeason(managerId: string): Promise<StoredSeason | null
       id: data.id,
       clubId: data.club_id,
       version: data.version,
-      state: { ...data.state, live: data.live },
+      state: {
+        ...data.state,
+        year: data.state.year ?? 1,
+        past: data.state.past ?? [],
+        live: data.live,
+      },
     }
   )
 }

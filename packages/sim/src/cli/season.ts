@@ -7,8 +7,12 @@ import { simulateFixture } from '../engine/simulate.js'
 import {
   advanceDay,
   isRegularSeasonOver,
+  isSeasonOver,
+  nextSeason,
   startSeason,
+  summaryOf,
   type PlayedFixture,
+  type SeasonSummary,
 } from '../season/index.js'
 import type { MatchStats } from '../stats/match.js'
 import { foldSeason, type SeasonStats } from '../stats/season.js'
@@ -29,7 +33,10 @@ export interface SimulatedSeason {
  * One regular Season played straight through on the AI Managers' opening
  * Lineups, on generated Rosters unless a provider gives others.
  */
-export async function simulateSeason(seed: number, provider?: RosterProvider): Promise<SimulatedSeason> {
+export async function simulateSeason(
+  seed: number,
+  provider?: RosterProvider,
+): Promise<SimulatedSeason> {
   let state = await startSeason(seed, provider)
 
   const played = new Map<FixtureId, Omit<PlayedFixture, 'events'>>()
@@ -59,5 +66,26 @@ export async function simulateSeason(seed: number, provider?: RosterProvider): P
     matches,
     season: foldSeason(matches),
     replay,
+  }
+}
+
+export interface SimulatedRun {
+  clubs: readonly Club[]
+  /** Every Season of the run, oldest first. */
+  seasons: readonly SeasonSummary[]
+}
+
+/** Several Seasons in a row from one seed, each played to its champion (#85). */
+export async function simulateSeasons(
+  seed: number,
+  count: number,
+  provider?: RosterProvider,
+): Promise<SimulatedRun> {
+  let state = await startSeason(seed, provider)
+  for (;;) {
+    while (!isSeasonOver(state)) state = advanceDay(state).state
+    if (state.year === count)
+      return { clubs: state.clubs, seasons: [...state.past, summaryOf(state)] }
+    state = nextSeason(state)
   }
 }

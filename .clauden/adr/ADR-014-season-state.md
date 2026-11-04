@@ -56,3 +56,31 @@ and a field left out of that would only show up as a changed result.
   should be. #49 decides how to split it.
 - A Lineup that lists an injured Player is valid, and is answered by moving up
   (ADR-012).
+
+## Amendment, 2026-11-04: one Season after another (#85)
+
+Phase 2 plays Seasons in a row. The state stays one plain JSON value, and the
+move between Seasons is one more pure step, `nextSeason`, allowed once a Season
+has its champion.
+
+- **What carries over.** The Rosters, a year older, rested and at neutral form;
+  each Club's declared Lineup while it is still valid, and otherwise the
+  assistant's Lineup with the same Tactics, the same rule for every Club (D-04);
+  absences, by the calendar. `year` counts the Seasons of the run, and `past`
+  keeps each finished Season's champion and final regular-Season table. Player
+  careers are #86.
+- **What starts again.** The schedule, the table, the counts, the playoffs,
+  fatigue, rest and Goalie rotation.
+- **Random numbers.** Each Season draws its schedule from a stream of its own,
+  `schedule:y<year>`, and its Fixtures carry the Season in their ids,
+  `s<seed>-y<year>-…`, so their streams are new as well (D-08). The first Season
+  keeps the stream `schedule` and the ids `s<seed>-…` it had before, so stored
+  Seasons and every earlier result stay as they were.
+- **The calendar.** A Competition's calendar declares the days from one Season's
+  first day to the next, 365 for the NHL (D-10). A return day moves back by that
+  much, and a Player still out on the new first day misses the start of the
+  Season (ADR-012).
+- Development, leaving the league and the draft (ADR-022 to ADR-024) are steps
+  of this move, added in that order by their own items.
+- Stopping and reloading between Seasons, or on any day within one, changes no
+  result over three Seasons from one seed.

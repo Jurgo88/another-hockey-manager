@@ -147,6 +147,6 @@ export const NHL_2026_27: CompetitionStructure = {
   divisions: DIVISIONS,
   scheduleKey: NHL_2026_27_SCHEDULE_KEY,
   // Lands on the measured 16.6% of gaps being back-to-backs (04-validation-targets.md).
-  calendar: { daysPerRound: 2, lastDayShare: 0.21 },
+  calendar: { daysPerRound: 2, lastDayShare: 0.21, daysPerYear: 365 },
   overtime: 'regular-3on3-then-shootout',
 }

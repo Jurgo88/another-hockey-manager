@@ -73,7 +73,7 @@ pnpm test                 # all packages
 pnpm --filter @ahm/sim test:watch
 pnpm --filter @ahm/sim test:realism
 pnpm typecheck
-pnpm sim:season           # simulate a Season, print tables (--roster <file>)
+pnpm sim:season           # simulate a Season, print tables (--roster <file>, --seasons <n>)
 pnpm sim:roster           # write a generated league as a roster file
 pnpm sim:estimate         # estimate real NHL Rosters into a roster file (--season)
 pnpm sim:validate         # compare Seasons on them with the real one (Phase 0.5 gate)
