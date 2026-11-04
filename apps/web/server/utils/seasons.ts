@@ -14,8 +14,8 @@ interface SeasonRow {
   id: string
   club_id: string
   version: number
-  /** Seasons stored before #85 have no `year` and no `past`: they are the first of their run. */
-  state: Omit<SeasonState, 'year' | 'past'> & Partial<Pick<SeasonState, 'year' | 'past'>>
+  /** Seasons stored before #85 have no `year`: they are the first of their run. */
+  state: Omit<SeasonState, 'year'> & Partial<Pick<SeasonState, 'year'>>
   live: SeasonState['live']
 }
 
@@ -34,7 +34,6 @@ export async function loadSeason(managerId: string): Promise<StoredSeason | null
       state: {
         ...data.state,
         year: data.state.year ?? 1,
-        past: data.state.past ?? [],
         live: data.live,
       },
     }
