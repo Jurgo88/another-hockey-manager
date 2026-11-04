@@ -152,6 +152,11 @@ the author added: a prospect is ready when his level reaches the weakest at his
 position on the Club, rights last 4 seasons, and each attribute group follows
 its own measured curve.
 
+Item 3 is done in #85: `nextSeason` moves a run from one Season to the next
+(ADR-014 amendment), and `pnpm sim:season --seasons <n>` plays several in a row.
+Before it, absences became return dates (#97, ADR-012 amendment), so that a
+summer heals as a Season's days do.
+
 ## Phase 3 - Roster movement
 
 Deferred this far deliberately: a transfer economy is the hardest thing in the
