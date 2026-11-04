@@ -108,7 +108,13 @@ const iceTime = (seconds: number) =>
         <tbody>
           <tr v-for="injury in box.injuries" :key="injury.player">
             <td class="name">{{ injury.player }}</td>
-            <td>{{ t('box.injuryLength', { fixtures: injury.fixtures }) }}</td>
+            <td>
+              {{
+                injury.days !== null
+                  ? t('box.injuryDays', { days: injury.days })
+                  : t('box.injuryLength', { fixtures: injury.fixtures })
+              }}
+            </td>
           </tr>
         </tbody>
       </table>

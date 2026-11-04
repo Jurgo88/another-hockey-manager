@@ -27,7 +27,9 @@ function words(play: Play): string {
         minutes: play.minutes,
       })
     case 'injury':
-      return t('plays.injury', { player: play.player, club: play.club, fixtures: play.fixtures })
+      return play.days !== null
+        ? t('plays.injuryDays', { player: play.player, club: play.club, days: play.days })
+        : t('plays.injury', { player: play.player, club: play.club, fixtures: play.fixtures })
     case 'lineup':
       return t('plays.lineup', { club: play.club })
     case 'period_end':

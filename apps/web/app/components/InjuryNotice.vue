@@ -42,7 +42,7 @@ async function fix() {
       <strong>{{ t('injuries.title', { count: hurt.length }) }}</strong>
       <ul>
         <li v-for="player in hurt" :key="player.id">
-          {{ player.name }}: {{ t('injuries.out', { fixtures: player.out }) }}
+          {{ player.name }}: {{ t('injuries.out', { days: player.out }) }}
         </li>
       </ul>
       <p class="muted">{{ t('injuries.help') }}</p>

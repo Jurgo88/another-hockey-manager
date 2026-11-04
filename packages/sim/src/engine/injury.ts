@@ -42,12 +42,25 @@ const ABSENCE_LENGTHS: readonly (readonly [number, number, number])[] = [
   [31, 60, 1.5],
 ]
 
-/** How many Fixtures an absence costs, at least one. */
-export function absenceLength(rng: Rng): number {
+/**
+ * Calendar days per Club Fixture in the Season the lengths were measured on:
+ * 82 Fixtures from 7 October 2025 to 16 April 2026, less the Olympic break.
+ * An absence is kept in days (#97), so a summer heals as a Season's days do.
+ */
+const MEASURED_DAYS_PER_FIXTURE = 2.1
+
+/**
+ * How many calendar days an absence lasts, from the day of the Fixture it began
+ * in. The Fixtures missed are drawn as measured, and the Player is back half a
+ * Fixture's days after the last of them, so the next Fixture is missed however
+ * the calendar falls. Off the ice this Fixture is the first one missed.
+ */
+export function absenceDays(rng: Rng, offIce = false): number {
   const index = weightedIndex(
     rng,
     ABSENCE_LENGTHS.map(([, , share]) => share),
   )
   const [shortest, longest] = ABSENCE_LENGTHS[index]!
-  return rng.int(shortest, longest)
+  const after = rng.int(shortest, longest) - (offIce ? 1 : 0)
+  return Math.round((after + 0.5) * MEASURED_DAYS_PER_FIXTURE)
 }

@@ -84,7 +84,8 @@
     "player": "Player",
     "ice": "Ice",
     "injuries": "Injuries",
-    "injuryLength": "out for {fixtures} Fixtures"
+    "injuryLength": "out for {fixtures} Fixtures",
+    "injuryDays": "out for {days} days"
   },
   "standings": {
     "club": "Club",
@@ -116,7 +117,7 @@
     "place": "Unit",
     "age": "Age",
     "fatigue": "Energy",
-    "out": "out {fixtures}",
+    "out": "out {days}d",
     "attributes": "Attributes",
     "notOurs": "That Player is not on your Roster."
   },
@@ -232,6 +233,7 @@
     "chance": "Big save on {player}, {club}",
     "penalty": "{player}, {club}: {kind}, {minutes} min",
     "injury": "{player}, {club}, hurt, out for {fixtures} Fixtures",
+    "injuryDays": "{player}, {club}, hurt, out for {days} days",
     "lineup": "{club} change the Lineup",
     "periodEnd": "End of Period, {home} : {away}",
     "powerPlay": "power play",
@@ -256,13 +258,14 @@
   },
   "injuries": {
     "title": "Injured Players in your Lineup: {count}",
-    "out": "out for {fixtures} more",
+    "out": "out for {days} more days",
     "help": "They cannot play. If you do nothing, the next Fixture replaces them automatically, but you can set it yourself.",
     "fix": "Fix the Lineup automatically",
     "toLineup": "Fix the Lineup"
   },
   "notices": {
     "injury": "is hurt: out for {fixtures} Fixtures.",
+    "injuryDays": "is hurt: out for {days} days.",
     "recovered": "is fit again and can play.",
     "empty": "Nothing yet. News about your Club arrives here.",
     "latest": "New in your inbox",

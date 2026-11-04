@@ -10,6 +10,7 @@ const blank = {
   assists: [],
   penalty: null,
   minutes: null,
+  days: null,
   fixtures: null,
   powerPlay: false,
   emptyNet: false,
@@ -70,7 +71,7 @@ export function playByPlay(events: readonly MatchEvent[], clubs: readonly Club[]
             kind: 'injury',
             club: clubOf(event.clubId),
             player: name(event.player),
-            fixtures: event.fixtures,
+            ...injuryLength(event),
           },
         ]
       case 'lineup_change':

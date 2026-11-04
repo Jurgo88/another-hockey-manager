@@ -239,7 +239,7 @@ function describeEvent(
       return `PENALTY ${code(event.clubId)} ${name(event.player)}, ${event.kind}, ${event.minutes} min`
     case 'injury': {
       const where = event.offIce ? ' before the Match' : ''
-      return `INJURY ${code(event.clubId)} ${name(event.player)}${where}, out ${event.fixtures} Fixtures`
+      return `INJURY ${code(event.clubId)} ${name(event.player)}${where}, out ${event.days} days`
     }
     case 'powerplay_start':
       return `POWER PLAY ${code(event.clubId)}, ${event.skatersFor}-on-${event.skatersAgainst}`

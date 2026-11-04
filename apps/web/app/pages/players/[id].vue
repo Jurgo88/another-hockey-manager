@@ -18,7 +18,7 @@ const attributes = computed(() => Object.entries(player.value?.attributes ?? {})
       <h1>{{ player.name }}</h1>
       <div>{{ t('roster.age') }} {{ player.age }}, {{ player.place ?? '-' }}</div>
     </header>
-    <p v-if="player.out" class="tag-out">{{ t('roster.out', { fixtures: player.out }) }}</p>
+    <p v-if="player.out" class="tag-out">{{ t('roster.out', { days: player.out }) }}</p>
     <section class="sheet">
       <h2>{{ t('roster.attributes') }}</h2>
       <div class="attrs">

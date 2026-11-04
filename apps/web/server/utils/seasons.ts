@@ -1,5 +1,12 @@
 import type { Club, ClubId, PlayedDay, PlayerId, SeasonState } from '@ahm/sim'
-import { displayName, isSeasonOver, noticesOf, plainMatchStats, playsNext } from '@ahm/sim'
+import {
+  daysOut,
+  displayName,
+  isSeasonOver,
+  noticesOf,
+  plainMatchStats,
+  playsNext,
+} from '@ahm/sim'
 
 const RESULTS_PER_INSERT = 200
 
@@ -161,7 +168,7 @@ function injuredInLineup(state: SeasonState, clubId: ClubId): string[] {
     ...lineup.lines.flatMap((line) => [line.leftWing, line.centre, line.rightWing]),
     ...lineup.pairings.flatMap((pairing) => [pairing.leftDefence, pairing.rightDefence]),
   ]
-    .filter((id) => state.absent[id] !== undefined)
+    .filter((id) => daysOut(state, id) > 0)
     .map((id) => names.get(id) ?? id)
 }
 

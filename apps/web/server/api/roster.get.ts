@@ -1,4 +1,4 @@
-import { savePercentage, points, type Lineup, type PlayerId } from '@ahm/sim'
+import { daysOut, savePercentage, points, type Lineup, type PlayerId } from '@ahm/sim'
 
 /** Where a Player stands in the Lineup, for the Roster table. */
 function placements(lineup: Lineup): ReadonlyMap<PlayerId, string> {
@@ -40,7 +40,7 @@ export default defineEventHandler(async (event) => {
         plusMinus: stats?.plusMinus ?? 0,
         iceSeconds: stats && stats.gamesPlayed > 0 ? stats.iceTimeSeconds / stats.gamesPlayed : 0,
         fatigue: Math.round(state.fatigue[skater.id] ?? 0),
-        out: state.absent[skater.id] ?? 0,
+        out: daysOut(state, skater.id),
       }
     }),
     goalies: club.goalies.map((goalie) => {
@@ -53,7 +53,7 @@ export default defineEventHandler(async (event) => {
         attributes: goalie.attributes,
         gamesPlayed: stats?.gamesPlayed ?? 0,
         savePercentage: stats && stats.shotsAgainst > 0 ? savePercentage(stats) : null,
-        out: state.absent[goalie.id] ?? 0,
+        out: daysOut(state, goalie.id),
       }
     }),
   }

@@ -1,4 +1,4 @@
-import { displayName, fatigueBeforeNext, isFollowed } from '@ahm/sim'
+import { daysOut, displayName, fatigueBeforeNext, isFollowed } from '@ahm/sim'
 import type { LineupPage } from '~~/shared/types/lineup'
 
 export default defineEventHandler(async (event): Promise<LineupPage> => {
@@ -15,14 +15,14 @@ export default defineEventHandler(async (event): Promise<LineupPage> => {
         id: skater.id,
         name: displayName(skater),
         positions: skater.preferredPositions,
-        out: state.absent[skater.id] ?? 0,
+        out: daysOut(state, skater.id),
         fatigue: fatigue[skater.id] ?? 0,
       })),
       ...club.goalies.map((goalie) => ({
         id: goalie.id,
         name: displayName(goalie),
         positions: ['G'],
-        out: state.absent[goalie.id] ?? 0,
+        out: daysOut(state, goalie.id),
       })),
     ],
   }

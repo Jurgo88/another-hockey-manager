@@ -40,7 +40,7 @@ Identifier scheme follows the convention established on HermanTool:
 | FR-13 | A CLI command simulates a full Season and prints standings plus scoring leaders. |
 | FR-14 | Fatigue accumulates within a Match, eases a little at the regulation intermissions, lowers play, and carries across a congested schedule, recovering between Fixtures. See ADR-010 and ADR-019. |
 | FR-25 | The backup Goalie starts Fixtures under a rule in Tactics: whoever played yesterday may sit, and whoever has started a set number running may sit the next. The rule is applied before the Fixture, the same for every Manager. See ADR-011. |
-| FR-26 | Players get hurt: mostly in a Match, in proportion to ice time, and some off the ice before the opening faceoff. An injury is an event naming the Fixtures the Player will miss, at measured frequency and length. See ADR-012. |
+| FR-26 | Players get hurt: mostly in a Match, in proportion to ice time, and some off the ice before the opening faceoff. An injury is an event naming the calendar days the Player is out, at measured frequency and length, and the Player misses every Fixture before their return day. See ADR-012. |
 | FR-27 | A Lineup answers an injury by itself: the Skater moves to the bottom of their column, everyone below steps up, and a spare fills the slot between Fixtures. The backup Goalie takes the net and the next healthy Goalie dresses. See ADR-012. |
 | FR-24 | A Fixture is scheduled on a calendar day. Gaps between a Club's Fixtures follow the measured NHL shape, about one in six a back-to-back, and no Club plays three days running. See ADR-010. |
 | FR-28 | A Season advances one calendar day at a time from plain stored state. Stopping and reloading between any two days changes no result. See ADR-014. |

@@ -8,6 +8,8 @@ export interface Play {
   assists: readonly string[]
   penalty: string | null
   minutes: number | null
+  days: number | null
+  /** Only in events stored before injuries were counted in days (#97). */
   fixtures: number | null
   powerPlay: boolean
   emptyNet: boolean

@@ -4,7 +4,7 @@ interface NoticeRow {
   id: string
   day: number
   kind: string
-  data: { playerId?: string; fixtures?: number }
+  data: { playerId?: string; days?: number; fixtures?: number }
   read: boolean
 }
 
@@ -30,6 +30,6 @@ export default defineEventHandler(async (event) => {
     read,
     player: details.playerId ? (names.get(details.playerId) ?? details.playerId) : null,
     playerId: details.playerId ?? null,
-    fixtures: details.fixtures ?? null,
+    ...injuryLength(details),
   }))
 })

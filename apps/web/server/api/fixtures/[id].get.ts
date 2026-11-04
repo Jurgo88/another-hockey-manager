@@ -75,7 +75,7 @@ export default defineEventHandler(async (event) => {
     })),
     injuries: stats.injuries.map((injury) => ({
       player: name(injury.playerId),
-      fixtures: injury.fixtures,
+      ...injuryLength(injury),
     })),
     plays: events ? playByPlay(events, state.clubs) : null,
   }

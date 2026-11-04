@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import type { Club, Lineup } from '../src/domain/club.js'
 import type { InjuryEvent, MatchEvent, ShiftChangeEvent } from '../src/domain/event.js'
 import { NHL_2026_27, NHL_2026_27_CLUB_SEEDS } from '../src/data/nhl-2026-27.js'
-import { absenceLength } from '../src/engine/injury.js'
+import { absenceDays } from '../src/engine/injury.js'
 import {
   buildNaiveLineup,
   movedToBottom,
@@ -50,15 +50,18 @@ const play = (seed: number): MatchEvent[] =>
 const isInjury = (e: MatchEvent): e is InjuryEvent => e.type === 'injury'
 const isShift = (e: MatchEvent): e is ShiftChangeEvent => e.type === 'shift_change'
 
-describe('absenceLength', () => {
-  it('stays within the measured table and is short more often than long', () => {
+describe('absenceDays', () => {
+  it('stays within the measured table in days and is short more often than long', () => {
     const rng = createRng(5)
-    const lengths = Array.from({ length: 2000 }, () => absenceLength(rng))
-    expect(Math.min(...lengths)).toBe(1)
-    expect(Math.max(...lengths)).toBeLessThanOrEqual(60)
-    expect(lengths.filter((n) => n === 1).length).toBeGreaterThan(
-      lengths.filter((n) => n >= 8).length,
+    const lengths = Array.from({ length: 2000 }, () => absenceDays(rng))
+    // One Fixture missed is three days, sixty about four months.
+    expect(Math.min(...lengths)).toBe(3)
+    expect(Math.max(...lengths)).toBeLessThanOrEqual(127)
+    expect(lengths.filter((n) => n === 3).length).toBeGreaterThan(
+      lengths.filter((n) => n >= 18).length,
     )
+    // Off the ice the first Fixture missed is this one.
+    expect(Math.min(...Array.from({ length: 2000 }, () => absenceDays(rng, true)))).toBe(1)
   })
 })
 
