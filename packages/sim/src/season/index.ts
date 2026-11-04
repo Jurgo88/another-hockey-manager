@@ -1,8 +1,8 @@
 import type { Club, Lineup, Tactics } from '../domain/club.js'
-import type { CompetitionStructure } from '../domain/competition.js'
+import type { CompetitionStructure, SeasonId } from '../domain/competition.js'
 import type { MatchEvent } from '../domain/event.js'
 import type { Fixture, FixtureChange, FixtureId, FixtureInput } from '../domain/fixture.js'
-import type { ClubId, PlayerId } from '../domain/player.js'
+import type { ClubId, Player, PlayerId } from '../domain/player.js'
 import type { PlayoffFormat, PlayoffState } from '../domain/playoff.js'
 import type { RosterProvider } from '../domain/roster.js'
 import type { StandingsRow } from '../domain/standings.js'
@@ -74,6 +74,19 @@ export interface SeasonState {
   playoffs: PlayoffState | null
   /** Fixtures a Manager is following Period by Period (ADR-016). */
   live: Readonly<Record<FixtureId, LiveFixture>>
+  /** Which Season of the run this is, from 1 (#85). */
+  year: number
+  /** The Seasons played before this one, oldest first. */
+  past: readonly SeasonSummary[]
+}
+
+/** What is kept of a Season once the next one starts (#85). Player careers are #86. */
+export interface SeasonSummary {
+  seasonId: SeasonId
+  year: number
+  champion: ClubId
+  /** The final regular-Season table. */
+  standings: readonly StandingsRow[]
 }
 
 /** How far a Fixture has been followed, and what has been decided along the way. */
@@ -146,31 +159,100 @@ export async function startSeason(
   }),
 ): Promise<SeasonState> {
   const { clubs } = await provider.loadCompetition(NHL_2026_27.id)
-  const fixtures = generateSchedule({
-    structure: NHL_2026_27,
-    seasonId: `s${seed}`,
-    rng: createRng(seed).fork('schedule'),
-  }).sort((a, b) => a.day - b.day || a.round - b.round)
-
   const unset: SeasonState = {
+    ...freshSeason(seed, NHL_2026_27, 1),
     seed,
-    structure: NHL_2026_27,
     playoffFormat: NHL_PLAYOFF_FORMAT,
     clubs,
     lineups: {},
+    absent: {},
+    past: [],
+  }
+  // Every Club opens as an AI Manager would, through the call any Manager uses (D-04).
+  return clubs.reduce((state, club) => setLineup(state, club.id, buildNaiveLineup(club)), unset)
+}
+
+/**
+ * The Season after one with a champion, before its first day (#85). Players
+ * are a year older and rested, the table starts again, and the schedule is
+ * drawn anew from a stream of its own (D-08). An absence runs on across the
+ * summer by the calendar. The same step serves every Club (D-04): a declared
+ * Lineup stays while it is still valid, and otherwise the assistant builds one
+ * with the same Tactics.
+ */
+export function nextSeason(state: SeasonState): SeasonState {
+  if (!isSeasonOver(state)) throw new Error(`Season s${state.seed} has no champion yet`)
+
+  const year = state.year + 1
+  const fresh = freshSeason(state.seed, state.structure, year)
+  const { daysPerYear } = state.structure.calendar
+  const firstDay = fresh.fixtures[0]!.day
+  const absent = Object.fromEntries(
+    Object.entries(state.absent)
+      .map(([id, back]) => [id, back - daysPerYear] as const)
+      .filter(([, back]) => back > firstDay),
+  )
+  const clubs = state.clubs.map((club) => ({
+    ...club,
+    skaters: club.skaters.map(olderAndRested),
+    goalies: club.goalies.map(olderAndRested),
+  }))
+  const lineups = Object.fromEntries(
+    clubs.map((club) => {
+      const declared = state.lineups[club.id]!
+      const valid = validateLineup(declared, club).length === 0
+      return [club.id, valid ? declared : buildNaiveLineup(club, declared.tactics)]
+    }),
+  )
+  return {
+    ...state,
+    ...fresh,
+    clubs,
+    lineups,
+    absent,
+    past: [...state.past, summaryOf(state)],
+  }
+}
+
+/** What is kept of a Season with a champion. */
+export function summaryOf(state: SeasonState): SeasonSummary {
+  const champion = state.playoffs?.champion
+  if (!champion) throw new Error(`Season s${state.seed} has no champion yet`)
+  return {
+    seasonId: state.fixtures[0]!.seasonId,
+    year: state.year,
+    champion,
+    standings: state.standings,
+  }
+}
+
+/** A Season's own parts as they stand before its first day. */
+function freshSeason(seed: number, structure: CompetitionStructure, year: number) {
+  // The first Season keeps the stream and ids it had before there were more (#85).
+  const seasonId = year === 1 ? `s${seed}` : `s${seed}-y${year}`
+  const fixtures = generateSchedule({
+    structure,
+    seasonId,
+    rng: createRng(seed).fork(year === 1 ? 'schedule' : `schedule:y${year}`),
+  }).sort((a, b) => a.day - b.day || a.round - b.round)
+  return {
+    structure,
+    year,
     fixtures,
     nextFixture: 0,
     fatigue: {},
     lastPlayed: {},
     goalieHistory: {},
-    absent: {},
-    standings: foldStandings(NHL_2026_27, []),
+    standings: foldStandings(structure, []),
     totals: { regular: NO_TOTALS, playoffs: NO_TOTALS },
     playoffs: null,
     live: {},
-  }
-  // Every Club opens as an AI Manager would, through the call any Manager uses (D-04).
-  return clubs.reduce((state, club) => setLineup(state, club.id, buildNaiveLineup(club)), unset)
+  } satisfies Partial<SeasonState>
+}
+
+/** A Player a year on: older, rested, and back to a neutral form. */
+function olderAndRested<P extends Player>(player: P): P {
+  return { ...player, age: player.age + 1, form: 50, fatigue: 0 }
 }
 
 /** Declares a Club's Lineup and Tactics for the Fixtures to come, for any Manager (D-04). */

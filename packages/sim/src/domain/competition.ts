@@ -40,6 +40,8 @@ export interface ScheduleCalendar {
   daysPerRound: number
   /** Chance a Fixture falls on the last day of its round rather than the first. */
   lastDayShare: number
+  /** Days from the first day of one Season to the first day of the next (#85). */
+  daysPerYear: number
 }
 
 export interface CompetitionStructure {

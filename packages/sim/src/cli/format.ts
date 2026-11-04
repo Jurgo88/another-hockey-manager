@@ -2,7 +2,7 @@ import type { CompetitionStructure } from '../domain/competition.js'
 import type { MatchEvent } from '../domain/event.js'
 import type { FixtureId } from '../domain/fixture.js'
 import { displayName, type ClubId, type PlayerId } from '../domain/player.js'
-import { goalDifferential, type StandingsRow } from '../domain/standings.js'
+import { goalDifferential, sortStandings, type StandingsRow } from '../domain/standings.js'
 import {
   points,
   savePercentage,
@@ -11,7 +11,8 @@ import {
   type SkaterStats,
 } from '../stats/match.js'
 import { conferenceTables, divisionTables, foldStandings } from '../stats/standings.js'
-import type { SimulatedSeason } from './season.js'
+import type { SeasonSummary } from '../season/index.js'
+import type { SimulatedRun, SimulatedSeason } from './season.js'
 
 /**
  * Plain-text rendering of a simulated Season. Pure: these functions return
@@ -65,7 +66,7 @@ function byId<V extends { id: string }>(items: readonly V[]): Map<string, V> {
   return new Map(items.map((item) => [item.id, item]))
 }
 
-function clubCodes(season: SimulatedSeason): (clubId: ClubId) => string {
+function clubCodes(season: Pick<SimulatedSeason, 'clubs'>): (clubId: ClubId) => string {
   const clubs = byId(season.clubs)
   return (clubId) => clubs.get(clubId)?.code ?? clubId
 }
@@ -78,7 +79,7 @@ function playerNames(season: SimulatedSeason): (playerId: PlayerId) => string {
   }
 }
 
-function standingsColumns(season: SimulatedSeason): Column<StandingsRow>[] {
+function standingsColumns(season: Pick<SimulatedSeason, 'clubs'>): Column<StandingsRow>[] {
   const code = clubCodes(season)
   return [
     { header: 'Club', align: 'left', value: (row) => code(row.clubId) },
@@ -183,6 +184,31 @@ export function renderGoalieLeaders(season: SimulatedSeason, top: number): strin
     { header: 'GAA', value: (row) => (row.goalsAgainst / row.gamesPlayed).toFixed(2) },
   ]
   return renderTable(columns, rows)
+}
+
+/** Several Seasons of one run: who won each, then each final table (#85). */
+export function renderRun(run: SimulatedRun, structure: CompetitionStructure): string {
+  const code = clubCodes(run)
+  const best = (season: SeasonSummary) => sortStandings(season.standings)[0]!
+  const history = renderTable<SeasonSummary>(
+    [
+      { header: 'Season', value: (season) => season.year },
+      { header: 'Champion', align: 'left', value: (season) => code(season.champion) },
+      { header: 'Best record', align: 'left', value: (season) => code(best(season).clubId) },
+      { header: 'PTS', value: (season) => best(season).points },
+    ],
+    run.seasons,
+  )
+  const columns = standingsColumns(run)
+  return [
+    section(`${structure.name} - ${run.seasons.length} Seasons`, history),
+    ...run.seasons.map((season) =>
+      section(
+        `Season ${season.year} (${season.seasonId}), champion ${code(season.champion)}`,
+        renderTable(columns, sortStandings(season.standings)),
+      ),
+    ),
+  ].join('\n\n\n')
 }
 
 export function renderSeason(
