@@ -66,9 +66,8 @@ has its champion.
 - **What carries over.** The Rosters, a year older, rested and at neutral form;
   each Club's declared Lineup while it is still valid, and otherwise the
   assistant's Lineup with the same Tactics, the same rule for every Club (D-04);
-  absences, by the calendar. `year` counts the Seasons of the run, and `past`
-  keeps each finished Season's champion and final regular-Season table. Player
-  careers are #86.
+  absences, by the calendar. `year` counts the Seasons of the run. What is kept
+  of a finished Season lives beside the state, not in it (ADR-025, #86).
 - **What starts again.** The schedule, the table, the counts, the playoffs,
   fatigue, rest and Goalie rotation.
 - **Random numbers.** Each Season draws its schedule from a stream of its own,

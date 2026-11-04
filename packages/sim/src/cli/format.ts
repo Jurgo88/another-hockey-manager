@@ -11,7 +11,16 @@ import {
   type SkaterStats,
 } from '../stats/match.js'
 import { conferenceTables, divisionTables, foldStandings } from '../stats/standings.js'
-import type { SeasonSummary } from '../season/index.js'
+import {
+  careerTotals,
+  clubHistory,
+  goalieCareer,
+  skaterCareer,
+  type CareerSeason,
+  type ClubSeason,
+  type PlayoffResult,
+  type SeasonRecord,
+} from '../stats/history.js'
 import type { SimulatedRun, SimulatedSeason } from './season.js'
 
 /**
@@ -189,8 +198,8 @@ export function renderGoalieLeaders(season: SimulatedSeason, top: number): strin
 /** Several Seasons of one run: who won each, then each final table (#85). */
 export function renderRun(run: SimulatedRun, structure: CompetitionStructure): string {
   const code = clubCodes(run)
-  const best = (season: SeasonSummary) => sortStandings(season.standings)[0]!
-  const history = renderTable<SeasonSummary>(
+  const best = (season: SeasonRecord) => sortStandings(season.standings)[0]!
+  const history = renderTable<SeasonRecord>(
     [
       { header: 'Season', value: (season) => season.year },
       { header: 'Champion', align: 'left', value: (season) => code(season.champion) },
@@ -209,6 +218,97 @@ export function renderRun(run: SimulatedRun, structure: CompetitionStructure): s
       ),
     ),
   ].join('\n\n\n')
+}
+
+function playoffText(result: PlayoffResult): string {
+  if (result.kind === 'missed') return '-'
+  return result.kind === 'champion' ? 'Champion' : `Lost: ${result.roundName}`
+}
+
+/** One Club's Seasons in a run (#86). */
+export function renderClubHistory(run: SimulatedRun, clubId: ClubId): string {
+  const club = run.clubs.find((candidate) => candidate.id === clubId)!
+  return section(
+    `${club.name} - history`,
+    renderTable<ClubSeason>(
+      [
+        { header: 'Season', value: (s) => s.year },
+        { header: 'Div', value: (s) => s.divisionRank },
+        { header: 'NHL', value: (s) => s.leagueRank },
+        { header: 'GP', value: (s) => s.row.gamesPlayed },
+        { header: 'W', value: (s) => s.row.wins },
+        { header: 'L', value: (s) => s.row.losses },
+        { header: 'OTL', value: (s) => s.row.otLosses },
+        { header: 'PTS', value: (s) => s.row.points },
+        { header: 'DIFF', value: (s) => signed(goalDifferential(s.row)) },
+        { header: 'Playoffs', align: 'left', value: (s) => playoffText(s.playoffs) },
+      ],
+      clubHistory(run.seasons, clubId),
+    ),
+  )
+}
+
+interface CareerRow<S> {
+  label: string
+  clubId: ClubId | null
+  line: Pick<CareerSeason<S>, 'regular' | 'playoffs'>
+}
+
+function careerRows<S extends { clubId: ClubId }>(
+  career: readonly CareerSeason<S>[],
+): CareerRow<S>[] {
+  return [
+    ...career.map((line) => ({ label: String(line.year), clubId: line.clubId, line })),
+    { label: 'Total', clubId: null, line: careerTotals(career) },
+  ]
+}
+
+/** One Player's career in a run, Season by Season and in total (#86). */
+export function renderCareer(run: SimulatedRun, playerId: PlayerId): string {
+  const player = run.players.get(playerId)!
+  const code = clubCodes(run)
+  const club = (row: { clubId: ClubId | null }) => (row.clubId ? code(row.clubId) : '')
+  const sv = (goalie: GoalieStats | null) => (goalie ? rate(savePercentage(goalie)) : '')
+
+  if (player.kind === 'goalie') {
+    return section(
+      `${displayName(player)}, G - career`,
+      renderTable<CareerRow<GoalieStats>>(
+        [
+          { header: 'Season', align: 'left', value: (r) => r.label },
+          { header: 'Club', align: 'left', value: club },
+          { header: 'GP', value: (r) => r.line.regular?.gamesPlayed ?? 0 },
+          { header: 'SA', value: (r) => r.line.regular?.shotsAgainst ?? 0 },
+          { header: 'GA', value: (r) => r.line.regular?.goalsAgainst ?? 0 },
+          { header: 'SV%', value: (r) => sv(r.line.regular) },
+          { header: 'PO GP', value: (r) => r.line.playoffs?.gamesPlayed ?? 0 },
+          { header: 'PO SV%', value: (r) => sv(r.line.playoffs) },
+        ],
+        careerRows(goalieCareer(run.seasons, playerId)),
+      ),
+    )
+  }
+  const toi = (skater: SkaterStats | null) =>
+    skater ? minutesSeconds(skater.iceTimeSeconds / skater.gamesPlayed) : ''
+  return section(
+    `${displayName(player)}, ${player.preferredPositions[0]} - career`,
+    renderTable<CareerRow<SkaterStats>>(
+      [
+        { header: 'Season', align: 'left', value: (r) => r.label },
+        { header: 'Club', align: 'left', value: club },
+        { header: 'GP', value: (r) => r.line.regular?.gamesPlayed ?? 0 },
+        { header: 'G', value: (r) => r.line.regular?.goals ?? 0 },
+        { header: 'A', value: (r) => r.line.regular?.assists ?? 0 },
+        { header: 'PTS', value: (r) => (r.line.regular ? points(r.line.regular) : 0) },
+        { header: '+/-', value: (r) => signed(r.line.regular?.plusMinus ?? 0) },
+        { header: 'PIM', value: (r) => r.line.regular?.penaltyMinutes ?? 0 },
+        { header: 'TOI', value: (r) => toi(r.line.regular) },
+        { header: 'PO GP', value: (r) => r.line.playoffs?.gamesPlayed ?? 0 },
+        { header: 'PO PTS', value: (r) => (r.line.playoffs ? points(r.line.playoffs) : 0) },
+      ],
+      careerRows(skaterCareer(run.seasons, playerId)),
+    ),
+  )
 }
 
 export function renderSeason(

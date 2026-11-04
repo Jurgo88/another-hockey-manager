@@ -1,7 +1,7 @@
 import type { Club, Lineup } from '../domain/club.js'
 import type { MatchEvent } from '../domain/event.js'
 import type { Fixture, FixtureId } from '../domain/fixture.js'
-import type { ClubId } from '../domain/player.js'
+import type { ClubId, Player, PlayerId } from '../domain/player.js'
 import type { RosterProvider } from '../domain/roster.js'
 import { simulateFixture } from '../engine/simulate.js'
 import {
@@ -9,12 +9,12 @@ import {
   isRegularSeasonOver,
   isSeasonOver,
   nextSeason,
+  recordOf,
   startSeason,
-  summaryOf,
   type PlayedFixture,
-  type SeasonSummary,
 } from '../season/index.js'
-import type { MatchStats } from '../stats/match.js'
+import { careerTotals, skaterCareer, type SeasonRecord } from '../stats/history.js'
+import { points, type MatchStats } from '../stats/match.js'
 import { foldSeason, type SeasonStats } from '../stats/season.js'
 
 export interface SimulatedSeason {
@@ -70,9 +70,12 @@ export async function simulateSeason(
 }
 
 export interface SimulatedRun {
+  /** The Clubs as the last Season ended. */
   clubs: readonly Club[]
-  /** Every Season of the run, oldest first. */
-  seasons: readonly SeasonSummary[]
+  /** Everyone who was on a Roster in any Season, as last seen. */
+  players: ReadonlyMap<PlayerId, Player>
+  /** Every Season of the run, oldest first, kept as the caller keeps them (#86). */
+  seasons: readonly SeasonRecord[]
 }
 
 /** Several Seasons in a row from one seed, each played to its champion (#85). */
@@ -82,10 +85,47 @@ export async function simulateSeasons(
   provider?: RosterProvider,
 ): Promise<SimulatedRun> {
   let state = await startSeason(seed, provider)
+  const players = new Map<PlayerId, Player>()
+  const seasons: SeasonRecord[] = []
   for (;;) {
     while (!isSeasonOver(state)) state = advanceDay(state).state
-    if (state.year === count)
-      return { clubs: state.clubs, seasons: [...state.past, summaryOf(state)] }
+    for (const club of state.clubs) {
+      for (const player of [...club.skaters, ...club.goalies]) players.set(player.id, player)
+    }
+    seasons.push(recordOf(state))
+    if (state.year === count) return { clubs: state.clubs, players, seasons }
     state = nextSeason(state)
   }
+}
+
+/** A Club of the run by its code, in any case. */
+export function clubByCode(run: SimulatedRun, code: string): ClubId {
+  const club = run.clubs.find((candidate) => candidate.code.toLowerCase() === code.toLowerCase())
+  if (!club) throw new Error(`No Club with code "${code}"`)
+  return club.id
+}
+
+/** The one Player of the run whose name contains `name`, in any case. */
+export function playerByName(run: SimulatedRun, name: string): PlayerId {
+  const wanted = name.toLowerCase()
+  const found = [...run.players.values()].filter((player) =>
+    `${player.firstName} ${player.lastName}`.toLowerCase().includes(wanted),
+  )
+  if (found.length === 1) return found[0]!.id
+  const names = found.slice(0, 5).map((player) => `${player.firstName} ${player.lastName}`)
+  throw new Error(
+    found.length === 0
+      ? `No Player named "${name}"`
+      : `${found.length} Players match "${name}": ${names.join(', ')}${found.length > 5 ? ', ...' : ''}`,
+  )
+}
+
+/** The Skater with the most regular-Season points over the run. */
+export function leadingScorer(run: SimulatedRun): PlayerId {
+  const total = (id: PlayerId) => {
+    const { regular } = careerTotals(skaterCareer(run.seasons, id))
+    return regular ? points(regular) : 0
+  }
+  const totals = [...run.players.keys()].map((id) => [id, total(id)] as const)
+  return totals.reduce((best, next) => (next[1] > best[1] ? next : best))[0]
 }

@@ -14,7 +14,7 @@ export interface SeasonStats {
 }
 
 /** Adds every numeric field. `clubId` follows the later entry, so a traded Player shows their current Club. */
-function sum<T extends { clubId: ClubId }>(earlier: T, later: T): T {
+export function addCounts<T extends { clubId: ClubId }>(earlier: T, later: T): T {
   const total: Record<string, unknown> = { ...earlier, clubId: later.clubId }
   for (const [key, value] of Object.entries(later) as [string, unknown][]) {
     const prior = total[key]
@@ -29,7 +29,7 @@ function accumulate<K, T extends { clubId: ClubId }>(
 ): void {
   for (const [key, stats] of from) {
     const existing = into.get(key)
-    into.set(key, existing ? sum(existing, stats) : { ...stats })
+    into.set(key, existing ? addCounts(existing, stats) : { ...stats })
   }
 }
 

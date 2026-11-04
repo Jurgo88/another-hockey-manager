@@ -1,5 +1,5 @@
 import type { Club, Lineup, Tactics } from '../domain/club.js'
-import type { CompetitionStructure, SeasonId } from '../domain/competition.js'
+import type { CompetitionStructure } from '../domain/competition.js'
 import type { MatchEvent } from '../domain/event.js'
 import type { Fixture, FixtureChange, FixtureId, FixtureInput } from '../domain/fixture.js'
 import type { ClubId, Player, PlayerId } from '../domain/player.js'
@@ -27,6 +27,7 @@ import { generateSchedule } from '../engine/schedule.js'
 import { fixtureSeed, simulateFixture } from '../engine/simulate.js'
 import { createGeneratedRosterProvider } from '../generate/roster.js'
 import { createRng } from '../rng/index.js'
+import type { SeasonRecord } from '../stats/history.js'
 import { foldMatch, type MatchStats } from '../stats/match.js'
 import { foldTotals, NO_TOTALS, type SeasonTotals } from '../stats/season.js'
 import { foldStandings } from '../stats/standings.js'
@@ -74,19 +75,11 @@ export interface SeasonState {
   playoffs: PlayoffState | null
   /** Fixtures a Manager is following Period by Period (ADR-016). */
   live: Readonly<Record<FixtureId, LiveFixture>>
-  /** Which Season of the run this is, from 1 (#85). */
+  /**
+   * Which Season of the run this is, from 1 (#85). Earlier Seasons are not
+   * kept here: the caller takes each one's `recordOf` before `nextSeason` (#86).
+   */
   year: number
-  /** The Seasons played before this one, oldest first. */
-  past: readonly SeasonSummary[]
-}
-
-/** What is kept of a Season once the next one starts (#85). Player careers are #86. */
-export interface SeasonSummary {
-  seasonId: SeasonId
-  year: number
-  champion: ClubId
-  /** The final regular-Season table. */
-  standings: readonly StandingsRow[]
 }
 
 /** How far a Fixture has been followed, and what has been decided along the way. */
@@ -166,7 +159,6 @@ export async function startSeason(
     clubs,
     lineups: {},
     absent: {},
-    past: [],
   }
   // Every Club opens as an AI Manager would, through the call any Manager uses (D-04).
   return clubs.reduce((state, club) => setLineup(state, club.id, buildNaiveLineup(club)), unset)
@@ -210,19 +202,20 @@ export function nextSeason(state: SeasonState): SeasonState {
     clubs,
     lineups,
     absent,
-    past: [...state.past, summaryOf(state)],
   }
 }
 
-/** What is kept of a Season with a champion. */
-export function summaryOf(state: SeasonState): SeasonSummary {
+/** What is kept of a Season with a champion, for its history and careers (#86). */
+export function recordOf(state: SeasonState): SeasonRecord {
   const champion = state.playoffs?.champion
-  if (!champion) throw new Error(`Season s${state.seed} has no champion yet`)
+  if (!state.playoffs || !champion) throw new Error(`Season s${state.seed} has no champion yet`)
   return {
     seasonId: state.fixtures[0]!.seasonId,
     year: state.year,
     champion,
     standings: state.standings,
+    playoffs: state.playoffs,
+    totals: state.totals,
   }
 }
 

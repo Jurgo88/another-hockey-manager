@@ -3,6 +3,7 @@ import {
   advanceDay,
   isSeasonOver,
   nextSeason,
+  recordOf,
   startSeason,
   type SeasonState,
 } from '../src/season/index.js'
@@ -37,20 +38,20 @@ describe('nextSeason', () => {
 
   it('keeps the first Season as it was before there were more', () => {
     expect(start.year).toBe(1)
-    expect(start.past).toEqual([])
     expect(start.fixtures[0]!.seasonId).toBe(`s${SEED}`)
   })
 
-  it('keeps the champion and the final table', () => {
+  it('counts the Season, and hands what is kept of the last one to the caller (#86)', () => {
     expect(next.year).toBe(2)
-    expect(next.past).toEqual([
-      {
-        seasonId: `s${SEED}`,
-        year: 1,
-        champion: ended.playoffs!.champion,
-        standings: ended.standings,
-      },
-    ])
+    expect(recordOf(ended)).toEqual({
+      seasonId: `s${SEED}`,
+      year: 1,
+      champion: ended.playoffs!.champion,
+      standings: ended.standings,
+      playoffs: ended.playoffs,
+      totals: ended.totals,
+    })
+    expect(() => recordOf(start)).toThrow(/no champion/)
   })
 
   it('makes every Player a year older, rested and of neutral form', () => {
@@ -123,7 +124,6 @@ describe('nextSeason', () => {
       }
     }
     expect(straight.year).toBe(3)
-    expect(straight.past.map((season) => season.year)).toEqual([1, 2])
     expect(stored(straight)).toEqual(reloaded)
   })
 })

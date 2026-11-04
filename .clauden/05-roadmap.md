@@ -157,6 +157,10 @@ Item 3 is done in #85: `nextSeason` moves a run from one Season to the next
 Before it, absences became return dates (#97, ADR-012 amendment), so that a
 summer heals as a Season's days do.
 
+Item 4 is done in #86: a finished Season is a record kept beside the state
+(ADR-025), from which a Club's history and a Player's career are read;
+`--club` and `--player` print them.
+
 ## Phase 3 - Roster movement
 
 Deferred this far deliberately: a transfer economy is the hardest thing in the
