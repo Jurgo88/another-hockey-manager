@@ -48,8 +48,9 @@ generate/ procedural Rosters and names  - may import domain, rng
 engine/   simulation                    - may import domain, rng
 stats/    folds over the event stream   - may import domain ONLY
 roster/   the roster file (ADR-020)     - may import domain ONLY
+develop/  ageing between Seasons        - may import domain, rng
 season/   a Season, day by day          - may import domain, rng, generate,
-                                          engine, stats
+                                          engine, stats, develop
 cli/      entry points                  - may import anything
 ```
 
