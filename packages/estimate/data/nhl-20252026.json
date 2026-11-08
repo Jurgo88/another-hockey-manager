@@ -13,7 +13,7 @@
           "firstName": "David",
           "lastName": "Pastrnak",
           "age": 29,
-          "potential": 16,
+          "potential": 17,
           "handedness": "right",
           "positions": [
             "RW",
@@ -95,7 +95,7 @@
           "firstName": "Morgan",
           "lastName": "Geekie",
           "age": 27,
-          "potential": 16,
+          "potential": 17,
           "handedness": "right",
           "positions": [
             "RW",
@@ -177,7 +177,7 @@
           "firstName": "Pavel",
           "lastName": "Zacha",
           "age": 28,
-          "potential": 18,
+          "potential": 19,
           "handedness": "left",
           "positions": [
             "C",
@@ -341,7 +341,7 @@
           "firstName": "Elias",
           "lastName": "Lindholm",
           "age": 30,
-          "potential": 13,
+          "potential": 14,
           "handedness": "right",
           "positions": [
             "C",
@@ -423,7 +423,7 @@
           "firstName": "Marat",
           "lastName": "Khusnutdinov",
           "age": 23,
-          "potential": 14,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "C",
@@ -587,7 +587,7 @@
           "firstName": "Casey",
           "lastName": "Mittelstadt",
           "age": 26,
-          "potential": 14,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "C",
@@ -669,7 +669,7 @@
           "firstName": "Mark",
           "lastName": "Kastelic",
           "age": 26,
-          "potential": 12,
+          "potential": 14,
           "handedness": "right",
           "positions": [
             "C",
@@ -833,7 +833,7 @@
           "firstName": "Tanner",
           "lastName": "Jeannot",
           "age": 28,
-          "potential": 11,
+          "potential": 12,
           "handedness": "left",
           "positions": [
             "LW",
@@ -915,7 +915,7 @@
           "firstName": "Michael",
           "lastName": "Eyssimont",
           "age": 29,
-          "potential": 9,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "LW",
@@ -997,7 +997,7 @@
           "firstName": "Alex",
           "lastName": "Steeves",
           "age": 25,
-          "potential": 11,
+          "potential": 13,
           "handedness": "left",
           "positions": [
             "C",
@@ -1079,7 +1079,7 @@
           "firstName": "Riley",
           "lastName": "Tufte",
           "age": 27,
-          "potential": 7,
+          "potential": 8,
           "handedness": "left",
           "positions": [
             "LW",
@@ -1161,7 +1161,7 @@
           "firstName": "Matěj ",
           "lastName": "Blümel",
           "age": 25,
-          "potential": 6,
+          "potential": 7,
           "handedness": "left",
           "positions": [
             "RW",
@@ -1243,7 +1243,7 @@
           "firstName": "Matthew",
           "lastName": "Poitras",
           "age": 21,
-          "potential": 10,
+          "potential": 11,
           "handedness": "right",
           "positions": [
             "RW",
@@ -1325,7 +1325,7 @@
           "firstName": "Nikita",
           "lastName": "Zadorov",
           "age": 30,
-          "potential": 16,
+          "potential": 17,
           "handedness": "left",
           "positions": [
             "LD",
@@ -1489,7 +1489,7 @@
           "firstName": "Andrew",
           "lastName": "Peeke",
           "age": 27,
-          "potential": 12,
+          "potential": 14,
           "handedness": "right",
           "positions": [
             "RD",
@@ -1653,7 +1653,7 @@
           "firstName": "Mason",
           "lastName": "Lohrei",
           "age": 24,
-          "potential": 15,
+          "potential": 17,
           "handedness": "left",
           "positions": [
             "LD",
@@ -1735,7 +1735,7 @@
           "firstName": "Jonathan",
           "lastName": "Aspirot",
           "age": 26,
-          "potential": 11,
+          "potential": 13,
           "handedness": "left",
           "positions": [
             "LD",
@@ -1817,7 +1817,7 @@
           "firstName": "Henri",
           "lastName": "Jokiharju",
           "age": 26,
-          "potential": 13,
+          "potential": 15,
           "handedness": "right",
           "positions": [
             "RD",
@@ -1899,7 +1899,7 @@
           "firstName": "Jordan",
           "lastName": "Harris",
           "age": 25,
-          "potential": 10,
+          "potential": 12,
           "handedness": "left",
           "positions": [
             "LD",
@@ -1981,7 +1981,7 @@
           "firstName": "Victor",
           "lastName": "Soderstrom",
           "age": 24,
-          "potential": 8,
+          "potential": 10,
           "handedness": "right",
           "positions": [
             "RD",
@@ -2063,7 +2063,7 @@
           "firstName": "Michael",
           "lastName": "Callahan",
           "age": 26,
-          "potential": 5,
+          "potential": 7,
           "handedness": "left",
           "positions": [
             "LD",
@@ -2147,7 +2147,7 @@
           "firstName": "Jeremy",
           "lastName": "Swayman",
           "age": 26,
-          "potential": 19,
+          "potential": 20,
           "handedness": "left",
           "attributes": {
             "reflexes": 20,
@@ -2231,7 +2231,7 @@
           "firstName": "Michael",
           "lastName": "DiPietro",
           "age": 26,
-          "potential": 14,
+          "potential": 16,
           "handedness": "left",
           "attributes": {
             "reflexes": 14,
@@ -2280,7 +2280,7 @@
           "firstName": "Tage",
           "lastName": "Thompson",
           "age": 27,
-          "potential": 17,
+          "potential": 19,
           "handedness": "right",
           "positions": [
             "C",
@@ -2362,7 +2362,7 @@
           "firstName": "Alex",
           "lastName": "Tuch",
           "age": 29,
-          "potential": 17,
+          "potential": 18,
           "handedness": "right",
           "positions": [
             "RW",
@@ -2444,7 +2444,7 @@
           "firstName": "Ryan",
           "lastName": "McLeod",
           "age": 26,
-          "potential": 16,
+          "potential": 18,
           "handedness": "left",
           "positions": [
             "C",
@@ -2526,7 +2526,7 @@
           "firstName": "Josh",
           "lastName": "Doan",
           "age": 23,
-          "potential": 16,
+          "potential": 18,
           "handedness": "right",
           "positions": [
             "RW",
@@ -2608,7 +2608,7 @@
           "firstName": "Jack",
           "lastName": "Quinn",
           "age": 24,
-          "potential": 16,
+          "potential": 17,
           "handedness": "right",
           "positions": [
             "RW",
@@ -2690,7 +2690,7 @@
           "firstName": "Peyton",
           "lastName": "Krebs",
           "age": 24,
-          "potential": 14,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "C",
@@ -2936,7 +2936,7 @@
           "firstName": "Beck",
           "lastName": "Malenstyn",
           "age": 27,
-          "potential": 10,
+          "potential": 11,
           "handedness": "left",
           "positions": [
             "LW",
@@ -3018,7 +3018,7 @@
           "firstName": "Noah",
           "lastName": "Ostlund",
           "age": 21,
-          "potential": 16,
+          "potential": 17,
           "handedness": "left",
           "positions": [
             "C",
@@ -3100,7 +3100,7 @@
           "firstName": "Josh",
           "lastName": "Norris",
           "age": 26,
-          "potential": 16,
+          "potential": 18,
           "handedness": "left",
           "positions": [
             "C",
@@ -3182,7 +3182,7 @@
           "firstName": "Tyson",
           "lastName": "Kozak",
           "age": 22,
-          "potential": 13,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "C",
@@ -3264,7 +3264,7 @@
           "firstName": "Jordan",
           "lastName": "Greenway",
           "age": 28,
-          "potential": 9,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "LW",
@@ -3346,7 +3346,7 @@
           "firstName": "Josh",
           "lastName": "Dunne",
           "age": 26,
-          "potential": 6,
+          "potential": 7,
           "handedness": "left",
           "positions": [
             "C",
@@ -3428,7 +3428,7 @@
           "firstName": "Jiri",
           "lastName": "Kulich",
           "age": 21,
-          "potential": 16,
+          "potential": 17,
           "handedness": "left",
           "positions": [
             "C",
@@ -3510,7 +3510,7 @@
           "firstName": "Konsta",
           "lastName": "Helenius",
           "age": 19,
-          "potential": 13,
+          "potential": 14,
           "handedness": "right",
           "positions": [
             "RW",
@@ -3674,7 +3674,7 @@
           "firstName": "Bowen",
           "lastName": "Byram",
           "age": 24,
-          "potential": 18,
+          "potential": 20,
           "handedness": "left",
           "positions": [
             "LD",
@@ -3756,7 +3756,7 @@
           "firstName": "Mattias",
           "lastName": "Samuelsson",
           "age": 25,
-          "potential": 17,
+          "potential": 19,
           "handedness": "left",
           "positions": [
             "LD",
@@ -3838,7 +3838,7 @@
           "firstName": "Owen",
           "lastName": "Power",
           "age": 22,
-          "potential": 19,
+          "potential": 20,
           "handedness": "left",
           "positions": [
             "LD",
@@ -3920,7 +3920,7 @@
           "firstName": "Conor",
           "lastName": "Timmins",
           "age": 27,
-          "potential": 10,
+          "potential": 12,
           "handedness": "right",
           "positions": [
             "RD",
@@ -4002,7 +4002,7 @@
           "firstName": "Zach",
           "lastName": "Metsa",
           "age": 26,
-          "potential": 8,
+          "potential": 9,
           "handedness": "right",
           "positions": [
             "RD",
@@ -4084,7 +4084,7 @@
           "firstName": "Michael",
           "lastName": "Kesselring",
           "age": 25,
-          "potential": 7,
+          "potential": 8,
           "handedness": "right",
           "positions": [
             "RD",
@@ -4166,7 +4166,7 @@
           "firstName": "Jacob",
           "lastName": "Bryson",
           "age": 27,
-          "potential": 8,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "LD",
@@ -4248,7 +4248,7 @@
           "firstName": "Ryan",
           "lastName": "Johnson",
           "age": 24,
-          "potential": 7,
+          "potential": 8,
           "handedness": "left",
           "positions": [
             "LD",
@@ -4330,7 +4330,7 @@
           "firstName": "Verneri",
           "lastName": "Raukoski",
           "age": 23,
-          "potential": 8,
+          "potential": 9,
           "handedness": "right",
           "positions": [
             "RD"
@@ -4402,7 +4402,7 @@
           "firstName": "Ukko-Pekka",
           "lastName": "Luukkonen",
           "age": 26,
-          "potential": 17,
+          "potential": 19,
           "handedness": "left",
           "attributes": {
             "reflexes": 17,
@@ -4486,7 +4486,7 @@
           "firstName": "Colten",
           "lastName": "Ellis",
           "age": 24,
-          "potential": 17,
+          "potential": 19,
           "handedness": "left",
           "attributes": {
             "reflexes": 16,
@@ -4535,7 +4535,7 @@
           "firstName": "Alex",
           "lastName": "DeBrincat",
           "age": 27,
-          "potential": 17,
+          "potential": 19,
           "handedness": "right",
           "positions": [
             "RW",
@@ -4617,7 +4617,7 @@
           "firstName": "Lucas",
           "lastName": "Raymond",
           "age": 23,
-          "potential": 18,
+          "potential": 19,
           "handedness": "right",
           "positions": [
             "LW",
@@ -4699,7 +4699,7 @@
           "firstName": "Dylan",
           "lastName": "Larkin",
           "age": 29,
-          "potential": 18,
+          "potential": 19,
           "handedness": "left",
           "positions": [
             "C",
@@ -4863,7 +4863,7 @@
           "firstName": "J.T.",
           "lastName": "Compher",
           "age": 30,
-          "potential": 13,
+          "potential": 14,
           "handedness": "right",
           "positions": [
             "LW",
@@ -4945,7 +4945,7 @@
           "firstName": "Emmitt",
           "lastName": "Finnie",
           "age": 20,
-          "potential": 15,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "C",
@@ -5109,7 +5109,7 @@
           "firstName": "Marco",
           "lastName": "Kasper",
           "age": 21,
-          "potential": 15,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "C",
@@ -5191,7 +5191,7 @@
           "firstName": "Mason",
           "lastName": "Appleton",
           "age": 29,
-          "potential": 9,
+          "potential": 10,
           "handedness": "right",
           "positions": [
             "C",
@@ -5355,7 +5355,7 @@
           "firstName": "Michael",
           "lastName": "Rasmussen",
           "age": 26,
-          "potential": 9,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "C",
@@ -5437,7 +5437,7 @@
           "firstName": "Elmer",
           "lastName": "Soderblom",
           "age": 24,
-          "potential": 11,
+          "potential": 13,
           "handedness": "left",
           "positions": [
             "LW",
@@ -5601,7 +5601,7 @@
           "firstName": "Michael",
           "lastName": "Brandsegg-Nygård",
           "age": 19,
-          "potential": 12,
+          "potential": 13,
           "handedness": "right",
           "positions": [
             "RW",
@@ -5683,7 +5683,7 @@
           "firstName": "John",
           "lastName": "Leonard",
           "age": 27,
-          "potential": 7,
+          "potential": 8,
           "handedness": "left",
           "positions": [
             "LW",
@@ -5847,7 +5847,7 @@
           "firstName": "Moritz",
           "lastName": "Seider",
           "age": 24,
-          "potential": 18,
+          "potential": 20,
           "handedness": "right",
           "positions": [
             "RD",
@@ -6011,7 +6011,7 @@
           "firstName": "Simon",
           "lastName": "Edvinsson",
           "age": 22,
-          "potential": 18,
+          "potential": 19,
           "handedness": "left",
           "positions": [
             "LD",
@@ -6093,7 +6093,7 @@
           "firstName": "Albert",
           "lastName": "Johansson",
           "age": 24,
-          "potential": 10,
+          "potential": 12,
           "handedness": "left",
           "positions": [
             "LD",
@@ -6175,7 +6175,7 @@
           "firstName": "Axel",
           "lastName": "Sandin-Pellikka",
           "age": 20,
-          "potential": 14,
+          "potential": 15,
           "handedness": "right",
           "positions": [
             "RD",
@@ -6257,7 +6257,7 @@
           "firstName": "Jacob",
           "lastName": "Bernard-Docker",
           "age": 25,
-          "potential": 8,
+          "potential": 9,
           "handedness": "right",
           "positions": [
             "RD",
@@ -6503,7 +6503,7 @@
           "firstName": "Reid",
           "lastName": "Caldmore",
           "age": 30,
-          "potential": 6,
+          "potential": 7,
           "handedness": "left",
           "positions": [
             "LD",
@@ -6574,7 +6574,7 @@
           "firstName": "Beckett",
           "lastName": "Brananley",
           "age": 24,
-          "potential": 7,
+          "potential": 8,
           "handedness": "left",
           "positions": [
             "RD",
@@ -6731,7 +6731,7 @@
           "firstName": "Grayson",
           "lastName": "Kesslake",
           "age": 27,
-          "potential": 14,
+          "potential": 15,
           "handedness": "left",
           "attributes": {
             "reflexes": 15,
@@ -6775,7 +6775,7 @@
           "firstName": "Sam",
           "lastName": "Bennett",
           "age": 29,
-          "potential": 16,
+          "potential": 17,
           "handedness": "left",
           "positions": [
             "C",
@@ -6857,7 +6857,7 @@
           "firstName": "Sam",
           "lastName": "Reinhart",
           "age": 29,
-          "potential": 13,
+          "potential": 14,
           "handedness": "right",
           "positions": [
             "RW",
@@ -7021,7 +7021,7 @@
           "firstName": "Anton",
           "lastName": "Lundell",
           "age": 23,
-          "potential": 15,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "C",
@@ -7103,7 +7103,7 @@
           "firstName": "Eetu",
           "lastName": "Luostarinen",
           "age": 27,
-          "potential": 14,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "C",
@@ -7267,7 +7267,7 @@
           "firstName": "Mackie",
           "lastName": "Samoskevich",
           "age": 22,
-          "potential": 15,
+          "potential": 16,
           "handedness": "right",
           "positions": [
             "RW",
@@ -7349,7 +7349,7 @@
           "firstName": "A.J.",
           "lastName": "Greer",
           "age": 28,
-          "potential": 13,
+          "potential": 14,
           "handedness": "left",
           "positions": [
             "LW",
@@ -7513,7 +7513,7 @@
           "firstName": "Jesper",
           "lastName": "Boqvist",
           "age": 26,
-          "potential": 8,
+          "potential": 9,
           "handedness": "left",
           "positions": [
             "C",
@@ -7595,7 +7595,7 @@
           "firstName": "Luke",
           "lastName": "Kunin",
           "age": 27,
-          "potential": 7,
+          "potential": 8,
           "handedness": "right",
           "positions": [
             "RW",
@@ -7677,7 +7677,7 @@
           "firstName": "Matthew",
           "lastName": "Tkachuk",
           "age": 27,
-          "potential": 15,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "LW",
@@ -7759,7 +7759,7 @@
           "firstName": "Noah",
           "lastName": "Gregor",
           "age": 27,
-          "potential": 8,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "LW",
@@ -7923,7 +7923,7 @@
           "firstName": "Cole",
           "lastName": "Schwindt",
           "age": 24,
-          "potential": 8,
+          "potential": 10,
           "handedness": "right",
           "positions": [
             "RW",
@@ -8005,7 +8005,7 @@
           "firstName": "Sandis",
           "lastName": "Vilmanis",
           "age": 21,
-          "potential": 9,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "LW",
@@ -8087,7 +8087,7 @@
           "firstName": "Gustav",
           "lastName": "Forsling",
           "age": 29,
-          "potential": 15,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "LD",
@@ -8169,7 +8169,7 @@
           "firstName": "Aaron",
           "lastName": "Ekblad",
           "age": 29,
-          "potential": 14,
+          "potential": 15,
           "handedness": "right",
           "positions": [
             "RD",
@@ -8251,7 +8251,7 @@
           "firstName": "Niko",
           "lastName": "Mikkola",
           "age": 29,
-          "potential": 10,
+          "potential": 11,
           "handedness": "left",
           "positions": [
             "LD",
@@ -8415,7 +8415,7 @@
           "firstName": "Uvis",
           "lastName": "Balinskis",
           "age": 29,
-          "potential": 10,
+          "potential": 11,
           "handedness": "left",
           "positions": [
             "LD",
@@ -8579,7 +8579,7 @@
           "firstName": "Donovan",
           "lastName": "Sebrango",
           "age": 23,
-          "potential": 11,
+          "potential": 12,
           "handedness": "left",
           "positions": [
             "LD",
@@ -8743,7 +8743,7 @@
           "firstName": "Mike",
           "lastName": "Benning",
           "age": 23,
-          "potential": 12,
+          "potential": 13,
           "handedness": "right",
           "positions": [
             "RD",
@@ -8825,7 +8825,7 @@
           "firstName": "Tobias",
           "lastName": "Bjornfot",
           "age": 24,
-          "potential": 9,
+          "potential": 11,
           "handedness": "left",
           "positions": [
             "LD",
@@ -8951,7 +8951,7 @@
           "firstName": "Daniil",
           "lastName": "Tarasov",
           "age": 26,
-          "potential": 16,
+          "potential": 18,
           "handedness": "left",
           "attributes": {
             "reflexes": 16,
@@ -8993,7 +8993,7 @@
           "firstName": "Griffin",
           "lastName": "Brandon",
           "age": 21,
-          "potential": 16,
+          "potential": 17,
           "handedness": "left",
           "attributes": {
             "reflexes": 14,
@@ -9037,7 +9037,7 @@
           "firstName": "Nick",
           "lastName": "Suzuki",
           "age": 26,
-          "potential": 17,
+          "potential": 20,
           "handedness": "right",
           "positions": [
             "C",
@@ -9119,7 +9119,7 @@
           "firstName": "Juraj",
           "lastName": "Slafkovský",
           "age": 21,
-          "potential": 19,
+          "potential": 20,
           "handedness": "left",
           "positions": [
             "LW",
@@ -9201,7 +9201,7 @@
           "firstName": "Cole",
           "lastName": "Caufield",
           "age": 24,
-          "potential": 19,
+          "potential": 20,
           "handedness": "right",
           "positions": [
             "RW",
@@ -9283,7 +9283,7 @@
           "firstName": "Ivan",
           "lastName": "Demidov",
           "age": 19,
-          "potential": 18,
+          "potential": 19,
           "handedness": "left",
           "positions": [
             "LW",
@@ -9365,7 +9365,7 @@
           "firstName": "Oliver",
           "lastName": "Kapanen",
           "age": 22,
-          "potential": 15,
+          "potential": 16,
           "handedness": "right",
           "positions": [
             "C",
@@ -9447,7 +9447,7 @@
           "firstName": "Zachary",
           "lastName": "Bolduc",
           "age": 22,
-          "potential": 14,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "RW",
@@ -9529,7 +9529,7 @@
           "firstName": "Jake",
           "lastName": "Evans",
           "age": 29,
-          "potential": 12,
+          "potential": 13,
           "handedness": "right",
           "positions": [
             "C",
@@ -9775,7 +9775,7 @@
           "firstName": "Joseph",
           "lastName": "Veleno",
           "age": 25,
-          "potential": 9,
+          "potential": 11,
           "handedness": "left",
           "positions": [
             "C",
@@ -9939,7 +9939,7 @@
           "firstName": "Alexandre",
           "lastName": "Texier",
           "age": 26,
-          "potential": 12,
+          "potential": 14,
           "handedness": "left",
           "positions": [
             "LW",
@@ -10021,7 +10021,7 @@
           "firstName": "Alex",
           "lastName": "Newhook",
           "age": 24,
-          "potential": 14,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "C",
@@ -10103,7 +10103,7 @@
           "firstName": "Kirby",
           "lastName": "Dach",
           "age": 24,
-          "potential": 15,
+          "potential": 17,
           "handedness": "right",
           "positions": [
             "C",
@@ -10185,7 +10185,7 @@
           "firstName": "Owen",
           "lastName": "Beck",
           "age": 21,
-          "potential": 9,
+          "potential": 10,
           "handedness": "right",
           "positions": [
             "C",
@@ -10267,7 +10267,7 @@
           "firstName": "Sammy",
           "lastName": "Blais",
           "age": 29,
-          "potential": 9,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "LW",
@@ -10513,7 +10513,7 @@
           "firstName": "Noah",
           "lastName": "Dobson",
           "age": 25,
-          "potential": 17,
+          "potential": 19,
           "handedness": "right",
           "positions": [
             "RD",
@@ -10595,7 +10595,7 @@
           "firstName": "Alexandre",
           "lastName": "Carrier",
           "age": 28,
-          "potential": 14,
+          "potential": 15,
           "handedness": "right",
           "positions": [
             "RD",
@@ -10677,7 +10677,7 @@
           "firstName": "Jayden",
           "lastName": "Struble",
           "age": 24,
-          "potential": 10,
+          "potential": 11,
           "handedness": "left",
           "positions": [
             "LD",
@@ -10759,7 +10759,7 @@
           "firstName": "Kaiden",
           "lastName": "Guhle",
           "age": 23,
-          "potential": 18,
+          "potential": 19,
           "handedness": "left",
           "positions": [
             "LD",
@@ -10841,7 +10841,7 @@
           "firstName": "Arber",
           "lastName": "Xhekaj",
           "age": 24,
-          "potential": 7,
+          "potential": 9,
           "handedness": "left",
           "positions": [
             "LD",
@@ -10923,7 +10923,7 @@
           "firstName": "Adam",
           "lastName": "Engstrom",
           "age": 21,
-          "potential": 9,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "LD",
@@ -11087,7 +11087,7 @@
           "firstName": "Vilém",
           "lastName": "Provec",
           "age": 26,
-          "potential": 5,
+          "potential": 7,
           "handedness": "left",
           "positions": [
             "RD"
@@ -11201,7 +11201,7 @@
           "firstName": "Samuel",
           "lastName": "Montembeault",
           "age": 28,
-          "potential": 17,
+          "potential": 18,
           "handedness": "left",
           "attributes": {
             "reflexes": 16,
@@ -11374,7 +11374,7 @@
           "firstName": "Dylan",
           "lastName": "Cozens",
           "age": 24,
-          "potential": 16,
+          "potential": 17,
           "handedness": "right",
           "positions": [
             "C",
@@ -11456,7 +11456,7 @@
           "firstName": "Drake",
           "lastName": "Batherson",
           "age": 27,
-          "potential": 15,
+          "potential": 17,
           "handedness": "right",
           "positions": [
             "RW",
@@ -11538,7 +11538,7 @@
           "firstName": "Shane",
           "lastName": "Pinto",
           "age": 24,
-          "potential": 18,
+          "potential": 20,
           "handedness": "right",
           "positions": [
             "C",
@@ -11702,7 +11702,7 @@
           "firstName": "Michael",
           "lastName": "Amadio",
           "age": 29,
-          "potential": 13,
+          "potential": 14,
           "handedness": "right",
           "positions": [
             "RW",
@@ -11784,7 +11784,7 @@
           "firstName": "Ridly",
           "lastName": "Greig",
           "age": 23,
-          "potential": 17,
+          "potential": 19,
           "handedness": "left",
           "positions": [
             "C",
@@ -11866,7 +11866,7 @@
           "firstName": "Fabian",
           "lastName": "Zetterlund",
           "age": 26,
-          "potential": 12,
+          "potential": 14,
           "handedness": "right",
           "positions": [
             "LW",
@@ -11948,7 +11948,7 @@
           "firstName": "Brady",
           "lastName": "Tkachuk",
           "age": 26,
-          "potential": 15,
+          "potential": 17,
           "handedness": "left",
           "positions": [
             "LW",
@@ -12276,7 +12276,7 @@
           "firstName": "Stephen",
           "lastName": "Halliday",
           "age": 23,
-          "potential": 10,
+          "potential": 11,
           "handedness": "left",
           "positions": [
             "C",
@@ -12440,7 +12440,7 @@
           "firstName": "Hayden",
           "lastName": "Hodgson",
           "age": 29,
-          "potential": 4,
+          "potential": 5,
           "handedness": "right",
           "positions": [
             "RW",
@@ -12522,7 +12522,7 @@
           "firstName": "Olle",
           "lastName": "Lycksell",
           "age": 26,
-          "potential": 5,
+          "potential": 7,
           "handedness": "left",
           "positions": [
             "RW",
@@ -12604,7 +12604,7 @@
           "firstName": "Artem",
           "lastName": "Zub",
           "age": 29,
-          "potential": 16,
+          "potential": 17,
           "handedness": "right",
           "positions": [
             "RD",
@@ -12768,7 +12768,7 @@
           "firstName": "Jordan",
           "lastName": "Spence",
           "age": 24,
-          "potential": 15,
+          "potential": 17,
           "handedness": "right",
           "positions": [
             "RD",
@@ -12850,7 +12850,7 @@
           "firstName": "Thomas",
           "lastName": "Chabot",
           "age": 28,
-          "potential": 15,
+          "potential": 17,
           "handedness": "left",
           "positions": [
             "LD",
@@ -12932,7 +12932,7 @@
           "firstName": "Tyler",
           "lastName": "Kleven",
           "age": 23,
-          "potential": 15,
+          "potential": 17,
           "handedness": "left",
           "positions": [
             "LD",
@@ -13096,7 +13096,7 @@
           "firstName": "Nikolas",
           "lastName": "Matinpalo",
           "age": 26,
-          "potential": 9,
+          "potential": 11,
           "handedness": "right",
           "positions": [
             "RD",
@@ -13178,7 +13178,7 @@
           "firstName": "Lassi",
           "lastName": "Thomson",
           "age": 25,
-          "potential": 9,
+          "potential": 11,
           "handedness": "right",
           "positions": [
             "RD",
@@ -13260,7 +13260,7 @@
           "firstName": "Dennis",
           "lastName": "Gilbert",
           "age": 28,
-          "potential": 6,
+          "potential": 7,
           "handedness": "left",
           "positions": [
             "LD",
@@ -13342,7 +13342,7 @@
           "firstName": "Cameron",
           "lastName": "Crotty",
           "age": 26,
-          "potential": 7,
+          "potential": 9,
           "handedness": "right",
           "positions": [
             "RD",
@@ -13468,7 +13468,7 @@
           "firstName": "Leevi",
           "lastName": "Meriläinen",
           "age": 23,
-          "potential": 17,
+          "potential": 18,
           "handedness": "left",
           "attributes": {
             "reflexes": 15,
@@ -13723,7 +13723,7 @@
           "firstName": "Brandon",
           "lastName": "Hagel",
           "age": 27,
-          "potential": 18,
+          "potential": 20,
           "handedness": "left",
           "positions": [
             "LW",
@@ -13887,7 +13887,7 @@
           "firstName": "Anthony",
           "lastName": "Cirelli",
           "age": 28,
-          "potential": 16,
+          "potential": 17,
           "handedness": "left",
           "positions": [
             "C",
@@ -13969,7 +13969,7 @@
           "firstName": "Brayden",
           "lastName": "Point",
           "age": 29,
-          "potential": 16,
+          "potential": 17,
           "handedness": "right",
           "positions": [
             "C",
@@ -14133,7 +14133,7 @@
           "firstName": "Oliver",
           "lastName": "Bjorkstrand",
           "age": 30,
-          "potential": 11,
+          "potential": 12,
           "handedness": "right",
           "positions": [
             "RW",
@@ -14215,7 +14215,7 @@
           "firstName": "Gage",
           "lastName": "Goncalves",
           "age": 24,
-          "potential": 14,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "C",
@@ -14297,7 +14297,7 @@
           "firstName": "Pontus",
           "lastName": "Holmberg",
           "age": 26,
-          "potential": 11,
+          "potential": 13,
           "handedness": "left",
           "positions": [
             "RW",
@@ -14461,7 +14461,7 @@
           "firstName": "Dominic",
           "lastName": "James",
           "age": 23,
-          "potential": 13,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "C",
@@ -14625,7 +14625,7 @@
           "firstName": "Curtis",
           "lastName": "Douglas",
           "age": 25,
-          "potential": 5,
+          "potential": 6,
           "handedness": "left",
           "positions": [
             "LW",
@@ -14707,7 +14707,7 @@
           "firstName": "Conor",
           "lastName": "Geekie",
           "age": 21,
-          "potential": 9,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "C",
@@ -14789,7 +14789,7 @@
           "firstName": "Mitchell",
           "lastName": "Chaffee",
           "age": 27,
-          "potential": 6,
+          "potential": 7,
           "handedness": "right",
           "positions": [
             "RW",
@@ -14871,7 +14871,7 @@
           "firstName": "J.J.",
           "lastName": "Moser",
           "age": 25,
-          "potential": 18,
+          "potential": 20,
           "handedness": "left",
           "positions": [
             "LD",
@@ -14953,7 +14953,7 @@
           "firstName": "Darren",
           "lastName": "Raddysh",
           "age": 29,
-          "potential": 17,
+          "potential": 18,
           "handedness": "right",
           "positions": [
             "RD",
@@ -15035,7 +15035,7 @@
           "firstName": "Charle-Edouard",
           "lastName": "D'Astous",
           "age": 27,
-          "potential": 14,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "LD",
@@ -15117,7 +15117,7 @@
           "firstName": "Erik",
           "lastName": "Cernak",
           "age": 28,
-          "potential": 12,
+          "potential": 13,
           "handedness": "right",
           "positions": [
             "RD",
@@ -15281,7 +15281,7 @@
           "firstName": "Emil",
           "lastName": "Lilleberg",
           "age": 24,
-          "potential": 15,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "LD",
@@ -15445,7 +15445,7 @@
           "firstName": "Declan",
           "lastName": "Carlile",
           "age": 25,
-          "potential": 8,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "LD",
@@ -15527,7 +15527,7 @@
           "firstName": "Max",
           "lastName": "Crozier",
           "age": 25,
-          "potential": 12,
+          "potential": 13,
           "handedness": "right",
           "positions": [
             "RD",
@@ -15735,7 +15735,7 @@
           "firstName": "Jonas",
           "lastName": "Johansson",
           "age": 30,
-          "potential": 15,
+          "potential": 16,
           "handedness": "left",
           "attributes": {
             "reflexes": 16,
@@ -15777,7 +15777,7 @@
           "firstName": "Brandon",
           "lastName": "Halverson",
           "age": 29,
-          "potential": 13,
+          "potential": 14,
           "handedness": "left",
           "attributes": {
             "reflexes": 14,
@@ -15908,7 +15908,7 @@
           "firstName": "Matthew",
           "lastName": "Knies",
           "age": 22,
-          "potential": 17,
+          "potential": 18,
           "handedness": "left",
           "positions": [
             "LW",
@@ -15990,7 +15990,7 @@
           "firstName": "William",
           "lastName": "Nylander",
           "age": 29,
-          "potential": 17,
+          "potential": 18,
           "handedness": "right",
           "positions": [
             "RW",
@@ -16072,7 +16072,7 @@
           "firstName": "Auston",
           "lastName": "Matthews",
           "age": 28,
-          "potential": 16,
+          "potential": 17,
           "handedness": "left",
           "positions": [
             "C",
@@ -16236,7 +16236,7 @@
           "firstName": "Matias",
           "lastName": "Maccelli",
           "age": 24,
-          "potential": 13,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "LW",
@@ -16318,7 +16318,7 @@
           "firstName": "Nick",
           "lastName": "Robertson",
           "age": 24,
-          "potential": 14,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "LW",
@@ -16400,7 +16400,7 @@
           "firstName": "Easton",
           "lastName": "Cowan",
           "age": 20,
-          "potential": 15,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "RW",
@@ -16482,7 +16482,7 @@
           "firstName": "Bobby",
           "lastName": "McMann",
           "age": 29,
-          "potential": 14,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "LW",
@@ -16564,7 +16564,7 @@
           "firstName": "Nicolas",
           "lastName": "Roy",
           "age": 28,
-          "potential": 11,
+          "potential": 13,
           "handedness": "right",
           "positions": [
             "RW",
@@ -16646,7 +16646,7 @@
           "firstName": "Steven",
           "lastName": "Lorentz",
           "age": 29,
-          "potential": 11,
+          "potential": 12,
           "handedness": "left",
           "positions": [
             "C",
@@ -16974,7 +16974,7 @@
           "firstName": "Jacob",
           "lastName": "Quillan",
           "age": 23,
-          "potential": 9,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "C",
@@ -17056,7 +17056,7 @@
           "firstName": "Bo",
           "lastName": "Groulx",
           "age": 25,
-          "potential": 13,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "C",
@@ -17384,7 +17384,7 @@
           "firstName": "Simon",
           "lastName": "Benoit",
           "age": 27,
-          "potential": 9,
+          "potential": 11,
           "handedness": "left",
           "positions": [
             "LD",
@@ -17548,7 +17548,7 @@
           "firstName": "Brandon",
           "lastName": "Carlo",
           "age": 28,
-          "potential": 10,
+          "potential": 11,
           "handedness": "right",
           "positions": [
             "RD",
@@ -17630,7 +17630,7 @@
           "firstName": "Philippe",
           "lastName": "Myers",
           "age": 28,
-          "potential": 9,
+          "potential": 11,
           "handedness": "right",
           "positions": [
             "RD",
@@ -17876,7 +17876,7 @@
           "firstName": "Henry",
           "lastName": "Thrun",
           "age": 24,
-          "potential": 8,
+          "potential": 9,
           "handedness": "left",
           "positions": [
             "LD",
@@ -17960,7 +17960,7 @@
           "firstName": "Joseph",
           "lastName": "Woll",
           "age": 27,
-          "potential": 16,
+          "potential": 18,
           "handedness": "left",
           "attributes": {
             "reflexes": 17,
@@ -18044,7 +18044,7 @@
           "firstName": "Dennis",
           "lastName": "Hildeby",
           "age": 24,
-          "potential": 16,
+          "potential": 18,
           "handedness": "left",
           "attributes": {
             "reflexes": 16,
@@ -18093,7 +18093,7 @@
           "firstName": "Sebastian",
           "lastName": "Aho",
           "age": 28,
-          "potential": 15,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "C",
@@ -18175,7 +18175,7 @@
           "firstName": "Nikolaj",
           "lastName": "Ehlers",
           "age": 29,
-          "potential": 14,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "LW",
@@ -18257,7 +18257,7 @@
           "firstName": "Andrei",
           "lastName": "Svechnikov",
           "age": 25,
-          "potential": 15,
+          "potential": 17,
           "handedness": "left",
           "positions": [
             "RW",
@@ -18339,7 +18339,7 @@
           "firstName": "Seth",
           "lastName": "Jarvis",
           "age": 23,
-          "potential": 17,
+          "potential": 18,
           "handedness": "right",
           "positions": [
             "RW",
@@ -18421,7 +18421,7 @@
           "firstName": "Jackson",
           "lastName": "Blake",
           "age": 22,
-          "potential": 15,
+          "potential": 16,
           "handedness": "right",
           "positions": [
             "RW",
@@ -18503,7 +18503,7 @@
           "firstName": "Logan",
           "lastName": "Stankoven",
           "age": 22,
-          "potential": 15,
+          "potential": 16,
           "handedness": "right",
           "positions": [
             "C",
@@ -19077,7 +19077,7 @@
           "firstName": "Jesperi",
           "lastName": "Kotkaniemi",
           "age": 25,
-          "potential": 9,
+          "potential": 11,
           "handedness": "left",
           "positions": [
             "C",
@@ -19241,7 +19241,7 @@
           "firstName": "Skyler",
           "lastName": "Brind'Amour",
           "age": 26,
-          "potential": 9,
+          "potential": 11,
           "handedness": "left",
           "positions": [
             "C",
@@ -19323,7 +19323,7 @@
           "firstName": "Josiah",
           "lastName": "Slavin",
           "age": 26,
-          "potential": 9,
+          "potential": 11,
           "handedness": "left",
           "positions": [
             "LW",
@@ -19487,7 +19487,7 @@
           "firstName": "K'Andre",
           "lastName": "Miller",
           "age": 25,
-          "potential": 17,
+          "potential": 19,
           "handedness": "left",
           "positions": [
             "LD",
@@ -19569,7 +19569,7 @@
           "firstName": "Alexander",
           "lastName": "Nikishin",
           "age": 23,
-          "potential": 16,
+          "potential": 17,
           "handedness": "left",
           "positions": [
             "LD",
@@ -19979,7 +19979,7 @@
           "firstName": "Joel",
           "lastName": "Nystrom",
           "age": 23,
-          "potential": 12,
+          "potential": 13,
           "handedness": "right",
           "positions": [
             "RD",
@@ -20061,7 +20061,7 @@
           "firstName": "Charles Alexis",
           "lastName": "Legault",
           "age": 22,
-          "potential": 10,
+          "potential": 11,
           "handedness": "right",
           "positions": [
             "RD",
@@ -20143,7 +20143,7 @@
           "firstName": "Domenick",
           "lastName": "Fensore",
           "age": 24,
-          "potential": 9,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "LD",
@@ -20227,7 +20227,7 @@
           "firstName": "Brandon",
           "lastName": "Bussi",
           "age": 27,
-          "potential": 16,
+          "potential": 18,
           "handedness": "right",
           "attributes": {
             "reflexes": 17,
@@ -20311,7 +20311,7 @@
           "firstName": "Pyotr",
           "lastName": "Kochetkov",
           "age": 26,
-          "potential": 15,
+          "potential": 18,
           "handedness": "left",
           "attributes": {
             "reflexes": 15,
@@ -20360,7 +20360,7 @@
           "firstName": "Adam",
           "lastName": "Fantilli",
           "age": 20,
-          "potential": 18,
+          "potential": 19,
           "handedness": "left",
           "positions": [
             "C",
@@ -20524,7 +20524,7 @@
           "firstName": "Kirill",
           "lastName": "Marchenko",
           "age": 25,
-          "potential": 16,
+          "potential": 18,
           "handedness": "right",
           "positions": [
             "RW",
@@ -20688,7 +20688,7 @@
           "firstName": "Cole",
           "lastName": "Sillinger",
           "age": 22,
-          "potential": 15,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "C",
@@ -20852,7 +20852,7 @@
           "firstName": "Kent",
           "lastName": "Johnson",
           "age": 22,
-          "potential": 12,
+          "potential": 13,
           "handedness": "left",
           "positions": [
             "RW",
@@ -20934,7 +20934,7 @@
           "firstName": "Dmitri",
           "lastName": "Voronkov",
           "age": 25,
-          "potential": 14,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "LW",
@@ -21016,7 +21016,7 @@
           "firstName": "Mathieu",
           "lastName": "Olivier",
           "age": 28,
-          "potential": 13,
+          "potential": 14,
           "handedness": "right",
           "positions": [
             "RW",
@@ -21098,7 +21098,7 @@
           "firstName": "Isac",
           "lastName": "Lundeström",
           "age": 25,
-          "potential": 10,
+          "potential": 12,
           "handedness": "left",
           "positions": [
             "C",
@@ -21180,7 +21180,7 @@
           "firstName": "Mason",
           "lastName": "Marchment",
           "age": 30,
-          "potential": 16,
+          "potential": 17,
           "handedness": "left",
           "positions": [
             "LW",
@@ -21590,7 +21590,7 @@
           "firstName": "Luca",
           "lastName": "Del Bel Belluz",
           "age": 21,
-          "potential": 9,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "C",
@@ -21672,7 +21672,7 @@
           "firstName": "Ivan",
           "lastName": "Provorov",
           "age": 28,
-          "potential": 18,
+          "potential": 19,
           "handedness": "left",
           "positions": [
             "LD",
@@ -21754,7 +21754,7 @@
           "firstName": "Zach",
           "lastName": "Werenski",
           "age": 28,
-          "potential": 19,
+          "potential": 20,
           "handedness": "left",
           "positions": [
             "LD",
@@ -21918,7 +21918,7 @@
           "firstName": "Denton",
           "lastName": "Mateychuk",
           "age": 21,
-          "potential": 19,
+          "potential": 20,
           "handedness": "left",
           "positions": [
             "LD",
@@ -22000,7 +22000,7 @@
           "firstName": "Dante",
           "lastName": "Fabbro",
           "age": 27,
-          "potential": 9,
+          "potential": 10,
           "handedness": "right",
           "positions": [
             "RD",
@@ -22164,7 +22164,7 @@
           "firstName": "Jake",
           "lastName": "Christiansen",
           "age": 26,
-          "potential": 7,
+          "potential": 9,
           "handedness": "left",
           "positions": [
             "LD",
@@ -22246,7 +22246,7 @@
           "firstName": "Egor",
           "lastName": "Zamula",
           "age": 25,
-          "potential": 10,
+          "potential": 11,
           "handedness": "left",
           "positions": [
             "LD",
@@ -22578,7 +22578,7 @@
           "firstName": "Samuel",
           "lastName": "Zrničák",
           "age": 21,
-          "potential": 17,
+          "potential": 18,
           "handedness": "left",
           "attributes": {
             "reflexes": 12,
@@ -22622,7 +22622,7 @@
           "firstName": "Nico",
           "lastName": "Hischier",
           "age": 26,
-          "potential": 15,
+          "potential": 18,
           "handedness": "left",
           "positions": [
             "C",
@@ -22704,7 +22704,7 @@
           "firstName": "Jesper",
           "lastName": "Bratt",
           "age": 27,
-          "potential": 14,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "LW",
@@ -22786,7 +22786,7 @@
           "firstName": "Dawson",
           "lastName": "Mercer",
           "age": 23,
-          "potential": 16,
+          "potential": 17,
           "handedness": "right",
           "positions": [
             "C",
@@ -22868,7 +22868,7 @@
           "firstName": "Timo",
           "lastName": "Meier",
           "age": 28,
-          "potential": 15,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "RW",
@@ -23032,7 +23032,7 @@
           "firstName": "Jack",
           "lastName": "Hughes",
           "age": 24,
-          "potential": 19,
+          "potential": 20,
           "handedness": "left",
           "positions": [
             "C",
@@ -23114,7 +23114,7 @@
           "firstName": "Arseny",
           "lastName": "Gritsyuk",
           "age": 24,
-          "potential": 17,
+          "potential": 19,
           "handedness": "left",
           "positions": [
             "RW",
@@ -23196,7 +23196,7 @@
           "firstName": "Cody",
           "lastName": "Glass",
           "age": 26,
-          "potential": 12,
+          "potential": 14,
           "handedness": "right",
           "positions": [
             "C",
@@ -23278,7 +23278,7 @@
           "firstName": "Paul",
           "lastName": "Cotter",
           "age": 25,
-          "potential": 8,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "LW",
@@ -23606,7 +23606,7 @@
           "firstName": "Lenni",
           "lastName": "Hameenaho",
           "age": 20,
-          "potential": 13,
+          "potential": 14,
           "handedness": "right",
           "positions": [
             "RW",
@@ -23852,7 +23852,7 @@
           "firstName": "Brian",
           "lastName": "Halonen",
           "age": 26,
-          "potential": 6,
+          "potential": 7,
           "handedness": "right",
           "positions": [
             "LW",
@@ -24016,7 +24016,7 @@
           "firstName": "Jonas",
           "lastName": "Siegenthaler",
           "age": 28,
-          "potential": 10,
+          "potential": 11,
           "handedness": "left",
           "positions": [
             "LD",
@@ -24098,7 +24098,7 @@
           "firstName": "Luke",
           "lastName": "Hughes",
           "age": 22,
-          "potential": 19,
+          "potential": 20,
           "handedness": "left",
           "positions": [
             "LD",
@@ -24262,7 +24262,7 @@
           "firstName": "Simon",
           "lastName": "Nemec",
           "age": 21,
-          "potential": 17,
+          "potential": 18,
           "handedness": "right",
           "positions": [
             "RD",
@@ -24426,7 +24426,7 @@
           "firstName": "Johnathan",
           "lastName": "Kovacevic",
           "age": 28,
-          "potential": 11,
+          "potential": 12,
           "handedness": "right",
           "positions": [
             "RD",
@@ -24508,7 +24508,7 @@
           "firstName": "Colton",
           "lastName": "White",
           "age": 28,
-          "potential": 7,
+          "potential": 8,
           "handedness": "left",
           "positions": [
             "LD",
@@ -24590,7 +24590,7 @@
           "firstName": "Dennis",
           "lastName": "Cholowski",
           "age": 27,
-          "potential": 7,
+          "potential": 8,
           "handedness": "left",
           "positions": [
             "LD",
@@ -24672,7 +24672,7 @@
           "firstName": "Seamus",
           "lastName": "Casey",
           "age": 21,
-          "potential": 10,
+          "potential": 11,
           "handedness": "right",
           "positions": [
             "RD",
@@ -24840,7 +24840,7 @@
           "firstName": "Nico",
           "lastName": "Daws",
           "age": 24,
-          "potential": 16,
+          "potential": 17,
           "handedness": "left",
           "attributes": {
             "reflexes": 15,
@@ -24889,7 +24889,7 @@
           "firstName": "Mathew",
           "lastName": "Barzal",
           "age": 28,
-          "potential": 17,
+          "potential": 18,
           "handedness": "right",
           "positions": [
             "C",
@@ -25053,7 +25053,7 @@
           "firstName": "Emil",
           "lastName": "Heineman",
           "age": 23,
-          "potential": 14,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "LW",
@@ -25135,7 +25135,7 @@
           "firstName": "Simon",
           "lastName": "Holmstrom",
           "age": 24,
-          "potential": 17,
+          "potential": 18,
           "handedness": "left",
           "positions": [
             "RW",
@@ -25545,7 +25545,7 @@
           "firstName": "Calum",
           "lastName": "Ritchie",
           "age": 20,
-          "potential": 16,
+          "potential": 17,
           "handedness": "right",
           "positions": [
             "C",
@@ -25709,7 +25709,7 @@
           "firstName": "Kyle",
           "lastName": "MacLean",
           "age": 26,
-          "potential": 8,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "C",
@@ -25791,7 +25791,7 @@
           "firstName": "Maxim",
           "lastName": "Shabanov",
           "age": 24,
-          "potential": 12,
+          "potential": 13,
           "handedness": "left",
           "positions": [
             "RW",
@@ -25873,7 +25873,7 @@
           "firstName": "Marc",
           "lastName": "Gatcomb",
           "age": 26,
-          "potential": 7,
+          "potential": 9,
           "handedness": "right",
           "positions": [
             "C",
@@ -26037,7 +26037,7 @@
           "firstName": "Maxim",
           "lastName": "Tsyplakov",
           "age": 27,
-          "potential": 6,
+          "potential": 7,
           "handedness": "left",
           "positions": [
             "RW",
@@ -26365,7 +26365,7 @@
           "firstName": "Ryan",
           "lastName": "Pulock",
           "age": 30,
-          "potential": 15,
+          "potential": 16,
           "handedness": "right",
           "positions": [
             "RD",
@@ -26447,7 +26447,7 @@
           "firstName": "Tony",
           "lastName": "DeAngelo",
           "age": 29,
-          "potential": 14,
+          "potential": 15,
           "handedness": "right",
           "positions": [
             "RD",
@@ -26611,7 +26611,7 @@
           "firstName": "Adam",
           "lastName": "Boqvist",
           "age": 25,
-          "potential": 7,
+          "potential": 8,
           "handedness": "right",
           "positions": [
             "RD",
@@ -26693,7 +26693,7 @@
           "firstName": "Alexander",
           "lastName": "Romanov",
           "age": 25,
-          "potential": 9,
+          "potential": 11,
           "handedness": "left",
           "positions": [
             "LD",
@@ -26775,7 +26775,7 @@
           "firstName": "Travis",
           "lastName": "Mitchell",
           "age": 25,
-          "potential": 6,
+          "potential": 8,
           "handedness": "left",
           "positions": [
             "LD",
@@ -26857,7 +26857,7 @@
           "firstName": "Marshall",
           "lastName": "Warren",
           "age": 24,
-          "potential": 8,
+          "potential": 9,
           "handedness": "left",
           "positions": [
             "LD",
@@ -26939,7 +26939,7 @@
           "firstName": "Isaiah",
           "lastName": "George",
           "age": 21,
-          "potential": 9,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "LD",
@@ -27023,7 +27023,7 @@
           "firstName": "Ilya",
           "lastName": "Sorokin",
           "age": 30,
-          "potential": 18,
+          "potential": 19,
           "handedness": "left",
           "attributes": {
             "reflexes": 19,
@@ -27107,7 +27107,7 @@
           "firstName": "Marcus",
           "lastName": "Hogberg",
           "age": 30,
-          "potential": 13,
+          "potential": 14,
           "handedness": "left",
           "attributes": {
             "reflexes": 14,
@@ -27238,7 +27238,7 @@
           "firstName": "Alexis",
           "lastName": "Lafrenière",
           "age": 23,
-          "potential": 18,
+          "potential": 19,
           "handedness": "left",
           "positions": [
             "LW",
@@ -27320,7 +27320,7 @@
           "firstName": "Will",
           "lastName": "Cuylle",
           "age": 23,
-          "potential": 14,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "LW",
@@ -27648,7 +27648,7 @@
           "firstName": "Noah",
           "lastName": "Laba",
           "age": 22,
-          "potential": 13,
+          "potential": 14,
           "handedness": "right",
           "positions": [
             "C",
@@ -27812,7 +27812,7 @@
           "firstName": "Taylor",
           "lastName": "Raddysh",
           "age": 27,
-          "potential": 12,
+          "potential": 14,
           "handedness": "right",
           "positions": [
             "RW",
@@ -27894,7 +27894,7 @@
           "firstName": "Gabe",
           "lastName": "Perreault",
           "age": 20,
-          "potential": 16,
+          "potential": 17,
           "handedness": "left",
           "positions": [
             "RW",
@@ -28140,7 +28140,7 @@
           "firstName": "Adam",
           "lastName": "Edstrom",
           "age": 24,
-          "potential": 10,
+          "potential": 11,
           "handedness": "left",
           "positions": [
             "C",
@@ -28222,7 +28222,7 @@
           "firstName": "Jaroslav",
           "lastName": "Chmelar",
           "age": 22,
-          "potential": 10,
+          "potential": 11,
           "handedness": "right",
           "positions": [
             "RW",
@@ -28304,7 +28304,7 @@
           "firstName": "Matt",
           "lastName": "Rempe",
           "age": 23,
-          "potential": 7,
+          "potential": 8,
           "handedness": "right",
           "positions": [
             "RW",
@@ -28386,7 +28386,7 @@
           "firstName": "Juuso",
           "lastName": "Parssinen",
           "age": 24,
-          "potential": 7,
+          "potential": 8,
           "handedness": "left",
           "positions": [
             "C",
@@ -28468,7 +28468,7 @@
           "firstName": "Vladislav",
           "lastName": "Gavrikov",
           "age": 29,
-          "potential": 16,
+          "potential": 17,
           "handedness": "left",
           "positions": [
             "LD",
@@ -28550,7 +28550,7 @@
           "firstName": "Braden",
           "lastName": "Schneider",
           "age": 24,
-          "potential": 15,
+          "potential": 17,
           "handedness": "right",
           "positions": [
             "RD",
@@ -28632,7 +28632,7 @@
           "firstName": "Will",
           "lastName": "Borgen",
           "age": 28,
-          "potential": 12,
+          "potential": 13,
           "handedness": "right",
           "positions": [
             "RD",
@@ -28714,7 +28714,7 @@
           "firstName": "Adam",
           "lastName": "Fox",
           "age": 27,
-          "potential": 18,
+          "potential": 20,
           "handedness": "right",
           "positions": [
             "RD",
@@ -28796,7 +28796,7 @@
           "firstName": "Matthew",
           "lastName": "Robertson",
           "age": 24,
-          "potential": 14,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "LD",
@@ -28960,7 +28960,7 @@
           "firstName": "Urho",
           "lastName": "Vaakanainen",
           "age": 26,
-          "potential": 8,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "LD",
@@ -29042,7 +29042,7 @@
           "firstName": "Scott",
           "lastName": "Morrow",
           "age": 22,
-          "potential": 11,
+          "potential": 12,
           "handedness": "right",
           "positions": [
             "RD",
@@ -29290,7 +29290,7 @@
           "firstName": "Igor",
           "lastName": "Shesterkin",
           "age": 29,
-          "potential": 19,
+          "potential": 20,
           "handedness": "left",
           "attributes": {
             "reflexes": 20,
@@ -29423,7 +29423,7 @@
           "firstName": "Trevor",
           "lastName": "Zegras",
           "age": 24,
-          "potential": 16,
+          "potential": 18,
           "handedness": "left",
           "positions": [
             "C",
@@ -29505,7 +29505,7 @@
           "firstName": "Christian",
           "lastName": "Dvorak",
           "age": 29,
-          "potential": 14,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "C",
@@ -29587,7 +29587,7 @@
           "firstName": "Travis",
           "lastName": "Konecny",
           "age": 28,
-          "potential": 16,
+          "potential": 17,
           "handedness": "right",
           "positions": [
             "RW",
@@ -29669,7 +29669,7 @@
           "firstName": "Owen",
           "lastName": "Tippett",
           "age": 26,
-          "potential": 17,
+          "potential": 19,
           "handedness": "right",
           "positions": [
             "RW",
@@ -29751,7 +29751,7 @@
           "firstName": "Noah",
           "lastName": "Cates",
           "age": 26,
-          "potential": 15,
+          "potential": 17,
           "handedness": "left",
           "positions": [
             "LW",
@@ -29915,7 +29915,7 @@
           "firstName": "Matvei",
           "lastName": "Michkov",
           "age": 20,
-          "potential": 16,
+          "potential": 17,
           "handedness": "left",
           "positions": [
             "RW",
@@ -29997,7 +29997,7 @@
           "firstName": "Bobby",
           "lastName": "Brink",
           "age": 24,
-          "potential": 13,
+          "potential": 15,
           "handedness": "right",
           "positions": [
             "RW",
@@ -30161,7 +30161,7 @@
           "firstName": "Nikita",
           "lastName": "Grebenkin",
           "age": 22,
-          "potential": 10,
+          "potential": 11,
           "handedness": "left",
           "positions": [
             "LW",
@@ -30325,7 +30325,7 @@
           "firstName": "Carl",
           "lastName": "Grundstrom",
           "age": 27,
-          "potential": 10,
+          "potential": 12,
           "handedness": "left",
           "positions": [
             "RW",
@@ -30407,7 +30407,7 @@
           "firstName": "Tyson",
           "lastName": "Foerster",
           "age": 23,
-          "potential": 16,
+          "potential": 17,
           "handedness": "right",
           "positions": [
             "RW",
@@ -30571,7 +30571,7 @@
           "firstName": "Alex",
           "lastName": "Bump",
           "age": 21,
-          "potential": 14,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "LW",
@@ -30735,7 +30735,7 @@
           "firstName": "Travis",
           "lastName": "Sanheim",
           "age": 29,
-          "potential": 17,
+          "potential": 18,
           "handedness": "left",
           "positions": [
             "LD",
@@ -30817,7 +30817,7 @@
           "firstName": "Jamie",
           "lastName": "Drysdale",
           "age": 23,
-          "potential": 18,
+          "potential": 19,
           "handedness": "right",
           "positions": [
             "RD",
@@ -30899,7 +30899,7 @@
           "firstName": "Cam",
           "lastName": "York",
           "age": 24,
-          "potential": 15,
+          "potential": 17,
           "handedness": "left",
           "positions": [
             "LD",
@@ -31145,7 +31145,7 @@
           "firstName": "Emil",
           "lastName": "Andrae",
           "age": 23,
-          "potential": 12,
+          "potential": 14,
           "handedness": "left",
           "positions": [
             "LD",
@@ -31227,7 +31227,7 @@
           "firstName": "Noah",
           "lastName": "Juulsen",
           "age": 28,
-          "potential": 9,
+          "potential": 11,
           "handedness": "right",
           "positions": [
             "RD",
@@ -31309,7 +31309,7 @@
           "firstName": "Adam",
           "lastName": "Ginning",
           "age": 25,
-          "potential": 9,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "LD",
@@ -31391,7 +31391,7 @@
           "firstName": "Ty",
           "lastName": "Murchison",
           "age": 22,
-          "potential": 9,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "LD",
@@ -31473,7 +31473,7 @@
           "firstName": "Oliver",
           "lastName": "Bonk",
           "age": 20,
-          "potential": 10,
+          "potential": 11,
           "handedness": "right",
           "positions": [
             "RD",
@@ -31599,7 +31599,7 @@
           "firstName": "Samuel",
           "lastName": "Ersson",
           "age": 25,
-          "potential": 16,
+          "potential": 18,
           "handedness": "left",
           "attributes": {
             "reflexes": 16,
@@ -31641,7 +31641,7 @@
           "firstName": "Aleksei",
           "lastName": "Kolosov",
           "age": 23,
-          "potential": 16,
+          "potential": 17,
           "handedness": "left",
           "attributes": {
             "reflexes": 14,
@@ -31936,7 +31936,7 @@
           "firstName": "Tommy",
           "lastName": "Novak",
           "age": 28,
-          "potential": 12,
+          "potential": 13,
           "handedness": "left",
           "positions": [
             "C",
@@ -32182,7 +32182,7 @@
           "firstName": "Connor",
           "lastName": "Dewar",
           "age": 26,
-          "potential": 14,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "C",
@@ -32428,7 +32428,7 @@
           "firstName": "Justin",
           "lastName": "Brazeau",
           "age": 27,
-          "potential": 12,
+          "potential": 13,
           "handedness": "right",
           "positions": [
             "RW",
@@ -32510,7 +32510,7 @@
           "firstName": "Blake",
           "lastName": "Lizotte",
           "age": 27,
-          "potential": 13,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "C",
@@ -32592,7 +32592,7 @@
           "firstName": "Egor",
           "lastName": "Chinakhov",
           "age": 24,
-          "potential": 16,
+          "potential": 17,
           "handedness": "left",
           "positions": [
             "LW",
@@ -32674,7 +32674,7 @@
           "firstName": "Ville",
           "lastName": "Koivunen",
           "age": 22,
-          "potential": 10,
+          "potential": 11,
           "handedness": "left",
           "positions": [
             "LW",
@@ -32838,7 +32838,7 @@
           "firstName": "Rutger",
           "lastName": "McGroarty",
           "age": 21,
-          "potential": 11,
+          "potential": 12,
           "handedness": "left",
           "positions": [
             "LW",
@@ -32920,7 +32920,7 @@
           "firstName": "Avery",
           "lastName": "Hayes",
           "age": 22,
-          "potential": 11,
+          "potential": 12,
           "handedness": "right",
           "positions": [
             "RW",
@@ -33084,7 +33084,7 @@
           "firstName": "Parker",
           "lastName": "Wotherspoon",
           "age": 28,
-          "potential": 15,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "LD",
@@ -33248,7 +33248,7 @@
           "firstName": "Ryan",
           "lastName": "Shea",
           "age": 28,
-          "potential": 15,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "LD",
@@ -33494,7 +33494,7 @@
           "firstName": "Jack",
           "lastName": "St. Ivany",
           "age": 26,
-          "potential": 11,
+          "potential": 13,
           "handedness": "right",
           "positions": [
             "RD",
@@ -33740,7 +33740,7 @@
           "firstName": "Caleb",
           "lastName": "Jones",
           "age": 28,
-          "potential": 9,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "LD",
@@ -33824,7 +33824,7 @@
           "firstName": "Arturs",
           "lastName": "Silovs",
           "age": 24,
-          "potential": 17,
+          "potential": 19,
           "handedness": "left",
           "attributes": {
             "reflexes": 16,
@@ -33866,7 +33866,7 @@
           "firstName": "Stuart",
           "lastName": "Skinner",
           "age": 26,
-          "potential": 16,
+          "potential": 18,
           "handedness": "left",
           "attributes": {
             "reflexes": 17,
@@ -33908,7 +33908,7 @@
           "firstName": "Sergei",
           "lastName": "Murashov",
           "age": 21,
-          "potential": 19,
+          "potential": 20,
           "handedness": "right",
           "attributes": {
             "reflexes": 15,
@@ -33957,7 +33957,7 @@
           "firstName": "Dylan",
           "lastName": "Strome",
           "age": 28,
-          "potential": 13,
+          "potential": 14,
           "handedness": "left",
           "positions": [
             "C",
@@ -34203,7 +34203,7 @@
           "firstName": "Aliaksei",
           "lastName": "Protas",
           "age": 24,
-          "potential": 17,
+          "potential": 19,
           "handedness": "left",
           "positions": [
             "LW",
@@ -34285,7 +34285,7 @@
           "firstName": "Connor",
           "lastName": "McMichael",
           "age": 24,
-          "potential": 16,
+          "potential": 18,
           "handedness": "left",
           "positions": [
             "LW",
@@ -34367,7 +34367,7 @@
           "firstName": "Anthony",
           "lastName": "Beauvillier",
           "age": 28,
-          "potential": 12,
+          "potential": 13,
           "handedness": "left",
           "positions": [
             "RW",
@@ -34449,7 +34449,7 @@
           "firstName": "Justin",
           "lastName": "Sourdif",
           "age": 23,
-          "potential": 17,
+          "potential": 19,
           "handedness": "right",
           "positions": [
             "C",
@@ -34531,7 +34531,7 @@
           "firstName": "Ryan",
           "lastName": "Leonard",
           "age": 20,
-          "potential": 18,
+          "potential": 19,
           "handedness": "right",
           "positions": [
             "RW",
@@ -34613,7 +34613,7 @@
           "firstName": "Brandon",
           "lastName": "Duhaime",
           "age": 28,
-          "potential": 9,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "LW",
@@ -34777,7 +34777,7 @@
           "firstName": "Ethen",
           "lastName": "Frank",
           "age": 27,
-          "potential": 13,
+          "potential": 15,
           "handedness": "right",
           "positions": [
             "RW",
@@ -34859,7 +34859,7 @@
           "firstName": "Hendrix",
           "lastName": "Lapierre",
           "age": 23,
-          "potential": 10,
+          "potential": 11,
           "handedness": "left",
           "positions": [
             "C",
@@ -34941,7 +34941,7 @@
           "firstName": "Pierre-Luc",
           "lastName": "Dubois",
           "age": 27,
-          "potential": 13,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "C",
@@ -35023,7 +35023,7 @@
           "firstName": "Sonny",
           "lastName": "Milano",
           "age": 29,
-          "potential": 8,
+          "potential": 9,
           "handedness": "left",
           "positions": [
             "LW",
@@ -35105,7 +35105,7 @@
           "firstName": "Ivan",
           "lastName": "Miroshnichenko",
           "age": 21,
-          "potential": 10,
+          "potential": 11,
           "handedness": "right",
           "positions": [
             "LW",
@@ -35187,7 +35187,7 @@
           "firstName": "Ilya",
           "lastName": "Protas",
           "age": 19,
-          "potential": 15,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "LW",
@@ -35269,7 +35269,7 @@
           "firstName": "Jakob",
           "lastName": "Chychrun",
           "age": 27,
-          "potential": 18,
+          "potential": 20,
           "handedness": "left",
           "positions": [
             "LD",
@@ -35351,7 +35351,7 @@
           "firstName": "Matt",
           "lastName": "Roy",
           "age": 30,
-          "potential": 13,
+          "potential": 14,
           "handedness": "right",
           "positions": [
             "RD",
@@ -35433,7 +35433,7 @@
           "firstName": "Martin",
           "lastName": "Fehérváry",
           "age": 25,
-          "potential": 16,
+          "potential": 17,
           "handedness": "left",
           "positions": [
             "LD",
@@ -35515,7 +35515,7 @@
           "firstName": "Rasmus",
           "lastName": "Sandin",
           "age": 25,
-          "potential": 15,
+          "potential": 17,
           "handedness": "left",
           "positions": [
             "LD",
@@ -35761,7 +35761,7 @@
           "firstName": "Declan",
           "lastName": "Chisholm",
           "age": 25,
-          "potential": 11,
+          "potential": 13,
           "handedness": "left",
           "positions": [
             "LD",
@@ -36007,7 +36007,7 @@
           "firstName": "Aleksi",
           "lastName": "Heitiranta",
           "age": 28,
-          "potential": 6,
+          "potential": 7,
           "handedness": "left",
           "positions": [
             "RD"
@@ -36163,7 +36163,7 @@
           "firstName": "Clay",
           "lastName": "Stevenson",
           "age": 26,
-          "potential": 14,
+          "potential": 16,
           "handedness": "left",
           "attributes": {
             "reflexes": 15,
@@ -36458,7 +36458,7 @@
           "firstName": "Ilya",
           "lastName": "Mikheyev",
           "age": 30,
-          "potential": 15,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "RW",
@@ -36704,7 +36704,7 @@
           "firstName": "Frank",
           "lastName": "Nazar",
           "age": 21,
-          "potential": 18,
+          "potential": 19,
           "handedness": "right",
           "positions": [
             "C",
@@ -36950,7 +36950,7 @@
           "firstName": "Oliver",
           "lastName": "Moore",
           "age": 20,
-          "potential": 17,
+          "potential": 18,
           "handedness": "left",
           "positions": [
             "C",
@@ -37032,7 +37032,7 @@
           "firstName": "Colton",
           "lastName": "Dach",
           "age": 22,
-          "potential": 12,
+          "potential": 13,
           "handedness": "left",
           "positions": [
             "C",
@@ -37114,7 +37114,7 @@
           "firstName": "Landon",
           "lastName": "Slaggert",
           "age": 23,
-          "potential": 10,
+          "potential": 11,
           "handedness": "left",
           "positions": [
             "LW",
@@ -37196,7 +37196,7 @@
           "firstName": "Nick",
           "lastName": "Lardis",
           "age": 20,
-          "potential": 13,
+          "potential": 14,
           "handedness": "left",
           "positions": [
             "LW",
@@ -37524,7 +37524,7 @@
           "firstName": "Alex",
           "lastName": "Vlasic",
           "age": 24,
-          "potential": 15,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "LD",
@@ -37606,7 +37606,7 @@
           "firstName": "Wyatt",
           "lastName": "Kaiser",
           "age": 23,
-          "potential": 15,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "LD",
@@ -37688,7 +37688,7 @@
           "firstName": "Louis",
           "lastName": "Crevier",
           "age": 24,
-          "potential": 16,
+          "potential": 17,
           "handedness": "right",
           "positions": [
             "RD",
@@ -38098,7 +38098,7 @@
           "firstName": "Ethan",
           "lastName": "Del Mastro",
           "age": 22,
-          "potential": 13,
+          "potential": 14,
           "handedness": "left",
           "positions": [
             "LD",
@@ -38180,7 +38180,7 @@
           "firstName": "Kevin",
           "lastName": "Korchinski",
           "age": 21,
-          "potential": 9,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "LD",
@@ -38335,7 +38335,7 @@
           "firstName": "Spencer",
           "lastName": "Knight",
           "age": 24,
-          "potential": 19,
+          "potential": 20,
           "handedness": "left",
           "attributes": {
             "reflexes": 18,
@@ -38377,7 +38377,7 @@
           "firstName": "Arvid",
           "lastName": "Soderblom",
           "age": 26,
-          "potential": 15,
+          "potential": 17,
           "handedness": "left",
           "attributes": {
             "reflexes": 16,
@@ -38419,7 +38419,7 @@
           "firstName": "Drew",
           "lastName": "Commesso",
           "age": 23,
-          "potential": 16,
+          "potential": 18,
           "handedness": "left",
           "attributes": {
             "reflexes": 15,
@@ -38550,7 +38550,7 @@
           "firstName": "Martin",
           "lastName": "Necas",
           "age": 26,
-          "potential": 18,
+          "potential": 20,
           "handedness": "right",
           "positions": [
             "RW",
@@ -38714,7 +38714,7 @@
           "firstName": "Artturi",
           "lastName": "Lehkonen",
           "age": 30,
-          "potential": 15,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "LW",
@@ -38878,7 +38878,7 @@
           "firstName": "Jack",
           "lastName": "Drury",
           "age": 25,
-          "potential": 13,
+          "potential": 14,
           "handedness": "left",
           "positions": [
             "C",
@@ -38960,7 +38960,7 @@
           "firstName": "Parker",
           "lastName": "Kelly",
           "age": 26,
-          "potential": 13,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "C",
@@ -39124,7 +39124,7 @@
           "firstName": "Ross",
           "lastName": "Colton",
           "age": 29,
-          "potential": 12,
+          "potential": 13,
           "handedness": "left",
           "positions": [
             "C",
@@ -39288,7 +39288,7 @@
           "firstName": "Gavin",
           "lastName": "Brindley",
           "age": 20,
-          "potential": 13,
+          "potential": 14,
           "handedness": "right",
           "positions": [
             "RW",
@@ -39370,7 +39370,7 @@
           "firstName": "Joel",
           "lastName": "Kiviranta",
           "age": 29,
-          "potential": 8,
+          "potential": 9,
           "handedness": "left",
           "positions": [
             "LW",
@@ -39452,7 +39452,7 @@
           "firstName": "Zakhar",
           "lastName": "Bardakov",
           "age": 24,
-          "potential": 10,
+          "potential": 11,
           "handedness": "left",
           "positions": [
             "C",
@@ -39534,7 +39534,7 @@
           "firstName": "Logan",
           "lastName": "O'Connor",
           "age": 29,
-          "potential": 7,
+          "potential": 8,
           "handedness": "right",
           "positions": [
             "RW",
@@ -39616,7 +39616,7 @@
           "firstName": "Taylor",
           "lastName": "Makar",
           "age": 24,
-          "potential": 5,
+          "potential": 6,
           "handedness": "left",
           "positions": [
             "LW",
@@ -39698,7 +39698,7 @@
           "firstName": "Ivan",
           "lastName": "Ivan",
           "age": 23,
-          "potential": 6,
+          "potential": 7,
           "handedness": "left",
           "positions": [
             "C",
@@ -39780,7 +39780,7 @@
           "firstName": "Cale",
           "lastName": "Makar",
           "age": 26,
-          "potential": 19,
+          "potential": 20,
           "handedness": "right",
           "positions": [
             "RD",
@@ -40026,7 +40026,7 @@
           "firstName": "Sam",
           "lastName": "Malinski",
           "age": 27,
-          "potential": 17,
+          "potential": 19,
           "handedness": "right",
           "positions": [
             "RD",
@@ -40190,7 +40190,7 @@
           "firstName": "Samuel",
           "lastName": "Girard",
           "age": 27,
-          "potential": 13,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "LD",
@@ -40272,7 +40272,7 @@
           "firstName": "Ilya",
           "lastName": "Solovyov",
           "age": 25,
-          "potential": 9,
+          "potential": 11,
           "handedness": "left",
           "positions": [
             "LD",
@@ -40354,7 +40354,7 @@
           "firstName": "Jack",
           "lastName": "Ahcan",
           "age": 28,
-          "potential": 7,
+          "potential": 8,
           "handedness": "left",
           "positions": [
             "LD",
@@ -40436,7 +40436,7 @@
           "firstName": "Keaton",
           "lastName": "Middleton",
           "age": 27,
-          "potential": 5,
+          "potential": 7,
           "handedness": "left",
           "positions": [
             "LD",
@@ -40632,7 +40632,7 @@
           "firstName": "Mackenzie",
           "lastName": "Blackwood",
           "age": 28,
-          "potential": 17,
+          "potential": 18,
           "handedness": "left",
           "attributes": {
             "reflexes": 17,
@@ -40674,7 +40674,7 @@
           "firstName": "Trent",
           "lastName": "Miner",
           "age": 24,
-          "potential": 16,
+          "potential": 17,
           "handedness": "left",
           "attributes": {
             "reflexes": 15,
@@ -40723,7 +40723,7 @@
           "firstName": "Jason",
           "lastName": "Robertson",
           "age": 26,
-          "potential": 18,
+          "potential": 20,
           "handedness": "left",
           "positions": [
             "LW",
@@ -40805,7 +40805,7 @@
           "firstName": "Wyatt",
           "lastName": "Johnston",
           "age": 22,
-          "potential": 19,
+          "potential": 20,
           "handedness": "right",
           "positions": [
             "C",
@@ -40887,7 +40887,7 @@
           "firstName": "Mikko",
           "lastName": "Rantanen",
           "age": 28,
-          "potential": 16,
+          "potential": 17,
           "handedness": "left",
           "positions": [
             "RW",
@@ -40969,7 +40969,7 @@
           "firstName": "Mavrik",
           "lastName": "Bourque",
           "age": 23,
-          "potential": 17,
+          "potential": 18,
           "handedness": "right",
           "positions": [
             "C",
@@ -41051,7 +41051,7 @@
           "firstName": "Sam",
           "lastName": "Steel",
           "age": 27,
-          "potential": 13,
+          "potential": 14,
           "handedness": "left",
           "positions": [
             "C",
@@ -41133,7 +41133,7 @@
           "firstName": "Justin",
           "lastName": "Hryckowian",
           "age": 24,
-          "potential": 15,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "C",
@@ -41297,7 +41297,7 @@
           "firstName": "Roope",
           "lastName": "Hintz",
           "age": 28,
-          "potential": 16,
+          "potential": 17,
           "handedness": "left",
           "positions": [
             "C",
@@ -41379,7 +41379,7 @@
           "firstName": "Oskar",
           "lastName": "Bäck",
           "age": 25,
-          "potential": 11,
+          "potential": 12,
           "handedness": "left",
           "positions": [
             "LW",
@@ -41871,7 +41871,7 @@
           "firstName": "Nathan",
           "lastName": "Bastian",
           "age": 27,
-          "potential": 8,
+          "potential": 10,
           "handedness": "right",
           "positions": [
             "RW",
@@ -41953,7 +41953,7 @@
           "firstName": "Arttu",
           "lastName": "Hyry",
           "age": 24,
-          "potential": 9,
+          "potential": 11,
           "handedness": "right",
           "positions": [
             "RW",
@@ -42035,7 +42035,7 @@
           "firstName": "Miro",
           "lastName": "Heiskanen",
           "age": 26,
-          "potential": 17,
+          "potential": 19,
           "handedness": "left",
           "positions": [
             "LD",
@@ -42199,7 +42199,7 @@
           "firstName": "Thomas",
           "lastName": "Harley",
           "age": 24,
-          "potential": 17,
+          "potential": 19,
           "handedness": "left",
           "positions": [
             "LD",
@@ -42281,7 +42281,7 @@
           "firstName": "Nils",
           "lastName": "Lundkvist",
           "age": 25,
-          "potential": 13,
+          "potential": 14,
           "handedness": "right",
           "positions": [
             "RD",
@@ -42527,7 +42527,7 @@
           "firstName": "Lian",
           "lastName": "Bichsel",
           "age": 21,
-          "potential": 14,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "LD",
@@ -42609,7 +42609,7 @@
           "firstName": "Kyle",
           "lastName": "Capobianco",
           "age": 28,
-          "potential": 7,
+          "potential": 8,
           "handedness": "left",
           "positions": [
             "LD",
@@ -42691,7 +42691,7 @@
           "firstName": "Vladislav",
           "lastName": "Kolyachonok",
           "age": 24,
-          "potential": 9,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "LD",
@@ -42773,7 +42773,7 @@
           "firstName": "Chase",
           "lastName": "Merrlake",
           "age": 25,
-          "potential": 7,
+          "potential": 8,
           "handedness": "right",
           "positions": [
             "RD"
@@ -42845,7 +42845,7 @@
           "firstName": "Jake",
           "lastName": "Oettinger",
           "age": 26,
-          "potential": 18,
+          "potential": 20,
           "handedness": "left",
           "attributes": {
             "reflexes": 19,
@@ -42973,7 +42973,7 @@
           "firstName": "Kirill",
           "lastName": "Kaprizov",
           "age": 28,
-          "potential": 17,
+          "potential": 19,
           "handedness": "left",
           "positions": [
             "LW",
@@ -43055,7 +43055,7 @@
           "firstName": "Matt",
           "lastName": "Boldy",
           "age": 24,
-          "potential": 19,
+          "potential": 20,
           "handedness": "left",
           "positions": [
             "LW",
@@ -43137,7 +43137,7 @@
           "firstName": "Joel",
           "lastName": "Eriksson Ek",
           "age": 28,
-          "potential": 17,
+          "potential": 18,
           "handedness": "left",
           "positions": [
             "C",
@@ -43547,7 +43547,7 @@
           "firstName": "Yakov",
           "lastName": "Trenin",
           "age": 28,
-          "potential": 13,
+          "potential": 14,
           "handedness": "left",
           "positions": [
             "C",
@@ -43629,7 +43629,7 @@
           "firstName": "Danila",
           "lastName": "Yurov",
           "age": 21,
-          "potential": 14,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "RW",
@@ -43793,7 +43793,7 @@
           "firstName": "Nico",
           "lastName": "Sturm",
           "age": 30,
-          "potential": 8,
+          "potential": 9,
           "handedness": "left",
           "positions": [
             "C",
@@ -44039,7 +44039,7 @@
           "firstName": "Ben",
           "lastName": "Jones",
           "age": 26,
-          "potential": 6,
+          "potential": 8,
           "handedness": "left",
           "positions": [
             "C",
@@ -44449,7 +44449,7 @@
           "firstName": "Quinn",
           "lastName": "Hughes",
           "age": 25,
-          "potential": 18,
+          "potential": 20,
           "handedness": "left",
           "positions": [
             "LD",
@@ -44531,7 +44531,7 @@
           "firstName": "Jake",
           "lastName": "Middleton",
           "age": 29,
-          "potential": 10,
+          "potential": 11,
           "handedness": "left",
           "positions": [
             "LD",
@@ -44777,7 +44777,7 @@
           "firstName": "Daemon",
           "lastName": "Hunt",
           "age": 23,
-          "potential": 9,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "LD",
@@ -44859,7 +44859,7 @@
           "firstName": "David",
           "lastName": "Jiricek",
           "age": 21,
-          "potential": 9,
+          "potential": 10,
           "handedness": "right",
           "positions": [
             "RD",
@@ -44941,7 +44941,7 @@
           "firstName": "Matt",
           "lastName": "Kiersted",
           "age": 27,
-          "potential": 7,
+          "potential": 9,
           "handedness": "left",
           "positions": [
             "LD",
@@ -45023,7 +45023,7 @@
           "firstName": "Viking",
           "lastName": "Gustafsson Nyberg",
           "age": 22,
-          "potential": 11,
+          "potential": 12,
           "handedness": "left",
           "positions": [
             "LD",
@@ -45107,7 +45107,7 @@
           "firstName": "Filip",
           "lastName": "Gustavsson",
           "age": 27,
-          "potential": 17,
+          "potential": 19,
           "handedness": "left",
           "attributes": {
             "reflexes": 18,
@@ -45191,7 +45191,7 @@
           "firstName": "Landon",
           "lastName": "Branmore",
           "age": 28,
-          "potential": 12,
+          "potential": 13,
           "handedness": "left",
           "attributes": {
             "reflexes": 12,
@@ -45563,7 +45563,7 @@
           "firstName": "Luke",
           "lastName": "Evangelista",
           "age": 23,
-          "potential": 17,
+          "potential": 18,
           "handedness": "right",
           "positions": [
             "RW",
@@ -45727,7 +45727,7 @@
           "firstName": "Michael",
           "lastName": "Bunting",
           "age": 30,
-          "potential": 12,
+          "potential": 13,
           "handedness": "left",
           "positions": [
             "LW",
@@ -45891,7 +45891,7 @@
           "firstName": "Tyson",
           "lastName": "Jost",
           "age": 27,
-          "potential": 10,
+          "potential": 12,
           "handedness": "left",
           "positions": [
             "C",
@@ -45973,7 +45973,7 @@
           "firstName": "Michael",
           "lastName": "McCarron",
           "age": 30,
-          "potential": 11,
+          "potential": 12,
           "handedness": "right",
           "positions": [
             "C",
@@ -46055,7 +46055,7 @@
           "firstName": "Fedor",
           "lastName": "Svechkov",
           "age": 22,
-          "potential": 12,
+          "potential": 13,
           "handedness": "left",
           "positions": [
             "C",
@@ -46137,7 +46137,7 @@
           "firstName": "Cole",
           "lastName": "Smith",
           "age": 29,
-          "potential": 9,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "RW",
@@ -46219,7 +46219,7 @@
           "firstName": "Reid",
           "lastName": "Schaefer",
           "age": 22,
-          "potential": 9,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "LW",
@@ -46301,7 +46301,7 @@
           "firstName": "Ozzy",
           "lastName": "Wiesblatt",
           "age": 23,
-          "potential": 8,
+          "potential": 9,
           "handedness": "right",
           "positions": [
             "C",
@@ -46383,7 +46383,7 @@
           "firstName": "Zachary",
           "lastName": "L'Heureux",
           "age": 22,
-          "potential": 13,
+          "potential": 14,
           "handedness": "left",
           "positions": [
             "LW",
@@ -46465,7 +46465,7 @@
           "firstName": "Joakim",
           "lastName": "Kemell",
           "age": 21,
-          "potential": 10,
+          "potential": 11,
           "handedness": "right",
           "positions": [
             "RW",
@@ -46711,7 +46711,7 @@
           "firstName": "Nick",
           "lastName": "Perbix",
           "age": 27,
-          "potential": 9,
+          "potential": 11,
           "handedness": "right",
           "positions": [
             "RD",
@@ -46793,7 +46793,7 @@
           "firstName": "Nicolas",
           "lastName": "Hague",
           "age": 26,
-          "potential": 13,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "LD",
@@ -46875,7 +46875,7 @@
           "firstName": "Adam",
           "lastName": "Wilsby",
           "age": 25,
-          "potential": 12,
+          "potential": 14,
           "handedness": "left",
           "positions": [
             "LD",
@@ -46957,7 +46957,7 @@
           "firstName": "Nick",
           "lastName": "Blankenburg",
           "age": 27,
-          "potential": 14,
+          "potential": 16,
           "handedness": "right",
           "positions": [
             "RD",
@@ -47039,7 +47039,7 @@
           "firstName": "Justin",
           "lastName": "Barron",
           "age": 23,
-          "potential": 10,
+          "potential": 12,
           "handedness": "right",
           "positions": [
             "RD",
@@ -47121,7 +47121,7 @@
           "firstName": "Ryan",
           "lastName": "Ufko",
           "age": 22,
-          "potential": 10,
+          "potential": 11,
           "handedness": "right",
           "positions": [
             "RD",
@@ -47203,7 +47203,7 @@
           "firstName": "Andreas",
           "lastName": "Englund",
           "age": 29,
-          "potential": 5,
+          "potential": 6,
           "handedness": "left",
           "positions": [
             "LD",
@@ -47411,7 +47411,7 @@
           "firstName": "Justus",
           "lastName": "Annunen",
           "age": 25,
-          "potential": 17,
+          "potential": 19,
           "handedness": "left",
           "attributes": {
             "reflexes": 16,
@@ -47453,7 +47453,7 @@
           "firstName": "Griffin",
           "lastName": "Renton",
           "age": 27,
-          "potential": 13,
+          "potential": 14,
           "handedness": "left",
           "attributes": {
             "reflexes": 17,
@@ -47497,7 +47497,7 @@
           "firstName": "Pavel",
           "lastName": "Buchnevich",
           "age": 30,
-          "potential": 12,
+          "potential": 13,
           "handedness": "left",
           "positions": [
             "LW",
@@ -47579,7 +47579,7 @@
           "firstName": "Robert",
           "lastName": "Thomas",
           "age": 26,
-          "potential": 17,
+          "potential": 19,
           "handedness": "right",
           "positions": [
             "C",
@@ -47661,7 +47661,7 @@
           "firstName": "Jimmy",
           "lastName": "Snuggerud",
           "age": 21,
-          "potential": 18,
+          "potential": 19,
           "handedness": "right",
           "positions": [
             "RW",
@@ -47743,7 +47743,7 @@
           "firstName": "Jordan",
           "lastName": "Kyrou",
           "age": 27,
-          "potential": 15,
+          "potential": 16,
           "handedness": "right",
           "positions": [
             "RW",
@@ -47825,7 +47825,7 @@
           "firstName": "Dylan",
           "lastName": "Holloway",
           "age": 24,
-          "potential": 17,
+          "potential": 19,
           "handedness": "left",
           "positions": [
             "LW",
@@ -47907,7 +47907,7 @@
           "firstName": "Jake",
           "lastName": "Neighbours",
           "age": 23,
-          "potential": 15,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "LW",
@@ -47989,7 +47989,7 @@
           "firstName": "Dalibor",
           "lastName": "Dvorsky",
           "age": 20,
-          "potential": 13,
+          "potential": 14,
           "handedness": "left",
           "positions": [
             "RW",
@@ -48153,7 +48153,7 @@
           "firstName": "Pius",
           "lastName": "Suter",
           "age": 29,
-          "potential": 12,
+          "potential": 13,
           "handedness": "left",
           "positions": [
             "C",
@@ -48235,7 +48235,7 @@
           "firstName": "Alexey",
           "lastName": "Toropchenko",
           "age": 26,
-          "potential": 11,
+          "potential": 13,
           "handedness": "left",
           "positions": [
             "RW",
@@ -48481,7 +48481,7 @@
           "firstName": "Jonatan",
           "lastName": "Berggren",
           "age": 25,
-          "potential": 13,
+          "potential": 14,
           "handedness": "left",
           "positions": [
             "RW",
@@ -48563,7 +48563,7 @@
           "firstName": "Mathieu",
           "lastName": "Joseph",
           "age": 28,
-          "potential": 8,
+          "potential": 9,
           "handedness": "left",
           "positions": [
             "RW",
@@ -48809,7 +48809,7 @@
           "firstName": "Philip",
           "lastName": "Broberg",
           "age": 24,
-          "potential": 18,
+          "potential": 20,
           "handedness": "left",
           "positions": [
             "LD",
@@ -49137,7 +49137,7 @@
           "firstName": "Logan",
           "lastName": "Mailloux",
           "age": 22,
-          "potential": 11,
+          "potential": 12,
           "handedness": "right",
           "positions": [
             "RD",
@@ -49219,7 +49219,7 @@
           "firstName": "Tyler",
           "lastName": "Tucker",
           "age": 25,
-          "potential": 12,
+          "potential": 14,
           "handedness": "left",
           "positions": [
             "LD",
@@ -49301,7 +49301,7 @@
           "firstName": "Matthew",
           "lastName": "Kessel",
           "age": 25,
-          "potential": 7,
+          "potential": 8,
           "handedness": "right",
           "positions": [
             "RD",
@@ -49383,7 +49383,7 @@
           "firstName": "Theo",
           "lastName": "Lindstein",
           "age": 20,
-          "potential": 16,
+          "potential": 17,
           "handedness": "left",
           "positions": [
             "LD",
@@ -49547,7 +49547,7 @@
           "firstName": "Hunter",
           "lastName": "Skinner",
           "age": 24,
-          "potential": 8,
+          "potential": 10,
           "handedness": "right",
           "positions": [
             "RD",
@@ -49631,7 +49631,7 @@
           "firstName": "Joel",
           "lastName": "Hofer",
           "age": 25,
-          "potential": 18,
+          "potential": 20,
           "handedness": "left",
           "attributes": {
             "reflexes": 18,
@@ -49715,7 +49715,7 @@
           "firstName": "Quinton",
           "lastName": "Cormwick",
           "age": 22,
-          "potential": 17,
+          "potential": 18,
           "handedness": "left",
           "attributes": {
             "reflexes": 13,
@@ -49759,7 +49759,7 @@
           "firstName": "Nick",
           "lastName": "Schmaltz",
           "age": 29,
-          "potential": 17,
+          "potential": 18,
           "handedness": "right",
           "positions": [
             "C",
@@ -49841,7 +49841,7 @@
           "firstName": "Clayton",
           "lastName": "Keller",
           "age": 27,
-          "potential": 16,
+          "potential": 18,
           "handedness": "left",
           "positions": [
             "RW",
@@ -50005,7 +50005,7 @@
           "firstName": "Lawson",
           "lastName": "Crouse",
           "age": 28,
-          "potential": 16,
+          "potential": 17,
           "handedness": "left",
           "positions": [
             "LW",
@@ -50087,7 +50087,7 @@
           "firstName": "JJ",
           "lastName": "Peterka",
           "age": 23,
-          "potential": 18,
+          "potential": 19,
           "handedness": "left",
           "positions": [
             "RW",
@@ -50251,7 +50251,7 @@
           "firstName": "Jack",
           "lastName": "McBain",
           "age": 25,
-          "potential": 12,
+          "potential": 14,
           "handedness": "left",
           "positions": [
             "C",
@@ -50333,7 +50333,7 @@
           "firstName": "Barrett",
           "lastName": "Hayton",
           "age": 25,
-          "potential": 14,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "C",
@@ -50415,7 +50415,7 @@
           "firstName": "Michael",
           "lastName": "Carcone",
           "age": 29,
-          "potential": 13,
+          "potential": 14,
           "handedness": "left",
           "positions": [
             "LW",
@@ -50497,7 +50497,7 @@
           "firstName": "Logan",
           "lastName": "Cooley",
           "age": 21,
-          "potential": 19,
+          "potential": 20,
           "handedness": "left",
           "positions": [
             "C",
@@ -50579,7 +50579,7 @@
           "firstName": "Kailer",
           "lastName": "Yamamoto",
           "age": 27,
-          "potential": 12,
+          "potential": 13,
           "handedness": "right",
           "positions": [
             "RW",
@@ -51071,7 +51071,7 @@
           "firstName": "Mikhail",
           "lastName": "Sergachev",
           "age": 27,
-          "potential": 18,
+          "potential": 19,
           "handedness": "left",
           "positions": [
             "LD",
@@ -51153,7 +51153,7 @@
           "firstName": "John",
           "lastName": "Marino",
           "age": 28,
-          "potential": 16,
+          "potential": 17,
           "handedness": "right",
           "positions": [
             "RD",
@@ -51399,7 +51399,7 @@
           "firstName": "Sean",
           "lastName": "Durzi",
           "age": 26,
-          "potential": 14,
+          "potential": 16,
           "handedness": "right",
           "positions": [
             "RD",
@@ -51563,7 +51563,7 @@
           "firstName": "Dmitri",
           "lastName": "Simashev",
           "age": 20,
-          "potential": 10,
+          "potential": 11,
           "handedness": "left",
           "positions": [
             "LD",
@@ -51809,7 +51809,7 @@
           "firstName": "Axel",
           "lastName": "Ålvgren",
           "age": 21,
-          "potential": 10,
+          "potential": 11,
           "handedness": "right",
           "positions": [
             "RD"
@@ -51923,7 +51923,7 @@
           "firstName": "Vitek",
           "lastName": "Vanecek",
           "age": 29,
-          "potential": 16,
+          "potential": 17,
           "handedness": "left",
           "attributes": {
             "reflexes": 15,
@@ -51965,7 +51965,7 @@
           "firstName": "Anton",
           "lastName": "Bergarholm",
           "age": 29,
-          "potential": 13,
+          "potential": 14,
           "handedness": "left",
           "attributes": {
             "reflexes": 12,
@@ -52009,7 +52009,7 @@
           "firstName": "Kyle",
           "lastName": "Connor",
           "age": 28,
-          "potential": 16,
+          "potential": 17,
           "handedness": "left",
           "positions": [
             "LW",
@@ -52173,7 +52173,7 @@
           "firstName": "Gabriel",
           "lastName": "Vilardi",
           "age": 26,
-          "potential": 14,
+          "potential": 16,
           "handedness": "right",
           "positions": [
             "C",
@@ -52419,7 +52419,7 @@
           "firstName": "Cole",
           "lastName": "Perfetti",
           "age": 23,
-          "potential": 13,
+          "potential": 14,
           "handedness": "left",
           "positions": [
             "C",
@@ -52665,7 +52665,7 @@
           "firstName": "Morgan",
           "lastName": "Barron",
           "age": 26,
-          "potential": 13,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "C",
@@ -52829,7 +52829,7 @@
           "firstName": "Cole",
           "lastName": "Koepke",
           "age": 27,
-          "potential": 11,
+          "potential": 12,
           "handedness": "left",
           "positions": [
             "LW",
@@ -53075,7 +53075,7 @@
           "firstName": "Brad",
           "lastName": "Lambert",
           "age": 21,
-          "potential": 9,
+          "potential": 10,
           "handedness": "right",
           "positions": [
             "RW",
@@ -53157,7 +53157,7 @@
           "firstName": "Isak",
           "lastName": "Rosen",
           "age": 22,
-          "potential": 10,
+          "potential": 11,
           "handedness": "left",
           "positions": [
             "RW",
@@ -53239,7 +53239,7 @@
           "firstName": "Parker",
           "lastName": "Ford",
           "age": 25,
-          "potential": 7,
+          "potential": 8,
           "handedness": "right",
           "positions": [
             "C",
@@ -53321,7 +53321,7 @@
           "firstName": "Josh",
           "lastName": "Morrissey",
           "age": 30,
-          "potential": 16,
+          "potential": 17,
           "handedness": "left",
           "positions": [
             "LD",
@@ -53485,7 +53485,7 @@
           "firstName": "Dylan",
           "lastName": "Samberg",
           "age": 26,
-          "potential": 13,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "LD",
@@ -53649,7 +53649,7 @@
           "firstName": "Logan",
           "lastName": "Stanley",
           "age": 27,
-          "potential": 14,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "LD",
@@ -53813,7 +53813,7 @@
           "firstName": "Elias",
           "lastName": "Salomonsson",
           "age": 21,
-          "potential": 14,
+          "potential": 15,
           "handedness": "right",
           "positions": [
             "RD",
@@ -54059,7 +54059,7 @@
           "firstName": "Ville",
           "lastName": "Heinola",
           "age": 24,
-          "potential": 8,
+          "potential": 9,
           "handedness": "left",
           "positions": [
             "LD",
@@ -54185,7 +54185,7 @@
           "firstName": "Eric",
           "lastName": "Comrie",
           "age": 30,
-          "potential": 15,
+          "potential": 16,
           "handedness": "left",
           "attributes": {
             "reflexes": 16,
@@ -54227,7 +54227,7 @@
           "firstName": "Thomas",
           "lastName": "Milic",
           "age": 22,
-          "potential": 17,
+          "potential": 18,
           "handedness": "left",
           "attributes": {
             "reflexes": 15,
@@ -54276,7 +54276,7 @@
           "firstName": "Beckett",
           "lastName": "Sennecke",
           "age": 19,
-          "potential": 18,
+          "potential": 19,
           "handedness": "right",
           "positions": [
             "RW",
@@ -54686,7 +54686,7 @@
           "firstName": "Mason",
           "lastName": "McTavish",
           "age": 22,
-          "potential": 14,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "C",
@@ -54768,7 +54768,7 @@
           "firstName": "Ryan",
           "lastName": "Poehling",
           "age": 26,
-          "potential": 13,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "C",
@@ -54850,7 +54850,7 @@
           "firstName": "Troy",
           "lastName": "Terry",
           "age": 28,
-          "potential": 15,
+          "potential": 17,
           "handedness": "right",
           "positions": [
             "RW",
@@ -55178,7 +55178,7 @@
           "firstName": "Tim",
           "lastName": "Washe",
           "age": 24,
-          "potential": 9,
+          "potential": 11,
           "handedness": "left",
           "positions": [
             "C",
@@ -55260,7 +55260,7 @@
           "firstName": "Jeffrey",
           "lastName": "Viel",
           "age": 28,
-          "potential": 9,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "LW",
@@ -55342,7 +55342,7 @@
           "firstName": "Jansen",
           "lastName": "Harkins",
           "age": 28,
-          "potential": 9,
+          "potential": 11,
           "handedness": "left",
           "positions": [
             "C",
@@ -55506,7 +55506,7 @@
           "firstName": "Nikita",
           "lastName": "Nesterenko",
           "age": 24,
-          "potential": 12,
+          "potential": 13,
           "handedness": "left",
           "positions": [
             "C",
@@ -55588,7 +55588,7 @@
           "firstName": "Jackson",
           "lastName": "LaCombe",
           "age": 24,
-          "potential": 19,
+          "potential": 20,
           "handedness": "left",
           "positions": [
             "LD",
@@ -55752,7 +55752,7 @@
           "firstName": "Pavel",
           "lastName": "Mintyukov",
           "age": 21,
-          "potential": 15,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "LD",
@@ -55834,7 +55834,7 @@
           "firstName": "Olen",
           "lastName": "Zellweger",
           "age": 22,
-          "potential": 17,
+          "potential": 18,
           "handedness": "left",
           "positions": [
             "LD",
@@ -55916,7 +55916,7 @@
           "firstName": "Drew",
           "lastName": "Helleson",
           "age": 24,
-          "potential": 13,
+          "potential": 14,
           "handedness": "right",
           "positions": [
             "RD",
@@ -55998,7 +55998,7 @@
           "firstName": "Ian",
           "lastName": "Moore",
           "age": 23,
-          "potential": 13,
+          "potential": 14,
           "handedness": "right",
           "positions": [
             "RD",
@@ -56162,7 +56162,7 @@
           "firstName": "Tyson",
           "lastName": "Hinds",
           "age": 22,
-          "potential": 10,
+          "potential": 11,
           "handedness": "left",
           "positions": [
             "LD",
@@ -56244,7 +56244,7 @@
           "firstName": "Tristan",
           "lastName": "Luneau",
           "age": 21,
-          "potential": 9,
+          "potential": 10,
           "handedness": "right",
           "positions": [
             "RD",
@@ -56326,7 +56326,7 @@
           "firstName": "Gustav",
           "lastName": "Hallstad",
           "age": 21,
-          "potential": 8,
+          "potential": 9,
           "handedness": "left",
           "positions": [
             "LD"
@@ -56398,7 +56398,7 @@
           "firstName": "Lukas",
           "lastName": "Dostal",
           "age": 25,
-          "potential": 18,
+          "potential": 20,
           "handedness": "left",
           "attributes": {
             "reflexes": 17,
@@ -56613,7 +56613,7 @@
           "firstName": "Joel",
           "lastName": "Farabee",
           "age": 25,
-          "potential": 13,
+          "potential": 14,
           "handedness": "left",
           "positions": [
             "LW",
@@ -56695,7 +56695,7 @@
           "firstName": "Matt",
           "lastName": "Coronato",
           "age": 22,
-          "potential": 14,
+          "potential": 15,
           "handedness": "right",
           "positions": [
             "RW",
@@ -56777,7 +56777,7 @@
           "firstName": "Morgan",
           "lastName": "Frost",
           "age": 26,
-          "potential": 13,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "C",
@@ -56859,7 +56859,7 @@
           "firstName": "Yegor",
           "lastName": "Sharangovich",
           "age": 27,
-          "potential": 11,
+          "potential": 12,
           "handedness": "left",
           "positions": [
             "C",
@@ -57105,7 +57105,7 @@
           "firstName": "Connor",
           "lastName": "Zary",
           "age": 24,
-          "potential": 11,
+          "potential": 13,
           "handedness": "left",
           "positions": [
             "C",
@@ -57269,7 +57269,7 @@
           "firstName": "Adam",
           "lastName": "Klapka",
           "age": 25,
-          "potential": 10,
+          "potential": 11,
           "handedness": "right",
           "positions": [
             "RW",
@@ -57433,7 +57433,7 @@
           "firstName": "Ryan",
           "lastName": "Lomberg",
           "age": 30,
-          "potential": 7,
+          "potential": 8,
           "handedness": "left",
           "positions": [
             "LW",
@@ -57515,7 +57515,7 @@
           "firstName": "John",
           "lastName": "Beecher",
           "age": 24,
-          "potential": 9,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "C",
@@ -57597,7 +57597,7 @@
           "firstName": "Martin",
           "lastName": "Pospisil",
           "age": 25,
-          "potential": 7,
+          "potential": 8,
           "handedness": "left",
           "positions": [
             "C",
@@ -57679,7 +57679,7 @@
           "firstName": "Samuel",
           "lastName": "Honzek",
           "age": 20,
-          "potential": 13,
+          "potential": 14,
           "handedness": "left",
           "positions": [
             "RW",
@@ -57843,7 +57843,7 @@
           "firstName": "Kevin",
           "lastName": "Bahl",
           "age": 25,
-          "potential": 12,
+          "potential": 14,
           "handedness": "left",
           "positions": [
             "LD",
@@ -58007,7 +58007,7 @@
           "firstName": "Rasmus",
           "lastName": "Andersson",
           "age": 28,
-          "potential": 18,
+          "potential": 19,
           "handedness": "right",
           "positions": [
             "RD",
@@ -58089,7 +58089,7 @@
           "firstName": "Yan",
           "lastName": "Kuznetsov",
           "age": 23,
-          "potential": 12,
+          "potential": 14,
           "handedness": "left",
           "positions": [
             "LD",
@@ -58253,7 +58253,7 @@
           "firstName": "Zayne",
           "lastName": "Parekh",
           "age": 19,
-          "potential": 14,
+          "potential": 15,
           "handedness": "right",
           "positions": [
             "RD",
@@ -58335,7 +58335,7 @@
           "firstName": "Hunter",
           "lastName": "Brzustewicz",
           "age": 20,
-          "potential": 14,
+          "potential": 15,
           "handedness": "right",
           "positions": [
             "RD",
@@ -58417,7 +58417,7 @@
           "firstName": "Brayden",
           "lastName": "Pachal",
           "age": 26,
-          "potential": 7,
+          "potential": 9,
           "handedness": "right",
           "positions": [
             "RD",
@@ -58499,7 +58499,7 @@
           "firstName": "Jake",
           "lastName": "Bean",
           "age": 27,
-          "potential": 8,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "LD",
@@ -58581,7 +58581,7 @@
           "firstName": "Abram",
           "lastName": "Wiebe",
           "age": 22,
-          "potential": 7,
+          "potential": 8,
           "handedness": "left",
           "positions": [
             "LD",
@@ -58665,7 +58665,7 @@
           "firstName": "Dustin",
           "lastName": "Wolf",
           "age": 24,
-          "potential": 18,
+          "potential": 20,
           "handedness": "left",
           "attributes": {
             "reflexes": 18,
@@ -58707,7 +58707,7 @@
           "firstName": "Devin",
           "lastName": "Cooley",
           "age": 28,
-          "potential": 16,
+          "potential": 17,
           "handedness": "left",
           "attributes": {
             "reflexes": 17,
@@ -58749,7 +58749,7 @@
           "firstName": "Arsenii",
           "lastName": "Sergeev",
           "age": 22,
-          "potential": 19,
+          "potential": 20,
           "handedness": "left",
           "attributes": {
             "reflexes": 15,
@@ -59044,7 +59044,7 @@
           "firstName": "Vasily",
           "lastName": "Podkolzin",
           "age": 24,
-          "potential": 14,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "RW",
@@ -59126,7 +59126,7 @@
           "firstName": "Matt",
           "lastName": "Savoie",
           "age": 21,
-          "potential": 15,
+          "potential": 16,
           "handedness": "right",
           "positions": [
             "RW",
@@ -59290,7 +59290,7 @@
           "firstName": "Jack",
           "lastName": "Roslovic",
           "age": 28,
-          "potential": 15,
+          "potential": 16,
           "handedness": "right",
           "positions": [
             "C",
@@ -59454,7 +59454,7 @@
           "firstName": "Trent",
           "lastName": "Frederic",
           "age": 27,
-          "potential": 8,
+          "potential": 9,
           "handedness": "left",
           "positions": [
             "C",
@@ -59536,7 +59536,7 @@
           "firstName": "Andrew",
           "lastName": "Mangiapane",
           "age": 29,
-          "potential": 9,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "LW",
@@ -59618,7 +59618,7 @@
           "firstName": "Kasperi",
           "lastName": "Kapanen",
           "age": 29,
-          "potential": 13,
+          "potential": 14,
           "handedness": "right",
           "positions": [
             "RW",
@@ -59864,7 +59864,7 @@
           "firstName": "Isaac",
           "lastName": "Howard",
           "age": 21,
-          "potential": 9,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "LW",
@@ -59946,7 +59946,7 @@
           "firstName": "Josh",
           "lastName": "Samanski",
           "age": 23,
-          "potential": 9,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "C",
@@ -60028,7 +60028,7 @@
           "firstName": "David",
           "lastName": "Tomasek",
           "age": 29,
-          "potential": 8,
+          "potential": 9,
           "handedness": "right",
           "positions": [
             "RW",
@@ -60110,7 +60110,7 @@
           "firstName": "Evan",
           "lastName": "Bouchard",
           "age": 25,
-          "potential": 18,
+          "potential": 20,
           "handedness": "right",
           "positions": [
             "RD",
@@ -60192,7 +60192,7 @@
           "firstName": "Darnell",
           "lastName": "Nurse",
           "age": 30,
-          "potential": 12,
+          "potential": 13,
           "handedness": "left",
           "positions": [
             "LD",
@@ -60356,7 +60356,7 @@
           "firstName": "Ty",
           "lastName": "Emberson",
           "age": 25,
-          "potential": 10,
+          "potential": 12,
           "handedness": "right",
           "positions": [
             "RD",
@@ -60520,7 +60520,7 @@
           "firstName": "Spencer",
           "lastName": "Stastney",
           "age": 25,
-          "potential": 10,
+          "potential": 12,
           "handedness": "left",
           "positions": [
             "LD",
@@ -60684,7 +60684,7 @@
           "firstName": "Alec",
           "lastName": "Regula",
           "age": 25,
-          "potential": 9,
+          "potential": 11,
           "handedness": "right",
           "positions": [
             "RD",
@@ -60766,7 +60766,7 @@
           "firstName": "Riley",
           "lastName": "Stillman",
           "age": 27,
-          "potential": 5,
+          "potential": 7,
           "handedness": "left",
           "positions": [
             "LD",
@@ -60848,7 +60848,7 @@
           "firstName": "Landon",
           "lastName": "Whitfield",
           "age": 26,
-          "potential": 6,
+          "potential": 8,
           "handedness": "left",
           "positions": [
             "RD"
@@ -60920,7 +60920,7 @@
           "firstName": "Connor",
           "lastName": "Ingram",
           "age": 28,
-          "potential": 16,
+          "potential": 17,
           "handedness": "left",
           "attributes": {
             "reflexes": 16,
@@ -60962,7 +60962,7 @@
           "firstName": "Tristan",
           "lastName": "Jarry",
           "age": 30,
-          "potential": 15,
+          "potential": 16,
           "handedness": "left",
           "attributes": {
             "reflexes": 16,
@@ -61053,7 +61053,7 @@
           "firstName": "Quinton",
           "lastName": "Byfield",
           "age": 23,
-          "potential": 19,
+          "potential": 20,
           "handedness": "left",
           "positions": [
             "C",
@@ -61135,7 +61135,7 @@
           "firstName": "Adrian",
           "lastName": "Kempe",
           "age": 29,
-          "potential": 19,
+          "potential": 20,
           "handedness": "left",
           "positions": [
             "RW",
@@ -61217,7 +61217,7 @@
           "firstName": "Alex",
           "lastName": "Laferriere",
           "age": 23,
-          "potential": 16,
+          "potential": 17,
           "handedness": "right",
           "positions": [
             "RW",
@@ -61381,7 +61381,7 @@
           "firstName": "Trevor",
           "lastName": "Moore",
           "age": 30,
-          "potential": 15,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "LW",
@@ -61463,7 +61463,7 @@
           "firstName": "Kevin",
           "lastName": "Fiala",
           "age": 29,
-          "potential": 12,
+          "potential": 13,
           "handedness": "left",
           "positions": [
             "LW",
@@ -61627,7 +61627,7 @@
           "firstName": "Andrei",
           "lastName": "Kuzmenko",
           "age": 29,
-          "potential": 10,
+          "potential": 11,
           "handedness": "right",
           "positions": [
             "LW",
@@ -61873,7 +61873,7 @@
           "firstName": "Alex",
           "lastName": "Turcotte",
           "age": 24,
-          "potential": 10,
+          "potential": 11,
           "handedness": "left",
           "positions": [
             "C",
@@ -61955,7 +61955,7 @@
           "firstName": "Jeff",
           "lastName": "Malott",
           "age": 29,
-          "potential": 7,
+          "potential": 8,
           "handedness": "left",
           "positions": [
             "LW",
@@ -62037,7 +62037,7 @@
           "firstName": "Samuel",
           "lastName": "Helenius",
           "age": 22,
-          "potential": 10,
+          "potential": 11,
           "handedness": "left",
           "positions": [
             "C",
@@ -62119,7 +62119,7 @@
           "firstName": "Taylor",
           "lastName": "Ward",
           "age": 27,
-          "potential": 8,
+          "potential": 10,
           "handedness": "right",
           "positions": [
             "RW",
@@ -62201,7 +62201,7 @@
           "firstName": "Jared",
           "lastName": "Wright",
           "age": 22,
-          "potential": 12,
+          "potential": 13,
           "handedness": "right",
           "positions": [
             "RW",
@@ -62283,7 +62283,7 @@
           "firstName": "Andre",
           "lastName": "Lee",
           "age": 25,
-          "potential": 8,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "LW",
@@ -62447,7 +62447,7 @@
           "firstName": "Mikey",
           "lastName": "Anderson",
           "age": 26,
-          "potential": 14,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "LD",
@@ -62529,7 +62529,7 @@
           "firstName": "Brandt",
           "lastName": "Clarke",
           "age": 22,
-          "potential": 19,
+          "potential": 20,
           "handedness": "right",
           "positions": [
             "RD",
@@ -62857,7 +62857,7 @@
           "firstName": "Jacob",
           "lastName": "Moverare",
           "age": 27,
-          "potential": 6,
+          "potential": 7,
           "handedness": "left",
           "positions": [
             "LD",
@@ -62939,7 +62939,7 @@
           "firstName": "Angus",
           "lastName": "Booth",
           "age": 21,
-          "potential": 9,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "LD",
@@ -63021,7 +63021,7 @@
           "firstName": "Filip",
           "lastName": "Sjölund",
           "age": 22,
-          "potential": 8,
+          "potential": 9,
           "handedness": "right",
           "positions": [
             "RD"
@@ -63091,7 +63091,7 @@
           "firstName": "Verneri",
           "lastName": "Pelharju",
           "age": 24,
-          "potential": 6,
+          "potential": 8,
           "handedness": "left",
           "positions": [
             "RD"
@@ -63460,7 +63460,7 @@
           "firstName": "William",
           "lastName": "Eklund",
           "age": 22,
-          "potential": 16,
+          "potential": 17,
           "handedness": "left",
           "positions": [
             "LW",
@@ -63542,7 +63542,7 @@
           "firstName": "Collin",
           "lastName": "Graf",
           "age": 23,
-          "potential": 15,
+          "potential": 16,
           "handedness": "right",
           "positions": [
             "RW",
@@ -63870,7 +63870,7 @@
           "firstName": "Adam",
           "lastName": "Gaudette",
           "age": 28,
-          "potential": 11,
+          "potential": 12,
           "handedness": "right",
           "positions": [
             "RW",
@@ -63952,7 +63952,7 @@
           "firstName": "Philipp",
           "lastName": "Kurashev",
           "age": 25,
-          "potential": 15,
+          "potential": 17,
           "handedness": "left",
           "positions": [
             "C",
@@ -64034,7 +64034,7 @@
           "firstName": "Ty",
           "lastName": "Dellandrea",
           "age": 25,
-          "potential": 13,
+          "potential": 15,
           "handedness": "right",
           "positions": [
             "C",
@@ -64116,7 +64116,7 @@
           "firstName": "Zack",
           "lastName": "Ostapchuk",
           "age": 22,
-          "potential": 10,
+          "potential": 11,
           "handedness": "left",
           "positions": [
             "C",
@@ -64526,7 +64526,7 @@
           "firstName": "Pavol",
           "lastName": "Regenda",
           "age": 25,
-          "potential": 13,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "LW",
@@ -64690,7 +64690,7 @@
           "firstName": "Mario",
           "lastName": "Ferraro",
           "age": 27,
-          "potential": 14,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "LD",
@@ -64772,7 +64772,7 @@
           "firstName": "Sam",
           "lastName": "Dickinson",
           "age": 19,
-          "potential": 14,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "LD",
@@ -64936,7 +64936,7 @@
           "firstName": "Vincent",
           "lastName": "Desharnais",
           "age": 29,
-          "potential": 11,
+          "potential": 12,
           "handedness": "right",
           "positions": [
             "RD",
@@ -65018,7 +65018,7 @@
           "firstName": "Timothy",
           "lastName": "Liljegren",
           "age": 26,
-          "potential": 13,
+          "potential": 15,
           "handedness": "right",
           "positions": [
             "RD",
@@ -65100,7 +65100,7 @@
           "firstName": "Shakir",
           "lastName": "Mukhamadullin",
           "age": 23,
-          "potential": 13,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "LD",
@@ -65264,7 +65264,7 @@
           "firstName": "Vincent",
           "lastName": "Iorio",
           "age": 22,
-          "potential": 10,
+          "potential": 11,
           "handedness": "right",
           "positions": [
             "RD",
@@ -65346,7 +65346,7 @@
           "firstName": "Luca",
           "lastName": "Cagnoni",
           "age": 20,
-          "potential": 12,
+          "potential": 13,
           "handedness": "left",
           "positions": [
             "LD",
@@ -65472,7 +65472,7 @@
           "firstName": "Alex",
           "lastName": "Nedeljkovic",
           "age": 29,
-          "potential": 16,
+          "potential": 17,
           "handedness": "left",
           "attributes": {
             "reflexes": 17,
@@ -65563,7 +65563,7 @@
           "firstName": "Matty",
           "lastName": "Beniers",
           "age": 22,
-          "potential": 17,
+          "potential": 19,
           "handedness": "left",
           "positions": [
             "C",
@@ -65809,7 +65809,7 @@
           "firstName": "Eeli",
           "lastName": "Tolvanen",
           "age": 26,
-          "potential": 11,
+          "potential": 13,
           "handedness": "left",
           "positions": [
             "LW",
@@ -66055,7 +66055,7 @@
           "firstName": "Kaapo",
           "lastName": "Kakko",
           "age": 24,
-          "potential": 14,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "RW",
@@ -66301,7 +66301,7 @@
           "firstName": "Ryan",
           "lastName": "Winterton",
           "age": 22,
-          "potential": 17,
+          "potential": 18,
           "handedness": "right",
           "positions": [
             "C",
@@ -66465,7 +66465,7 @@
           "firstName": "Ben",
           "lastName": "Meyers",
           "age": 26,
-          "potential": 11,
+          "potential": 13,
           "handedness": "left",
           "positions": [
             "C",
@@ -66547,7 +66547,7 @@
           "firstName": "Tye",
           "lastName": "Kartye",
           "age": 24,
-          "potential": 12,
+          "potential": 14,
           "handedness": "left",
           "positions": [
             "LW",
@@ -66629,7 +66629,7 @@
           "firstName": "Jacob",
           "lastName": "Melanson",
           "age": 22,
-          "potential": 9,
+          "potential": 10,
           "handedness": "right",
           "positions": [
             "RW",
@@ -66875,7 +66875,7 @@
           "firstName": "Vince",
           "lastName": "Dunn",
           "age": 28,
-          "potential": 14,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "LD",
@@ -67121,7 +67121,7 @@
           "firstName": "Ryan",
           "lastName": "Lindgren",
           "age": 27,
-          "potential": 9,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "LD",
@@ -67285,7 +67285,7 @@
           "firstName": "Ryker",
           "lastName": "Evans",
           "age": 23,
-          "potential": 14,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "LD",
@@ -67367,7 +67367,7 @@
           "firstName": "Cale",
           "lastName": "Fleury",
           "age": 26,
-          "potential": 10,
+          "potential": 11,
           "handedness": "right",
           "positions": [
             "RD",
@@ -67449,7 +67449,7 @@
           "firstName": "Josh",
           "lastName": "Mahura",
           "age": 27,
-          "potential": 9,
+          "potential": 10,
           "handedness": "left",
           "positions": [
             "LD",
@@ -67531,7 +67531,7 @@
           "firstName": "Chase",
           "lastName": "Briginbaum",
           "age": 23,
-          "potential": 9,
+          "potential": 10,
           "handedness": "right",
           "positions": [
             "RD"
@@ -67673,7 +67673,7 @@
           "firstName": "Joey",
           "lastName": "Daccord",
           "age": 29,
-          "potential": 17,
+          "potential": 18,
           "handedness": "left",
           "attributes": {
             "reflexes": 18,
@@ -67806,7 +67806,7 @@
           "firstName": "Brock",
           "lastName": "Boeser",
           "age": 28,
-          "potential": 11,
+          "potential": 12,
           "handedness": "right",
           "positions": [
             "RW",
@@ -67888,7 +67888,7 @@
           "firstName": "Elias",
           "lastName": "Pettersson",
           "age": 26,
-          "potential": 13,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "C",
@@ -67970,7 +67970,7 @@
           "firstName": "Jake",
           "lastName": "DeBrusk",
           "age": 28,
-          "potential": 13,
+          "potential": 14,
           "handedness": "left",
           "positions": [
             "LW",
@@ -68052,7 +68052,7 @@
           "firstName": "Drew",
           "lastName": "O'Connor",
           "age": 27,
-          "potential": 12,
+          "potential": 13,
           "handedness": "left",
           "positions": [
             "LW",
@@ -68216,7 +68216,7 @@
           "firstName": "Linus",
           "lastName": "Karlsson",
           "age": 25,
-          "potential": 12,
+          "potential": 14,
           "handedness": "right",
           "positions": [
             "RW",
@@ -68380,7 +68380,7 @@
           "firstName": "Aatu",
           "lastName": "Räty",
           "age": 22,
-          "potential": 12,
+          "potential": 13,
           "handedness": "left",
           "positions": [
             "C",
@@ -68462,7 +68462,7 @@
           "firstName": "Max",
           "lastName": "Sasson",
           "age": 25,
-          "potential": 9,
+          "potential": 11,
           "handedness": "left",
           "positions": [
             "C",
@@ -68544,7 +68544,7 @@
           "firstName": "Kiefer",
           "lastName": "Sherwood",
           "age": 30,
-          "potential": 12,
+          "potential": 13,
           "handedness": "right",
           "positions": [
             "RW",
@@ -68626,7 +68626,7 @@
           "firstName": "Liam",
           "lastName": "Ohgren",
           "age": 21,
-          "potential": 14,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "LW",
@@ -68872,7 +68872,7 @@
           "firstName": "Marco",
           "lastName": "Rossi",
           "age": 24,
-          "potential": 14,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "C",
@@ -68954,7 +68954,7 @@
           "firstName": "Nils",
           "lastName": "Hoglander",
           "age": 24,
-          "potential": 7,
+          "potential": 8,
           "handedness": "left",
           "positions": [
             "LW",
@@ -69036,7 +69036,7 @@
           "firstName": "Arshdeep",
           "lastName": "Bains",
           "age": 24,
-          "potential": 7,
+          "potential": 8,
           "handedness": "left",
           "positions": [
             "LW",
@@ -69118,7 +69118,7 @@
           "firstName": "Filip",
           "lastName": "Hronek",
           "age": 27,
-          "potential": 15,
+          "potential": 17,
           "handedness": "right",
           "positions": [
             "RD",
@@ -69200,7 +69200,7 @@
           "firstName": "Marcus",
           "lastName": "Pettersson",
           "age": 29,
-          "potential": 12,
+          "potential": 13,
           "handedness": "left",
           "positions": [
             "LD",
@@ -69446,7 +69446,7 @@
           "firstName": "Elias",
           "lastName": "Pettersson",
           "age": 21,
-          "potential": 13,
+          "potential": 14,
           "handedness": "left",
           "positions": [
             "LD",
@@ -69610,7 +69610,7 @@
           "firstName": "Pierre-Olivier",
           "lastName": "Joseph",
           "age": 26,
-          "potential": 8,
+          "potential": 9,
           "handedness": "left",
           "positions": [
             "LD",
@@ -69692,7 +69692,7 @@
           "firstName": "Victor",
           "lastName": "Mancini",
           "age": 23,
-          "potential": 9,
+          "potential": 10,
           "handedness": "right",
           "positions": [
             "RD",
@@ -69774,7 +69774,7 @@
           "firstName": "Kirill",
           "lastName": "Kudryavtsev",
           "age": 21,
-          "potential": 11,
+          "potential": 12,
           "handedness": "left",
           "positions": [
             "LD",
@@ -69940,7 +69940,7 @@
           "firstName": "Kevin",
           "lastName": "Lankinen",
           "age": 30,
-          "potential": 17,
+          "potential": 18,
           "handedness": "left",
           "attributes": {
             "reflexes": 17,
@@ -69982,7 +69982,7 @@
           "firstName": "Nikita",
           "lastName": "Tolopilo",
           "age": 25,
-          "potential": 18,
+          "potential": 20,
           "handedness": "left",
           "attributes": {
             "reflexes": 15,
@@ -70024,7 +70024,7 @@
           "firstName": "Thatcher",
           "lastName": "Demko",
           "age": 29,
-          "potential": 17,
+          "potential": 18,
           "handedness": "left",
           "attributes": {
             "reflexes": 16,
@@ -70073,7 +70073,7 @@
           "firstName": "Mitch",
           "lastName": "Marner",
           "age": 28,
-          "potential": 16,
+          "potential": 18,
           "handedness": "right",
           "positions": [
             "RW",
@@ -70155,7 +70155,7 @@
           "firstName": "Jack",
           "lastName": "Eichel",
           "age": 28,
-          "potential": 18,
+          "potential": 19,
           "handedness": "right",
           "positions": [
             "C",
@@ -70237,7 +70237,7 @@
           "firstName": "Pavel",
           "lastName": "Dorofeyev",
           "age": 24,
-          "potential": 15,
+          "potential": 17,
           "handedness": "left",
           "positions": [
             "LW",
@@ -70401,7 +70401,7 @@
           "firstName": "Ivan",
           "lastName": "Barbashev",
           "age": 29,
-          "potential": 14,
+          "potential": 15,
           "handedness": "left",
           "positions": [
             "LW",
@@ -70565,7 +70565,7 @@
           "firstName": "Keegan",
           "lastName": "Kolesar",
           "age": 28,
-          "potential": 8,
+          "potential": 9,
           "handedness": "right",
           "positions": [
             "RW",
@@ -70729,7 +70729,7 @@
           "firstName": "Brett",
           "lastName": "Howden",
           "age": 27,
-          "potential": 11,
+          "potential": 13,
           "handedness": "left",
           "positions": [
             "C",
@@ -70893,7 +70893,7 @@
           "firstName": "Braeden",
           "lastName": "Bowman",
           "age": 22,
-          "potential": 13,
+          "potential": 14,
           "handedness": "right",
           "positions": [
             "RW",
@@ -71057,7 +71057,7 @@
           "firstName": "Cole",
           "lastName": "Reinhardt",
           "age": 25,
-          "potential": 9,
+          "potential": 11,
           "handedness": "left",
           "positions": [
             "LW",
@@ -71139,7 +71139,7 @@
           "firstName": "Alexander",
           "lastName": "Holtz",
           "age": 23,
-          "potential": 10,
+          "potential": 12,
           "handedness": "right",
           "positions": [
             "RW",
@@ -71303,7 +71303,7 @@
           "firstName": "Tanner",
           "lastName": "Laczynski",
           "age": 28,
-          "potential": 9,
+          "potential": 10,
           "handedness": "right",
           "positions": [
             "C",
@@ -71385,7 +71385,7 @@
           "firstName": "Noah",
           "lastName": "Hanifin",
           "age": 28,
-          "potential": 15,
+          "potential": 16,
           "handedness": "left",
           "positions": [
             "LD",
@@ -71631,7 +71631,7 @@
           "firstName": "Kaedan",
           "lastName": "Korczak",
           "age": 24,
-          "potential": 11,
+          "potential": 12,
           "handedness": "right",
           "positions": [
             "RD",
@@ -71713,7 +71713,7 @@
           "firstName": "Jeremy",
           "lastName": "Lauzon",
           "age": 28,
-          "potential": 12,
+          "potential": 13,
           "handedness": "left",
           "positions": [
             "LD",
@@ -71795,7 +71795,7 @@
           "firstName": "Zach",
           "lastName": "Whitecloud",
           "age": 28,
-          "potential": 12,
+          "potential": 13,
           "handedness": "right",
           "positions": [
             "RD",
@@ -71959,7 +71959,7 @@
           "firstName": "Dylan",
           "lastName": "Coghlan",
           "age": 27,
-          "potential": 7,
+          "potential": 8,
           "handedness": "right",
           "positions": [
             "RD",
@@ -72123,7 +72123,7 @@
           "firstName": "Oliver",
           "lastName": "Hrivanec",
           "age": 21,
-          "potential": 8,
+          "potential": 9,
           "handedness": "right",
           "positions": [
             "RD"
@@ -72195,7 +72195,7 @@
           "firstName": "Akira",
           "lastName": "Schmid",
           "age": 25,
-          "potential": 17,
+          "potential": 18,
           "handedness": "left",
           "attributes": {
             "reflexes": 16,
@@ -72237,7 +72237,7 @@
           "firstName": "Adin",
           "lastName": "Hill",
           "age": 29,
-          "potential": 17,
+          "potential": 18,
           "handedness": "left",
           "attributes": {
             "reflexes": 16,
@@ -72279,7 +72279,7 @@
           "firstName": "Carter",
           "lastName": "Hart",
           "age": 27,
-          "potential": 16,
+          "potential": 18,
           "handedness": "left",
           "attributes": {
             "reflexes": 15,
