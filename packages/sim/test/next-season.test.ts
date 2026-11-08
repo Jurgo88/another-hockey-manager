@@ -1,4 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest'
+import { develop } from '../src/develop/index.js'
+import { createRng } from '../src/rng/index.js'
 import {
   advanceDay,
   isSeasonOver,
@@ -63,6 +65,29 @@ describe('nextSeason', () => {
       expect(player.form).toBe(50)
       expect(player.fatigue).toBe(0)
     }
+  })
+
+  it('develops every Player by the age he played at, on a stream of his own (ADR-022)', () => {
+    const club = ended.clubs[0]!
+    const games = ended.standings.find((row) => row.clubId === club.id)!.gamesPlayed
+    const after = new Map(
+      next.clubs.flatMap((c) => [...c.skaters, ...c.goalies]).map((p) => [p.id, p]),
+    )
+    for (const player of [...club.skaters, ...club.goalies]) {
+      const { skaters, goalies } = ended.totals.regular
+      const dressed = (skaters[player.id] ?? goalies[player.id])?.gamesPlayed ?? 0
+      const expected = develop(player, createRng(SEED).fork(`develop:y1:${player.id}`), {
+        regular: dressed * 2 >= games,
+      })
+      const developed = after.get(player.id)!
+      expect(developed.attributes).toEqual(expected.attributes)
+      expect(developed.provenance).toEqual(expected.provenance)
+      expect(developed.potential).toBe(player.potential)
+    }
+    const changed = ended.clubs
+      .flatMap((c) => [...c.skaters, ...c.goalies])
+      .filter((p) => JSON.stringify(after.get(p.id)!.attributes) !== JSON.stringify(p.attributes))
+    expect(changed.length).toBeGreaterThan(after.size / 2)
   })
 
   it('starts the table, the counts and the schedule again', () => {

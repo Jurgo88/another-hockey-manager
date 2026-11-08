@@ -7,6 +7,7 @@ import type { PlayoffFormat, PlayoffState } from '../domain/playoff.js'
 import type { RosterProvider } from '../domain/roster.js'
 import type { StandingsRow } from '../domain/standings.js'
 import { NHL_2026_27, NHL_2026_27_CLUB_SEEDS, NHL_PLAYOFF_FORMAT } from '../data/nhl-2026-27.js'
+import { develop } from '../develop/index.js'
 import { afterRest } from '../engine/fatigue.js'
 import {
   afterStart,
@@ -166,6 +167,7 @@ export async function startSeason(
 
 /**
  * The Season after one with a champion, before its first day (#85). Players
+ * develop by their age (ADR-022, #87), then
  * are a year older and rested, the table starts again, and the schedule is
  * drawn anew from a stream of its own (D-08). An absence runs on across the
  * summer by the calendar. The same step serves every Club (D-04): a declared
@@ -184,11 +186,11 @@ export function nextSeason(state: SeasonState): SeasonState {
       .map(([id, back]) => [id, back - daysPerYear] as const)
       .filter(([, back]) => back > firstDay),
   )
-  const clubs = state.clubs.map((club) => ({
-    ...club,
-    skaters: club.skaters.map(olderAndRested),
-    goalies: club.goalies.map(olderAndRested),
-  }))
+  const clubs = state.clubs.map((club) => {
+    const grown = <P extends Player>(player: P) =>
+      olderAndRested(developed(state, club.id, player))
+    return { ...club, skaters: club.skaters.map(grown), goalies: club.goalies.map(grown) }
+  })
   const lineups = Object.fromEntries(
     clubs.map((club) => {
       const declared = state.lineups[club.id]!
@@ -241,6 +243,19 @@ function freshSeason(seed: number, structure: CompetitionStructure, year: number
     playoffs: null,
     live: {},
   } satisfies Partial<SeasonState>
+}
+
+/**
+ * A Player after a Season's development (ADR-022), at the age he played it.
+ * His stream is forked by Season and id (D-08), and whether he was a regular
+ * is read from the folded counts (D-03).
+ */
+function developed<P extends Player>(state: SeasonState, clubId: ClubId, player: P): P {
+  const clubFixtures = state.standings.find((row) => row.clubId === clubId)?.gamesPlayed ?? 0
+  const { skaters, goalies } = state.totals.regular
+  const dressed = (skaters[player.id] ?? goalies[player.id])?.gamesPlayed ?? 0
+  const rng = createRng(state.seed).fork(`develop:y${state.year}:${player.id}`)
+  return develop(player, rng, { regular: clubFixtures > 0 && dressed * 2 >= clubFixtures })
 }
 
 /** A Player a year on: older, rested, and back to a neutral form. */
