@@ -86,6 +86,30 @@ describe('provenance on import', () => {
     })
   })
 
+  it('keeps how many Seasons of ageing followed a value (ADR-022)', () => {
+    const file = exported()
+    skaterOf(file, 0, 0).provenance = {
+      speed: { source: 'measured', confidence: 0.75, seasonsAged: 2 },
+    }
+    const imported = rostersFromFile(file, NHL_2026_27)
+    expect(imported.clubs[0]!.skaters[0]!.provenance!.speed).toEqual({
+      source: 'measured',
+      confidence: 0.75,
+      seasonsAged: 2,
+    })
+    expect(readRosterFile(writeRosterFile(imported), NHL_2026_27)).toEqual(imported)
+  })
+
+  it('refuses Seasons of ageing that are not a whole number from 0', () => {
+    const file = exported()
+    skaterOf(file, 0, 0).provenance = {
+      speed: { source: 'measured', confidence: 0.75, seasonsAged: -1 },
+    }
+    expect(problemsOf(file)).toEqual([
+      'clubs[0].skaters[0].provenance.speed.seasonsAged: must be a whole number from 0',
+    ])
+  })
+
   it('makes an attribute the file leaves out rated', () => {
     const file = exported()
     skaterOf(file, 0, 0).provenance = { speed: { source: 'measured', confidence: 0.95 } }

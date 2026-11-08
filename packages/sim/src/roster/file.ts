@@ -93,7 +93,7 @@ const PLAYER_FIELDS = [
   'provenance',
 ] as const
 const SKATER_FIELDS = [...PLAYER_FIELDS, 'positions'] as const
-const PROVENANCE_FIELDS = ['source', 'confidence', 'note'] as const
+const PROVENANCE_FIELDS = ['source', 'confidence', 'note', 'seasonsAged'] as const
 
 // --- Export ---
 
@@ -102,6 +102,7 @@ function provenanceEntry(entry: AttributeProvenance): AttributeProvenance {
     source: entry.source,
     confidence: entry.confidence,
     ...(entry.note !== undefined ? { note: entry.note } : {}),
+    ...(entry.seasonsAged !== undefined ? { seasonsAged: entry.seasonsAged } : {}),
   }
 }
 
@@ -250,6 +251,10 @@ function checkProvenance(
       check.add(`${at}.confidence`, confidence === undefined ? 'is missing' : 'must be from 0 to 1')
     }
     if (note !== undefined && typeof note !== 'string') check.add(`${at}.note`, 'must be text')
+    const { seasonsAged } = entry
+    if (seasonsAged !== undefined && !(Number.isInteger(seasonsAged) && (seasonsAged as number) >= 0)) {
+      check.add(`${at}.seasonsAged`, 'must be a whole number from 0')
+    }
   }
 }
 
