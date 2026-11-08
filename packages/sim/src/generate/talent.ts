@@ -4,7 +4,7 @@ import {
   type SkaterAttributes,
 } from '../domain/attributes.js'
 import type { SkaterPosition } from '../domain/player.js'
-import type { Rng } from '../rng/index.js'
+import { gaussian, type Rng } from '../rng/index.js'
 import { NHL_AGES_BY_TIER } from './nhl-age-profile.js'
 
 /**
@@ -108,13 +108,6 @@ export function clubStrengths(rng: Rng, clubCount: number): number[] {
   )
 
   return rng.shuffle(spread)
-}
-
-/** Box-Muller, for ability noise. Symmetric and unbounded, unlike `next()`. */
-function gaussian(rng: Rng): number {
-  const u = Math.max(rng.next(), Number.EPSILON)
-  const v = rng.next()
-  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v)
 }
 
 export interface AbilityDraw {
@@ -266,10 +259,18 @@ export function generateAgeAndHeadroom(
   return { age, headroom: drawHeadroom(rng, age) }
 }
 
+/**
+ * The age until which a Player has room by age (ADR-026). Development grows a
+ * Player into his thirties, so a Player of 28 still has some. An 18-year-old
+ * has as much in all as when room ran out at 26; it is spread over more years.
+ */
+export const GROWTH_UNTIL = 31
+const ROOM_AT_18 = 0.22
+
 /** The room a Player of this age has left to grow, in ability units. */
 export function drawHeadroom(rng: Rng, age: number): Ability {
-  const yearsToPrime = Math.max(0, 26 - age)
-  return (yearsToPrime / 8) * 0.22 + Math.max(0, gaussian(rng)) * 0.05
+  const yearsToPrime = Math.max(0, GROWTH_UNTIL - age)
+  return (yearsToPrime / (GROWTH_UNTIL - 18)) * ROOM_AT_18 + Math.max(0, gaussian(rng)) * 0.05
 }
 
 /**
