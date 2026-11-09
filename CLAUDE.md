@@ -49,8 +49,9 @@ engine/   simulation                    - may import domain, rng
 stats/    folds over the event stream   - may import domain ONLY
 roster/   the roster file (ADR-020)     - may import domain ONLY
 develop/  ageing between Seasons        - may import domain, rng
+leave/    leaving the league            - may import domain, rng, generate
 season/   a Season, day by day          - may import domain, rng, generate,
-                                          engine, stats, develop
+                                          engine, stats, develop, leave
 cli/      entry points                  - may import anything
 ```
 

@@ -164,11 +164,18 @@ Item 4 is done in #86: a finished Season is a record kept beside the state
 Item 5 is done in #87: between Seasons `develop` moves every Player's attributes
 along the curve of each group, and a developed value loses confidence and counts
 its Seasons of ageing (ADR-022). On 2026-11-06 the author moved growth later
-(ADR-026): speed grows to 28, skill to 29, reading the game to 32, Goalies
+(ADR-026): speed grows to 29, skill to 29, reading the game to 32, Goalies
 included, and `potential` caps the level rather than each attribute. The spread
 of each measure across the league, the noise and the ice-time bonus are
 estimates in `src/develop/`, sized by the long-run calibration in item 8, which
 also builds a backtest on real Players from 2021-22 to 2025-26.
+
+Item 6 is done in #88: between Seasons a Player retires by age, or goes
+unsigned when his role was small, and each Club fills its gaps with undrafted
+Players (ADR-027). Unsigned stands in for contracts until Phase 3. Release,
+where the weakest leaves when a prospect arrives and a Manager can overrule the
+assistant, moved to the draft in #89, together with the phase between Seasons
+in which Managers decide.
 
 ## Phase 3 - Roster movement
 
