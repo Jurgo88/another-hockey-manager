@@ -1,6 +1,6 @@
 # ADR-023 - Players leave by age, level and Roster pressure
 
-- **Status:** Accepted
+- **Status:** Accepted; its retirement rule superseded, and release moved to #89, by ADR-027
 - **Date:** 2026-11-03
 - **Relates to:** D-04, D-08, ADR-012, ADR-020, ADR-022, ADR-024, issue #83, issue #88
 
