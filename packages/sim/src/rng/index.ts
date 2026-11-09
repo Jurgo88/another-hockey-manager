@@ -51,6 +51,13 @@ function hashLabel(label: string, seed: number): number {
   return h >>> 0
 }
 
+/** A standard normal draw by Box-Muller. Symmetric and unbounded, unlike `next()`. Takes two draws. */
+export function gaussian(rng: Rng): number {
+  const u = Math.max(rng.next(), Number.EPSILON)
+  const v = rng.next()
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v)
+}
+
 export function createRng(seed: number): Rng {
   const next = mulberry32(seed)
 

@@ -75,7 +75,7 @@ JSON, UTF-8. Version 1:
 | `handedness` | `"left"` or `"right"`. |
 | `positions` | Skaters only. One to five distinct of `LW`, `C`, `RW`, `LD`, `RD`, the natural one first. |
 | `attributes` | Every attribute of the Player's kind, each a whole number from 1 to 20. Skaters have 11, Goalies 5, as in `02-domain-model.md`. |
-| `provenance` | Optional, and may name only some attributes. Each entry has `source` (`measured`, `derived`, `rated` or `generated`), `confidence` from 0 to 1, and optionally `note`. |
+| `provenance` | Optional, and may name only some attributes. Each entry has `source` (`measured`, `derived`, `rated` or `generated`), `confidence` from 0 to 1, optionally `note`, and optionally `seasonsAged`, the whole number of Seasons of modelled development since the value was set (ADR-022). |
 
 A field that is not in this table is an error, so a misspelt attribute name is
 caught rather than ignored.

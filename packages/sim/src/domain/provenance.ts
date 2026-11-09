@@ -32,6 +32,12 @@ export interface AttributeProvenance {
   confidence: number
   /** Optional human-readable origin, e.g. 'NHL EDGE max speed 24.6 mph'. */
   note?: string
+  /**
+   * Seasons of modelled development since the value was set (ADR-022). Absent
+   * means none: the value is as its source gave it. A speed measured at 24 is
+   * not a measurement at 30, so confidence falls with every Season.
+   */
+  seasonsAged?: number
 }
 
 export type SkaterProvenance = Readonly<Record<keyof SkaterAttributes, AttributeProvenance>>

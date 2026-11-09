@@ -434,9 +434,11 @@ that reason, and the band allows it.
 ### The shape of careers
 
 Development is calibrated so that, Season after Season, the level of a generated
-league by age keeps the shape of the measured curves in `07-league-over-time.md`:
-offensive attributes on a plateau from 22 to about 27, the role and defensive
-group peaking at 26-27, and decline accelerating after 30 (ADR-022). The exact
+league by age keeps the shape the author chose in ADR-026, built on the measured
+curves in `07-league-over-time.md`: physical attributes growing to 29, skill to
+29 and reading the game to 32, a Skater's level holding from about 28 to 30, and
+decline accelerating after 31. This departs from the measured league, whose level
+peaks at 26-27, on purpose (ADR-026). The exact
 assertion is written with the calibration in item 8, because the curves are in
 different units and become one by that calibration.
 
