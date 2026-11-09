@@ -56,11 +56,15 @@ describe('nextSeason', () => {
     expect(() => recordOf(start)).toThrow(/no champion/)
   })
 
-  it('makes every Player a year older, rested and of neutral form', () => {
+  it('makes every Player who stays a year older, rested and of neutral form', () => {
     const before = new Map(
       ended.clubs.flatMap((club) => [...club.skaters, ...club.goalies]).map((p) => [p.id, p]),
     )
-    for (const player of next.clubs.flatMap((club) => [...club.skaters, ...club.goalies])) {
+    const stayed = next.clubs
+      .flatMap((club) => [...club.skaters, ...club.goalies])
+      .filter((player) => before.has(player.id))
+    expect(stayed.length).toBeGreaterThan(before.size * 0.8)
+    for (const player of stayed) {
       expect(player.age).toBe(before.get(player.id)!.age + 1)
       expect(player.form).toBe(50)
       expect(player.fatigue).toBe(0)
@@ -73,7 +77,7 @@ describe('nextSeason', () => {
     const after = new Map(
       next.clubs.flatMap((c) => [...c.skaters, ...c.goalies]).map((p) => [p.id, p]),
     )
-    for (const player of [...club.skaters, ...club.goalies]) {
+    for (const player of [...club.skaters, ...club.goalies].filter((p) => after.has(p.id))) {
       const { skaters, goalies } = ended.totals.regular
       const dressed = (skaters[player.id] ?? goalies[player.id])?.gamesPlayed ?? 0
       const expected = develop(player, createRng(SEED).fork(`develop:y1:${player.id}`), {
@@ -86,8 +90,49 @@ describe('nextSeason', () => {
     }
     const changed = ended.clubs
       .flatMap((c) => [...c.skaters, ...c.goalies])
+      .filter((p) => after.has(p.id))
       .filter((p) => JSON.stringify(after.get(p.id)!.attributes) !== JSON.stringify(p.attributes))
     expect(changed.length).toBeGreaterThan(after.size / 2)
+  })
+
+  it('lets some Players leave, and records who and why (ADR-023, ADR-027)', () => {
+    const before = new Map(
+      ended.clubs.flatMap((club) => [...club.skaters, ...club.goalies]).map((p) => [p.id, p]),
+    )
+    const after = new Set(next.clubs.flatMap((c) => [...c.skaters, ...c.goalies]).map((p) => p.id))
+    const gone = [...before.keys()].filter((id) => !after.has(id))
+    expect(next.departures.map((d) => d.playerId).sort()).toEqual(gone.sort())
+    expect(gone.length).toBeGreaterThan(30)
+    expect(gone.length).toBeLessThan(200)
+    for (const departure of next.departures) {
+      const player = before.get(departure.playerId)!
+      expect(departure.clubId).toBe(player.clubId)
+      expect(departure.age).toBe(player.age)
+      expect(next.absent[departure.playerId]).toBeUndefined()
+    }
+    expect(new Set(next.departures.map((d) => d.reason))).toEqual(new Set(['retired', 'unsigned']))
+  })
+
+  it('fills every gap with an undrafted Player, so each Club keeps its 16-10-3 shape', () => {
+    const before = new Set(ended.clubs.flatMap((c) => [...c.skaters, ...c.goalies]).map((p) => p.id))
+    for (const club of next.clubs) {
+      const defence = club.skaters.filter((s) => ['LD', 'RD'].includes(s.preferredPositions[0]!))
+      expect(club.skaters.length - defence.length).toBe(16)
+      expect(defence.length).toBe(10)
+      expect(club.goalies.length).toBe(3)
+      for (const player of [...club.skaters, ...club.goalies]) {
+        if (before.has(player.id)) continue
+        expect(player.id.startsWith(`${club.id}-y2-u`)).toBe(true)
+        expect(player.clubId).toBe(club.id)
+        expect(Object.values(player.provenance!).every((p) => p.source === 'generated')).toBe(true)
+      }
+    }
+    const ids = next.clubs.flatMap((c) => [...c.skaters, ...c.goalies]).map((p) => p.id)
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('has no departures before the first Season', () => {
+    expect(start.departures).toEqual([])
   })
 
   it('starts the table, the counts and the schedule again', () => {

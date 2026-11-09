@@ -27,6 +27,13 @@ import {
 import { generateSchedule } from '../engine/schedule.js'
 import { fixtureSeed, simulateFixture } from '../engine/simulate.js'
 import { createGeneratedRosterProvider } from '../generate/roster.js'
+import {
+  departures as leaving,
+  filledRoster,
+  roles,
+  type Departure,
+  type SeasonUsage,
+} from '../leave/index.js'
 import { createRng } from '../rng/index.js'
 import type { SeasonRecord } from '../stats/history.js'
 import { foldMatch, type MatchStats } from '../stats/match.js'
@@ -81,6 +88,8 @@ export interface SeasonState {
    * kept here: the caller takes each one's `recordOf` before `nextSeason` (#86).
    */
   year: number
+  /** Who left the league between the Season before and this one (ADR-023, #88). */
+  departures: readonly Departure[]
 }
 
 /** How far a Fixture has been followed, and what has been decided along the way. */
@@ -160,6 +169,7 @@ export async function startSeason(
     clubs,
     lineups: {},
     absent: {},
+    departures: [],
   }
   // Every Club opens as an AI Manager would, through the call any Manager uses (D-04).
   return clubs.reduce((state, club) => setLineup(state, club.id, buildNaiveLineup(club)), unset)
@@ -167,8 +177,9 @@ export async function startSeason(
 
 /**
  * The Season after one with a champion, before its first day (#85). Players
- * develop by their age (ADR-022, #87), then
- * are a year older and rested, the table starts again, and the schedule is
+ * develop by their age (ADR-022, #87), some retire or are not signed again, and
+ * each Club fills its gaps with undrafted Players (ADR-023, ADR-027, #88). The rest are a year older and
+ * rested, the table starts again, and the schedule is
  * drawn anew from a stream of its own (D-08). An absence runs on across the
  * summer by the calendar. The same step serves every Club (D-04): a declared
  * Lineup stays while it is still valid, and otherwise the assistant builds one
@@ -181,15 +192,33 @@ export function nextSeason(state: SeasonState): SeasonState {
   const fresh = freshSeason(state.seed, state.structure, year)
   const { daysPerYear } = state.structure.calendar
   const firstDay = fresh.fixtures[0]!.day
+  const departures = leaving(
+    state.clubs,
+    roles(state.clubs, (player) => usageOf(state, player)),
+    (player) => createRng(state.seed).fork(`leave:y${state.year}:${player.id}`),
+  )
+  const gone = new Set(departures.map((departure) => departure.playerId))
   const absent = Object.fromEntries(
     Object.entries(state.absent)
+      .filter(([id]) => !gone.has(id))
       .map(([id, back]) => [id, back - daysPerYear] as const)
       .filter(([, back]) => back > firstDay),
   )
   const clubs = state.clubs.map((club) => {
-    const grown = <P extends Player>(player: P) =>
-      olderAndRested(developed(state, club.id, player))
-    return { ...club, skaters: club.skaters.map(grown), goalies: club.goalies.map(grown) }
+    const grown = <P extends Player>(player: P) => olderAndRested(developed(state, club.id, player))
+    const stays = (player: Player) => !gone.has(player.id)
+    const left = [...club.skaters, ...club.goalies].filter((player) => !stays(player))
+    const kept = {
+      ...club,
+      skaters: club.skaters.filter(stays).map(grown),
+      goalies: club.goalies.filter(stays).map(grown),
+    }
+    return filledRoster(
+      kept,
+      left,
+      createRng(state.seed).fork(`fill:y${state.year}:${club.id}`),
+      year,
+    )
   })
   const lineups = Object.fromEntries(
     clubs.map((club) => {
@@ -204,6 +233,7 @@ export function nextSeason(state: SeasonState): SeasonState {
     clubs,
     lineups,
     absent,
+    departures,
   }
 }
 
@@ -259,6 +289,18 @@ function developed<P extends Player>(state: SeasonState, clubId: ClubId, player:
 }
 
 /** A Player a year on: older, rested, and back to a neutral form. */
+/** What a Player did in the regular Season, for his role when Players leave (ADR-027). */
+function usageOf(state: SeasonState, player: Player): SeasonUsage {
+  const { skaters, goalies } = state.totals.regular
+  const skater = skaters[player.id]
+  const fixtures = (skater ?? goalies[player.id])?.gamesPlayed ?? 0
+  return {
+    fixtures,
+    secondsPerFixture: skater && fixtures > 0 ? skater.iceTimeSeconds / fixtures : 0,
+    injured: player.id in state.absent,
+  }
+}
+
 function olderAndRested<P extends Player>(player: P): P {
   return { ...player, age: player.age + 1, form: 50, fatigue: 0 }
 }
