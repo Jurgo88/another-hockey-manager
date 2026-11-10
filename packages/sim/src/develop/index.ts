@@ -66,6 +66,28 @@ export const ICE_TIME_BONUS_BEFORE = 29
 export const PLAYER_DEVELOPMENT_NOISE = 0.06
 export const ATTRIBUTE_DEVELOPMENT_NOISE = 0.06
 
+/**
+ * Until a Player is this old, his `potential` moves each Season with the draw
+ * his attributes share that Season, and that draw is larger (ADR-028): a young
+ * Player who booms grows faster and further, one who stalls slower and less.
+ * It is what makes the draft uncertain.
+ */
+export const POTENTIAL_SETTLES_AT = 23
+
+/**
+ * The shared draw of a Player younger than `POTENTIAL_SETTLES_AT`, as a
+ * multiple of `PLAYER_DEVELOPMENT_NOISE`. Fitted in #89 against the draft
+ * table: a late pick becomes a regular only if he grows faster than the curves,
+ * so the ceiling alone cannot make him one. Refitted in item 8.
+ */
+export const YOUNG_DEVELOPMENT_NOISE = 5
+
+/**
+ * How far `potential` moves for the shared draw, as a multiple of the move it
+ * gives the attributes. Fitted in #89, refitted in item 8.
+ */
+export const POTENTIAL_DRIFT = 1.5
+
 /** What a Season of modelled development costs an attribute in confidence (D-11). */
 export const CONFIDENCE_LOSS_PER_SEASON = 0.1
 
@@ -114,6 +136,7 @@ export function develop<P extends Player>(player: P, rng: Rng, season: SeasonPla
 
 function developSkater(skater: Skater, rng: Rng, season: SeasonPlayed): Skater {
   const curves = SKATER_CURVES
+  const shared = sharedDraw(skater, rng)
   const attributes = moved<keyof SkaterAttributes>(
     skater,
     curves,
@@ -122,16 +145,20 @@ function developSkater(skater: Skater, rng: Rng, season: SeasonPlayed): Skater {
     skaterLevel(skater.attributes),
     rng,
     season,
+    shared,
   )
+  const level = skaterLevel(attributes)
   return {
     ...skater,
     attributes,
+    potential: movedPotential(skater, level, shared * SKATER_ATTRIBUTE_SPREAD, rng),
     ...(skater.provenance ? { provenance: aged(skater.provenance, curves) } : {}),
   }
 }
 
 function developGoalie(goalie: Goalie, rng: Rng, season: SeasonPlayed): Goalie {
   const curves = GOALIE_CURVES
+  const shared = sharedDraw(goalie, rng)
   const attributes = moved<keyof GoalieAttributes>(
     goalie,
     curves,
@@ -140,10 +167,13 @@ function developGoalie(goalie: Goalie, rng: Rng, season: SeasonPlayed): Goalie {
     goalieLevel(goalie.attributes),
     rng,
     season,
+    shared,
   )
+  const level = goalieLevel(attributes)
   return {
     ...goalie,
     attributes,
+    potential: movedPotential(goalie, level, shared * GOALIE_ATTRIBUTE_SPREAD, rng),
     ...(goalie.provenance ? { provenance: aged(goalie.provenance, curves) } : {}),
   }
 }
@@ -161,10 +191,10 @@ function moved<K extends string>(
   level: number,
   rng: Rng,
   season: SeasonPlayed,
+  shared: number,
 ): Record<K, number> {
   const keys = Object.keys(curves) as K[]
   const bonus = season.regular && player.age < ICE_TIME_BONUS_BEFORE ? ICE_TIME_BONUS : 0
-  const shared = gaussian(rng) * PLAYER_DEVELOPMENT_NOISE
 
   const deltas = {} as Record<K, number>
   for (const key of keys) {
@@ -187,6 +217,31 @@ function moved<K extends string>(
     attributes[key] = clampAttribute(whole + (rng.chance(exact - whole) ? 1 : 0))
   }
   return attributes
+}
+
+/** The draw all of a Player's attributes share this Season, larger while he is young. */
+function sharedDraw(player: { age: number }, rng: Rng): number {
+  const scale = player.age < POTENTIAL_SETTLES_AT ? YOUNG_DEVELOPMENT_NOISE : 1
+  return gaussian(rng) * PLAYER_DEVELOPMENT_NOISE * scale
+}
+
+/**
+ * A young Player's `potential` a Season on (ADR-028): moved by the Season's
+ * shared draw, in points, times `POTENTIAL_DRIFT`, rounded at random in
+ * proportion as attributes are, and never below his level. From
+ * `POTENTIAL_SETTLES_AT` it no longer moves, and draws nothing.
+ */
+function movedPotential(
+  player: { age: number; potential: number },
+  level: number,
+  sharedPoints: number,
+  rng: Rng,
+): number {
+  if (player.age >= POTENTIAL_SETTLES_AT) return player.potential
+  const exact = player.potential + sharedPoints * POTENTIAL_DRIFT
+  const whole = Math.floor(exact)
+  const rounded = whole + (rng.chance(exact - whole) ? 1 : 0)
+  return clampAttribute(Math.max(rounded, Math.round(level)))
 }
 
 /**
