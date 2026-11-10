@@ -52,6 +52,7 @@ describe('nextSeason', () => {
       standings: ended.standings,
       playoffs: ended.playoffs,
       totals: ended.totals,
+      draft: [],
     })
     expect(() => recordOf(start)).toThrow(/no champion/)
   })
@@ -86,7 +87,7 @@ describe('nextSeason', () => {
       const developed = after.get(player.id)!
       expect(developed.attributes).toEqual(expected.attributes)
       expect(developed.provenance).toEqual(expected.provenance)
-      expect(developed.potential).toBe(player.potential)
+      expect(developed.potential).toBe(expected.potential)
     }
     const changed = ended.clubs
       .flatMap((c) => [...c.skaters, ...c.goalies])
@@ -110,10 +111,13 @@ describe('nextSeason', () => {
       expect(departure.age).toBe(player.age)
       expect(next.absent[departure.playerId]).toBeUndefined()
     }
-    expect(new Set(next.departures.map((d) => d.reason))).toEqual(new Set(['retired', 'unsigned']))
+    // Prospects called up push the weakest out; no rights have expired yet (ADR-028).
+    expect(new Set(next.departures.map((d) => d.reason))).toEqual(
+      new Set(['retired', 'unsigned', 'released']),
+    )
   })
 
-  it('fills every gap with an undrafted Player, so each Club keeps its 16-10-3 shape', () => {
+  it('fills every gap with a prospect or an undrafted Player, so each Club keeps its 16-10-3 shape', () => {
     const before = new Set(ended.clubs.flatMap((c) => [...c.skaters, ...c.goalies]).map((p) => p.id))
     for (const club of next.clubs) {
       const defence = club.skaters.filter((s) => ['LD', 'RD'].includes(s.preferredPositions[0]!))
@@ -122,7 +126,8 @@ describe('nextSeason', () => {
       expect(club.goalies.length).toBe(3)
       for (const player of [...club.skaters, ...club.goalies]) {
         if (before.has(player.id)) continue
-        expect(player.id.startsWith(`${club.id}-y2-u`)).toBe(true)
+        const drafted = next.draft.some((p) => p.playerId === player.id && p.clubId === club.id)
+        expect(drafted || player.id.startsWith(`${club.id}-y2-u`)).toBe(true)
         expect(player.clubId).toBe(club.id)
         expect(Object.values(player.provenance!).every((p) => p.source === 'generated')).toBe(true)
       }
