@@ -12,7 +12,13 @@
  */
 
 import type { DraftFormat } from '../domain/draft.js'
-import type { Conference, CompetitionStructure, Division, ScheduleKey } from '../domain/competition.js'
+import type {
+  Conference,
+  CompetitionStructure,
+  Division,
+  ScheduleKey,
+  SeasonFormat,
+} from '../domain/competition.js'
 import type { PlayoffFormat } from '../domain/playoff.js'
 
 /**
@@ -170,4 +176,11 @@ export const NHL_2026_27: CompetitionStructure = {
   // Lands on the measured 16.6% of gaps being back-to-backs (04-validation-targets.md).
   calendar: { daysPerRound: 2, lastDayShare: 0.21, daysPerYear: 365 },
   overtime: 'regular-3on3-then-shootout',
+}
+
+/** A Season of the NHL 2026-27: its alignment, bracket and draft. */
+export const NHL_2026_27_SEASON: SeasonFormat = {
+  structure: NHL_2026_27,
+  playoffs: NHL_PLAYOFF_FORMAT,
+  draft: NHL_DRAFT_FORMAT,
 }

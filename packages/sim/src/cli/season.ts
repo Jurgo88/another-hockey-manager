@@ -1,4 +1,5 @@
 import type { Club, Lineup } from '../domain/club.js'
+import type { SeasonFormat } from '../domain/competition.js'
 import type { MatchEvent } from '../domain/event.js'
 import type { Fixture, FixtureId } from '../domain/fixture.js'
 import type { ClubId, Player, PlayerId } from '../domain/player.js'
@@ -31,13 +32,15 @@ export interface SimulatedSeason {
 
 /**
  * One regular Season played straight through on the AI Managers' opening
- * Lineups, on generated Rosters unless a provider gives others.
+ * Lineups, on generated Rosters unless a provider gives others, of the NHL
+ * unless another format is given.
  */
 export async function simulateSeason(
   seed: number,
   provider?: RosterProvider,
+  format?: SeasonFormat,
 ): Promise<SimulatedSeason> {
-  let state = await startSeason(seed, provider)
+  let state = await startSeason(seed, provider, format)
 
   const played = new Map<FixtureId, Omit<PlayedFixture, 'events'>>()
   const fixtures: Fixture[] = []
@@ -83,8 +86,9 @@ export async function simulateSeasons(
   seed: number,
   count: number,
   provider?: RosterProvider,
+  format?: SeasonFormat,
 ): Promise<SimulatedRun> {
-  let state = await startSeason(seed, provider)
+  let state = await startSeason(seed, provider, format)
   const players = new Map<PlayerId, Player>()
   const seasons: SeasonRecord[] = []
   for (;;) {
