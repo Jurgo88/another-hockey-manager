@@ -87,7 +87,8 @@ could reuse it, but it throws away what the estimator measured for a real Player
 
 ## Amendment, 2026-11-10: the potential of young Players moves (#89, ADR-028)
 
-Until a Player is 22, his `potential` moves each Season with the draw his
-attributes share that Season, scaled up, and never falls below his level. From
-23 it is settled. It is what makes the draft uncertain without a hidden second
-ceiling (ADR-028).
+Until a Player is 22, the draw his attributes share each Season is larger, five
+times the size at first fit, and his `potential` moves with it, never below his
+level. From 23 both are as before. It is what makes the draft uncertain without a
+hidden second ceiling (ADR-028). It changes the development of every young
+Player, so the long-run calibration (item 8) sizes it again.

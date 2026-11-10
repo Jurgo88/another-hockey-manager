@@ -177,6 +177,18 @@ where the weakest leaves when a prospect arrives and a Manager can overrule the
 assistant, moved to the draft in #89, together with the phase between Seasons
 in which Managers decide.
 
+Item 7 is done in #89: between Seasons there is a phase of its own, the
+`Offseason`, with a draft window and a Roster window in which any Manager
+declares picks, call-ups and releases, and the assistant decides what is left
+undeclared (ADR-028). The draft format and the NHL lottery are data. A class is
+laid out on fixed ladders of level and room, and until 23 a Player's development
+draw is larger and his `potential` moves with it, which is what makes a round
+uncertain. A prospect joins when he reaches the weakest at his natural position,
+who is then released. The draft table of the gate holds on three generated
+leagues and on the 2025-26 roster file. The mean age of the tenth Season falls
+from 29.6 to about 27.2, but with too many Players aged 31 or more and 23 or
+younger; item 8 sets the age profile.
+
 ## Phase 3 - Roster movement
 
 Deferred this far deliberately: a transfer economy is the hardest thing in the

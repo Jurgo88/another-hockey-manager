@@ -93,6 +93,12 @@ prospect's level sits some multiple of his position group's attribute spread
 above or below the level of an undrafted fill at that group. One ladder thus
 serves Skaters and Goalies alike, whose levels grow at different rates.
 
+There are two ladders, by place in the class: the level, and the room to grow
+above it. Each is a few points joined by straight lines. A power curve could not
+fit the measured classes, which fall steeply after round 1 and then run flat:
+rounds 2 to 4 take three Seasons to debut alike, and differ mostly in how many
+become regulars, which is the room.
+
 ### Prospects are seen as ranges, and the assistant picks the top of the range
 
 Prospects are generated values at confidence 0.25 (D-11), so a Manager sees
@@ -103,9 +109,17 @@ the one whose level is highest. Need at a position is not part of the choice.
 
 The uncertainty of the draft is real, not hidden: until a Player is 22, his
 `potential` moves each Season by the same draw that makes his attributes boom
-or stall that Season (ADR-022), scaled up. A booming prospect raises his
-ceiling, a stalling one lowers it, and from 23 it is settled. It never falls
-below his level.
+or stall that Season (ADR-022), and for a Player that young the draw is
+larger. A booming prospect grows faster and raises his ceiling, a stalling one
+grows slower and lowers it, and from 23 it is settled. It never falls below his
+level.
+
+The ceiling alone does not do it. A late pick starts so far below a regular that
+the curves cannot carry him there in time, however high his ceiling: he becomes
+one only if he grows faster than the curves. Noise that a Manager can see at the
+draft, in the level or the room, does not do it either. It changes who is picked
+where, not what each round yields. Only what happens after the draft spreads the
+outcome of a round.
 
 It applies to every young Player, on a Roster or off it, generated or imported,
 because there is one development. A wide band on a prospect is then honest: his
@@ -117,18 +131,23 @@ bonus (ADR-024).
 
 ### Call-ups and releases
 
-A prospect is **ready** when his level reaches the weakest Player of his
-position group (forwards, defencemen, Goalies) on his Club's Roster. The
-assistant, for each group:
+A prospect is **ready** when his level reaches the weakest Player at his natural
+position on his Club's Roster, as ADR-024 put it, or of his position group when
+nobody plays it. Taken by group, centres replaced wings until a Club could not
+dress four Lines. The assistant:
 
-1. fills the gaps left by departures with ready prospects, best first;
-2. then, while the best prospect left is ready, calls him up and releases the
-   weakest of the group, so the Club keeps its shape.
+1. fills each gap left by a departure, at the natural position of whoever left
+   it, with the best ready prospect at that position;
+2. then, position by position, while the best prospect left is ready, calls him
+   up and releases the weakest at his position.
+
+A Club so keeps its shape and its balance of centres, wings and sides, as the
+undrafted fill does (ADR-027).
 
 A Manager's own moves may call up a prospect who is not ready, keep a ready one
 down, or release someone else. They are valid when every call-up holds the
-Club's rights, every release is on its Roster, and no group ends above its shape
-(16-10-3). A group below its shape is filled.
+Club's rights, every release is on its Roster, no group ends above its shape
+(16-10-3), and the Club, once its gaps are filled, can dress a Lineup.
 
 A released Player leaves the league (ADR-023) until free agency in Phase 3.
 
@@ -136,8 +155,8 @@ A released Player leaves the league (ADR-023) until free agency in Phase 3.
 
 A prospect whose Club has not called him up within 4 Seasons of his draft
 becomes undrafted (ADR-024). The fill then takes, Club by Club in draft order,
-the best such Player at the group of each gap whose level is at least that of a
-generated fill, and generates the rest as ADR-027 does. An expired prospect whom
+the best such Player at the natural position of each gap whose level is at
+least that of a generated fill, and generates the rest as ADR-027 does. An expired prospect whom
 no Club takes leaves the league.
 
 ### Departures and the record
@@ -153,18 +172,33 @@ prospect who plays the Season after his draft took 0.
 
 ### Calibration
 
-The ladder, the room above it and how far `potential` moves are fitted to the
-draft table of the Phase 2 gate, in two steps:
+The two ladders, the larger draw of the young and how far `potential` moves are
+fitted to the draft table of the Phase 2 gate. A fast harness of classes
+developed without Fixtures was planned. It was not needed: a ten-Season run takes
+about a minute, so three generated leagues in parallel were the fit itself, and
+they measure the real table rather than proxies of it.
+`test/realism/draft.test.ts` holds it.
 
-1. A fast harness develops classes alone, without playing a Fixture, against
-   proxies: reaching the level of a Club's weakest for a debut, and of the
-   fourth Line for a regular.
-2. Full ten-Season runs on three generated leagues measure the real table, the
-   share with 200 or more Fixtures and the Seasons to debut by round, and the
-   age of the league in the tenth Season.
+Fitted on 2026-11-10, of the first four classes read in Season 10:
 
-The age profile is set by the long-run calibration (Phase 2, item 8), which may
-move these values again.
+| Round | 200 or more Fixtures | Target | Played one or more | Measured | Median Seasons to debut | Target |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | 70.8% | 74.9% ±12 | 96.6% | 98.2% | 0 | 1 ±1 |
+| 2 | 34.6% | 38.5% ±12 | 81.0% | 72.7% | 2 | 3 ±1 |
+| 3 | 19.3% | 19.9% ±10 | 60.2% | 55.0% | 3 | 3 ±1 |
+| 4 | 14.1% | 16.5% ±10 | 50.5% | 43.8% | 3-4 | 3 ±1 |
+
+On the 2025-26 roster file, one run: 69.5%, 35.9%, 24.2% and 15.6%, with
+medians of 0, 3, 3 and 4.
+
+The draft brings the mean age of the tenth Season, by Fixtures, from 29.6 to
+27.0-27.3 on the generated leagues and 27.2 on the roster file, against 27.0
+±0.7. The shape is not yet right: 27-31% of Players are 31 or older against 18%
+±5, and 33-35% are 23 or younger against 30% ±5. The league is young and old,
+and short of Players in their mid-twenties. Releases take the weakest, who are
+often young call-ups, and veterans stay. The long-run calibration (Phase 2,
+item 8) sets the age profile with the leaving rates, and may move these values
+again.
 
 ## Options considered
 
@@ -178,9 +212,12 @@ can be built on the lists later.
 **A hidden true `potential` beside a scouted one.** Realistic, but it is
 scouting, which belongs to Phase 3, and it gives a Player two ceilings.
 
-**Only more development noise for prospects.** Under a fixed ceiling, noise
-slows growth more than it decides a career, and it would not meet round 1 and
-round 4 together.
+**Only a moving ceiling, the draw kept as it was.** Tried first: round 4 stayed
+at 4-9% regulars against 16.5%, because a late pick cannot grow fast enough to
+reach a regular's level, however high his ceiling.
+
+**Only more development noise, the ceiling fixed.** A booming prospect would run
+into a ceiling set at 18, so noise would slow growth more than decide a career.
 
 **A class drawn from a distribution.** Classes would vary from strong to weak,
 which is real, but four measured classes cannot calibrate that variance. A draw
