@@ -2,12 +2,39 @@ import type { Club, Lineup, Tactics } from '../domain/club.js'
 import type { CompetitionStructure } from '../domain/competition.js'
 import type { MatchEvent } from '../domain/event.js'
 import type { Fixture, FixtureChange, FixtureId, FixtureInput } from '../domain/fixture.js'
-import type { ClubId, Player, PlayerId } from '../domain/player.js'
+import type { DraftFormat, DraftPick, Prospect, RosterMoves } from '../domain/draft.js'
+import {
+  isGoalie,
+  playerLevel,
+  positionGroup,
+  type ClubId,
+  type Goalie,
+  type Player,
+  type PlayerId,
+  type PositionGroup,
+  type Skater,
+} from '../domain/player.js'
 import type { PlayoffFormat, PlayoffState } from '../domain/playoff.js'
-import type { RosterProvider } from '../domain/roster.js'
+import { ROSTER_SHAPE, type RosterProvider } from '../domain/roster.js'
 import type { StandingsRow } from '../domain/standings.js'
-import { NHL_2026_27, NHL_2026_27_CLUB_SEEDS, NHL_PLAYOFF_FORMAT } from '../data/nhl-2026-27.js'
+import {
+  NHL_2026_27,
+  NHL_2026_27_CLUB_SEEDS,
+  NHL_DRAFT_FORMAT,
+  NHL_PLAYOFF_FORMAT,
+} from '../data/nhl-2026-27.js'
 import { develop } from '../develop/index.js'
+import {
+  applyMoves,
+  draftOrder,
+  fillLevel,
+  generateClass,
+  makePicks,
+  naturalOf,
+  type Natural,
+  movesViolations,
+  assistantMoves,
+} from '../draft/index.js'
 import { afterRest } from '../engine/fatigue.js'
 import {
   afterStart,
@@ -58,6 +85,7 @@ export interface SeasonState {
   seed: number
   structure: CompetitionStructure
   playoffFormat: PlayoffFormat
+  draftFormat: DraftFormat
   clubs: readonly Club[]
   /** Each Club's declared Lineup. What a Fixture gets is this, less injuries and rotation. */
   lineups: Readonly<Record<ClubId, Lineup>>
@@ -88,8 +116,53 @@ export interface SeasonState {
    * kept here: the caller takes each one's `recordOf` before `nextSeason` (#86).
    */
   year: number
-  /** Who left the league between the Season before and this one (ADR-023, #88). */
+  /** Who left the league between the Season before and this one (ADR-023, #88, ADR-028). */
   departures: readonly Departure[]
+  /** Drafted Players whose Clubs hold their rights, off the Rosters (ADR-024). */
+  prospects: readonly Prospect[]
+  /** The draft held before this Season, empty before the first (ADR-028). */
+  draft: readonly DraftPick[]
+}
+
+/**
+ * Between one Season and the next, while Managers decide (ADR-028). Plain JSON,
+ * like a Season, and every step is pure. The draft window comes first, then the
+ * Roster window; where a Club declared nothing, the assistant decides.
+ */
+export interface Offseason {
+  phase: 'draft' | 'roster'
+  /** The Season just played, with its champion. */
+  ended: SeasonState
+  /** The Season to come. */
+  year: number
+  /** Developed, a year older, without those who left; gaps not yet filled. */
+  clubs: readonly Club[]
+  /** Who left after the Season: retired or unsigned so far. */
+  departures: readonly Departure[]
+  /** Prospects whose rights are held, the new class among them once drafted. */
+  prospects: readonly Prospect[]
+  /** Prospects whose rights expired, free to fill any Club's gap (ADR-024). */
+  undrafted: readonly Player[]
+  /** The first round's order, which every round follows. */
+  order: readonly ClubId[]
+  /** The class, until the draft is made. */
+  draftClass: readonly Player[]
+  /** Each Club's declared order of prospects. */
+  lists: Readonly<Record<ClubId, readonly PlayerId[]>>
+  picks: readonly DraftPick[]
+  /** Each Club's declared moves. */
+  moves: Readonly<Record<ClubId, RosterMoves>>
+}
+
+/** Roster moves that break the rules: the Manager has to change them. */
+export class InvalidMovesError extends Error {
+  constructor(
+    readonly clubId: ClubId,
+    readonly violations: readonly string[],
+  ) {
+    super(`Moves of Club ${clubId} break ${violations.length} rule(s): ${violations.join('; ')}`)
+    this.name = 'InvalidMovesError'
+  }
 }
 
 /** How far a Fixture has been followed, and what has been decided along the way. */
@@ -166,37 +239,207 @@ export async function startSeason(
     ...freshSeason(seed, NHL_2026_27, 1),
     seed,
     playoffFormat: NHL_PLAYOFF_FORMAT,
+    draftFormat: NHL_DRAFT_FORMAT,
     clubs,
     lineups: {},
     absent: {},
     departures: [],
+    prospects: [],
+    draft: [],
   }
   // Every Club opens as an AI Manager would, through the call any Manager uses (D-04).
   return clubs.reduce((state, club) => setLineup(state, club.id, buildNaiveLineup(club)), unset)
 }
 
 /**
- * The Season after one with a champion, before its first day (#85). Players
- * develop by their age (ADR-022, #87), some retire or are not signed again, and
- * each Club fills its gaps with undrafted Players (ADR-023, ADR-027, #88). The rest are a year older and
- * rested, the table starts again, and the schedule is
- * drawn anew from a stream of its own (D-08). An absence runs on across the
- * summer by the calendar. The same step serves every Club (D-04): a declared
- * Lineup stays while it is still valid, and otherwise the assistant builds one
- * with the same Tactics.
+ * The Season after one with a champion, before its first day (#85), with
+ * nothing declared between them: every pick and every move is the assistant's,
+ * which is what a Club gets whose Manager leaves them to it (ADR-028, D-04).
  */
 export function nextSeason(state: SeasonState): SeasonState {
+  return startNextSeason(endSeason(state))
+}
+
+/**
+ * The step out of a Season with a champion into the phase between Seasons
+ * (ADR-028). Every Player develops by the age he played at (ADR-022), prospects
+ * too, off the Roster and without the bonus for ice time; some retire or are not
+ * signed again (ADR-027); everyone who stays is a year older and rested.
+ * Rights older than the format allows expire. The draft order is drawn and the
+ * class generated, each from a stream of its own (D-08).
+ */
+export function endSeason(state: SeasonState): Offseason {
   if (!isSeasonOver(state)) throw new Error(`Season s${state.seed} has no champion yet`)
 
   const year = state.year + 1
-  const fresh = freshSeason(state.seed, state.structure, year)
-  const { daysPerYear } = state.structure.calendar
-  const firstDay = fresh.fixtures[0]!.day
+  const format = state.draftFormat
   const departures = leaving(
     state.clubs,
     roles(state.clubs, (player) => usageOf(state, player)),
     (player) => createRng(state.seed).fork(`leave:y${state.year}:${player.id}`),
   )
+  const gone = new Set(departures.map((departure) => departure.playerId))
+  const clubs = state.clubs.map((club) => {
+    const grown = <P extends Player>(player: P) => olderAndRested(developed(state, club.id, player))
+    const stays = (player: Player) => !gone.has(player.id)
+    return {
+      ...club,
+      skaters: club.skaters.filter(stays).map(grown),
+      goalies: club.goalies.filter(stays).map(grown),
+    }
+  })
+  const grownProspects = state.prospects.map((prospect) => ({
+    ...prospect,
+    player: olderAndRested(developed(state, prospect.player.clubId, prospect.player)),
+  }))
+  const expires = (prospect: Prospect) => prospect.year + format.rightsSeasons <= year
+  const order = draftOrder(
+    format,
+    state.standings,
+    state.playoffs!,
+    createRng(state.seed).fork(`lottery:y${year}`),
+  )
+  const size = Math.round(order.length * format.rounds * format.classSize)
+  return {
+    phase: 'draft',
+    ended: state,
+    year,
+    clubs,
+    departures,
+    prospects: grownProspects.filter((prospect) => !expires(prospect)),
+    undrafted: grownProspects.filter(expires).map((prospect) => prospect.player),
+    order,
+    draftClass: generateClass(createRng(state.seed).fork(`class:y${year}`), year, size),
+    lists: {},
+    picks: [],
+    moves: {},
+  }
+}
+
+/**
+ * Declares the order in which a Club wants the prospects of the class, for any
+ * Manager (D-04). A pick takes the first still available; with none left, the
+ * assistant chooses.
+ */
+export function setDraftList(off: Offseason, clubId: ClubId, prospectIds: readonly PlayerId[]): Offseason {
+  if (off.phase !== 'draft') throw new Error('The draft has been made')
+  if (!off.order.includes(clubId)) throw new Error(`No Club ${clubId} in the draft`)
+  const inClass = new Set(off.draftClass.map((player) => player.id))
+  const unknown = prospectIds.filter((id) => !inClass.has(id))
+  if (unknown.length > 0) throw new Error(`Not in the class: ${unknown.join(', ')}`)
+  return { ...off, lists: { ...off.lists, [clubId]: [...prospectIds] } }
+}
+
+/** Makes every pick of the draft, and opens the Roster window (ADR-028). */
+export function runDraft(off: Offseason): Offseason {
+  if (off.phase !== 'draft') return off
+  const { picks, prospects } = makePicks(
+    off.ended.draftFormat,
+    off.year,
+    off.order,
+    off.draftClass,
+    off.lists,
+  )
+  return {
+    ...off,
+    phase: 'roster',
+    prospects: [...off.prospects, ...prospects],
+    draftClass: [],
+    picks,
+  }
+}
+
+/** The assistant's call-ups and releases for a Club, once the draft is made (ADR-028). */
+export function proposedMoves(off: Offseason, clubId: ClubId): RosterMoves {
+  if (off.phase !== 'roster') throw new Error('The draft has not been made')
+  return assistantMoves(offseasonClub(off, clubId), off.prospects, gapsOf(off, clubId))
+}
+
+/**
+ * Declares a Club's call-ups and releases, for any Manager (D-04). They replace
+ * the assistant's for that Club. They must keep it within its shape, and leave
+ * it, once its gaps are filled, able to dress a Lineup.
+ */
+export function setRosterMoves(off: Offseason, clubId: ClubId, moves: RosterMoves): Offseason {
+  if (off.phase !== 'roster') throw new Error('The draft has not been made')
+  const club = offseasonClub(off, clubId)
+  const violations = movesViolations(club, off.prospects, moves)
+  if (violations.length === 0) {
+    const after = movedClub(off, club, moves)
+    const filled = filledRoster(after.club, after.missing, fillStream(off, clubId), off.year)
+    try {
+      buildNaiveLineup(filled)
+    } catch {
+      violations.push('the Club could not dress a Lineup')
+    }
+  }
+  if (violations.length > 0) throw new InvalidMovesError(clubId, violations)
+  return { ...off, moves: { ...off.moves, [clubId]: moves } }
+}
+
+/**
+ * The next Season from the phase between Seasons, before its first day. The
+ * draft is made if it has not been. Each Club's moves are made, its own or the
+ * assistant's; then, Club by Club in draft order, each gap takes the best
+ * undrafted former prospect of its group who is no weaker than a generated fill,
+ * and a generated undrafted Player otherwise (ADR-023, ADR-028). A former
+ * prospect nobody takes leaves the league.
+ *
+ * The table starts again and the schedule is drawn anew from a stream of its
+ * own (D-08). An absence runs on across the summer by the calendar. A declared
+ * Lineup stays while it is still valid, and otherwise the assistant builds one
+ * with the same Tactics.
+ */
+export function startNextSeason(offseason: Offseason): SeasonState {
+  const off = runDraft(offseason)
+  const state = off.ended
+  const year = off.year
+  const fresh = freshSeason(state.seed, state.structure, year)
+  const { daysPerYear } = state.structure.calendar
+  const firstDay = fresh.fixtures[0]!.day
+
+  const lastSeasonAge = (player: Player) => player.age - 1
+  const departures: Departure[] = [...off.departures]
+  const joined = new Set<PlayerId>()
+  const moved = new Map<ClubId, { club: Club; missing: Player[] }>()
+  for (const club of off.clubs) {
+    const moves = off.moves[club.id] ?? assistantMoves(club, off.prospects, gapsOf(off, club.id))
+    const after = movedClub(off, club, moves)
+    for (const player of after.joined) joined.add(player.id)
+    for (const player of after.released) {
+      departures.push({
+        playerId: player.id,
+        clubId: club.id,
+        age: lastSeasonAge(player),
+        reason: 'released',
+      })
+    }
+    moved.set(club.id, { club: after.club, missing: after.missing })
+  }
+
+  let undrafted = [...off.undrafted]
+  const clubOrder = [...off.order, ...off.clubs.map((c) => c.id).filter((id) => !off.order.includes(id))]
+  for (const clubId of clubOrder) {
+    const entry = moved.get(clubId)
+    if (!entry) continue
+    const taken = takeUndrafted(entry.club, entry.missing, undrafted)
+    undrafted = undrafted.filter((player) => !taken.some((t) => t.id === player.id))
+    entry.club = withPlayers(entry.club, taken.map((player) => ({ ...player, clubId })))
+    entry.missing = stillMissing(entry.missing, taken)
+  }
+  for (const player of undrafted) {
+    departures.push({
+      playerId: player.id,
+      clubId: player.clubId,
+      age: lastSeasonAge(player),
+      reason: 'rights-expired',
+    })
+  }
+
+  const clubs = off.clubs.map((club) => {
+    const { club: after, missing } = moved.get(club.id)!
+    return filledRoster(after, missing, fillStream(off, club.id), year)
+  })
   const gone = new Set(departures.map((departure) => departure.playerId))
   const absent = Object.fromEntries(
     Object.entries(state.absent)
@@ -204,22 +447,6 @@ export function nextSeason(state: SeasonState): SeasonState {
       .map(([id, back]) => [id, back - daysPerYear] as const)
       .filter(([, back]) => back > firstDay),
   )
-  const clubs = state.clubs.map((club) => {
-    const grown = <P extends Player>(player: P) => olderAndRested(developed(state, club.id, player))
-    const stays = (player: Player) => !gone.has(player.id)
-    const left = [...club.skaters, ...club.goalies].filter((player) => !stays(player))
-    const kept = {
-      ...club,
-      skaters: club.skaters.filter(stays).map(grown),
-      goalies: club.goalies.filter(stays).map(grown),
-    }
-    return filledRoster(
-      kept,
-      left,
-      createRng(state.seed).fork(`fill:y${state.year}:${club.id}`),
-      year,
-    )
-  })
   const lineups = Object.fromEntries(
     clubs.map((club) => {
       const declared = state.lineups[club.id]!
@@ -234,6 +461,95 @@ export function nextSeason(state: SeasonState): SeasonState {
     lineups,
     absent,
     departures,
+    prospects: off.prospects.filter((prospect) => !joined.has(prospect.player.id)),
+    draft: off.picks,
+  }
+}
+
+function offseasonClub(off: Offseason, clubId: ClubId): Club {
+  const club = off.clubs.find((candidate) => candidate.id === clubId)
+  if (!club) throw new Error(`No Club ${clubId}`)
+  return club
+}
+
+/** A Player who left after the Season, as he was in it. */
+function leaverOf(state: SeasonState, playerId: PlayerId): Player {
+  for (const club of state.clubs) {
+    const player = [...club.skaters, ...club.goalies].find((p) => p.id === playerId)
+    if (player) return player
+  }
+  throw new Error(`No Player ${playerId}`)
+}
+
+const GROUP_SHAPE: Readonly<Record<PositionGroup, number>> = {
+  forward: ROSTER_SHAPE.forwards,
+  defence: ROSTER_SHAPE.defence,
+  goalie: ROSTER_SHAPE.goalies,
+}
+
+/** Who left a Club after the Season, as they were in it. */
+function leaversOf(off: Offseason, clubId: ClubId): Player[] {
+  return off.departures
+    .filter((departure) => departure.clubId === clubId)
+    .map((departure) => leaverOf(off.ended, departure.playerId))
+}
+
+/** A Club's gaps, at the natural positions of those who left them. */
+function gapsOf(off: Offseason, clubId: ClubId): Natural[] {
+  return leaversOf(off, clubId).map(naturalOf)
+}
+
+/** The stream a Club's undrafted fill draws from (D-08). */
+function fillStream(off: Offseason, clubId: ClubId) {
+  return createRng(off.ended.seed).fork(`fill:y${off.ended.year}:${clubId}`)
+}
+
+/**
+ * A Club after its moves, and whom it is still missing: those who left, less
+ * one of each natural position for every Player who joined at it.
+ */
+function movedClub(off: Offseason, club: Club, moves: RosterMoves) {
+  const after = applyMoves(club, off.prospects, moves)
+  const missing = stillMissing([...leaversOf(off, club.id), ...after.released], after.joined)
+  return { ...after, missing }
+}
+
+function stillMissing(missing: readonly Player[], joined: readonly Player[]): Player[] {
+  const left = [...missing]
+  for (const player of joined) {
+    const at = left.findIndex((p) => naturalOf(p) === naturalOf(player))
+    if (at >= 0) left.splice(at, 1)
+  }
+  return left
+}
+
+/**
+ * The undrafted former prospects a Club takes for its gaps (ADR-028): for each
+ * Player it is missing, the best at his natural position no weaker than a
+ * generated fill, while the group has room.
+ */
+function takeUndrafted(club: Club, missing: readonly Player[], undrafted: readonly Player[]): Player[] {
+  const taken: Player[] = []
+  const room = (group: PositionGroup) =>
+    GROUP_SHAPE[group] -
+    [...club.skaters, ...club.goalies, ...taken].filter((p) => positionGroup(p) === group).length
+  for (const gap of missing) {
+    const group = positionGroup(gap)
+    if (room(group) <= 0) continue
+    const best = undrafted
+      .filter((p) => !taken.includes(p) && naturalOf(p) === naturalOf(gap))
+      .filter((p) => playerLevel(p) >= fillLevel(group))
+      .sort((a, b) => playerLevel(b) - playerLevel(a) || (a.id < b.id ? -1 : 1))[0]
+    if (best) taken.push(best)
+  }
+  return taken
+}
+
+function withPlayers(club: Club, players: readonly Player[]): Club {
+  return {
+    ...club,
+    skaters: [...club.skaters, ...players.filter((p): p is Skater => !isGoalie(p))],
+    goalies: [...club.goalies, ...players.filter((p): p is Goalie => isGoalie(p))],
   }
 }
 
@@ -248,6 +564,7 @@ export function recordOf(state: SeasonState): SeasonRecord {
     standings: state.standings,
     playoffs: state.playoffs,
     totals: state.totals,
+    draft: state.draft,
   }
 }
 

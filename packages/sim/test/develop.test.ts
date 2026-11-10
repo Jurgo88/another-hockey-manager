@@ -8,7 +8,12 @@ import {
   stepAt,
   TOP_SPEED,
 } from '../src/develop/curves.js'
-import { develop, withinPotential } from '../src/develop/index.js'
+import {
+  develop,
+  PLAYER_DEVELOPMENT_NOISE,
+  POTENTIAL_SETTLES_AT,
+  withinPotential,
+} from '../src/develop/index.js'
 import {
   isGoalie,
   isSkater,
@@ -30,9 +35,14 @@ beforeAll(async () => {
 })
 
 const skaters = () => players.filter(isSkater)
+/** The Skater whose level is closest to 10, the middle of the scale. */
+const middling = () =>
+  skaters().reduce((best, next) =>
+    Math.abs(playerLevel(next) - 10) < Math.abs(playerLevel(best) - 10) ? next : best,
+  )
 const goalies = () => players.filter(isGoalie)
 /** A Player without what development changes. */
-const identity = (player: Player) => ({ ...player, attributes: null, provenance: null })
+const identity = (player: Player) => ({ ...player, attributes: null, provenance: null, potential: null })
 const streamOf = (player: Player, label = 'd') => createRng(87).fork(`${label}:${player.id}`)
 
 /** The mean change of level over `draws` Seasons from the same start, each on its own stream. */
@@ -95,11 +105,40 @@ describe('develop', () => {
     )
   })
 
-  it('changes attributes only: identity, age and potential stay', () => {
+  it('changes attributes and a young potential only: identity and age stay', () => {
     for (const player of players.slice(0, 50)) {
       const after = develop(player, streamOf(player), { regular: true })
       expect(identity(after)).toEqual(identity(player))
+      if (player.age >= POTENTIAL_SETTLES_AT) expect(after.potential).toBe(player.potential)
     }
+  })
+
+  it('moves the potential of a young Player, never below his level (ADR-028)', () => {
+    const young = skaters().filter((p) => p.age < POTENTIAL_SETTLES_AT)
+    expect(young.length).toBeGreaterThan(20)
+    let moved = 0
+    for (const player of young) {
+      for (let i = 0; i < 10; i++) {
+        const after = develop(player, streamOf(player, `p${i}`), { regular: false })
+        expect(Number.isInteger(after.potential)).toBe(true)
+        expect(after.potential).toBeGreaterThanOrEqual(Math.round(playerLevel(after)))
+        if (after.potential !== player.potential) moved++
+      }
+    }
+    expect(moved).toBeGreaterThan(young.length * 5)
+  })
+
+  it('varies a young Player more than one who has settled (ADR-028)', () => {
+    const spread = (age: number) => {
+      const player: Skater = { ...middling(), age, potential: 20 }
+      const changes = Array.from({ length: 200 }, (_, i) =>
+        playerLevel(develop(player, streamOf(player, `v${i}`), { regular: false })) - playerLevel(player),
+      )
+      const mean = changes.reduce((a, b) => a + b, 0) / changes.length
+      return Math.sqrt(changes.reduce((a, b) => a + (b - mean) ** 2, 0) / changes.length)
+    }
+    expect(PLAYER_DEVELOPMENT_NOISE).toBeGreaterThan(0)
+    expect(spread(POTENTIAL_SETTLES_AT - 1)).toBeGreaterThan(spread(POTENTIAL_SETTLES_AT) * 2)
   })
 
   it('keeps attributes whole numbers on the scale', () => {
@@ -121,7 +160,8 @@ describe('develop', () => {
   })
 
   it('grows a young Player with room below his potential', () => {
-    const young: Skater = { ...skaters()[0]!, age: 20, potential: 20 }
+    // A middling one, whose attributes are far from the top of the scale either way.
+    const young: Skater = { ...middling(), age: 20, potential: 20 }
     expect(meanGrowth(young, false)).toBeGreaterThan(0.3)
   })
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { simulateSeason } from '../../src/cli/season.js'
-import { isGoalie, type Player } from '../../src/domain/player.js'
-import { leavingChance, positionGroup, roles } from '../../src/leave/index.js'
+import { isGoalie, positionGroup, type Player } from '../../src/domain/player.js'
+import { leavingChance, roles } from '../../src/leave/index.js'
 
 /**
  * Leaving the league (ADR-023, ADR-027, #88), against the Phase 2 targets in

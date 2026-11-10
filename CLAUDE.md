@@ -50,8 +50,9 @@ stats/    folds over the event stream   - may import domain ONLY
 roster/   the roster file (ADR-020)     - may import domain ONLY
 develop/  ageing between Seasons        - may import domain, rng
 leave/    leaving the league            - may import domain, rng, generate
+draft/    the entry draft (ADR-028)     - may import domain, rng, generate, develop
 season/   a Season, day by day          - may import domain, rng, generate,
-                                          engine, stats, develop, leave
+                                          engine, stats, develop, leave, draft
 cli/      entry points                  - may import anything
 ```
 

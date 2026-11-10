@@ -1,6 +1,6 @@
 # ADR-022 - Players age along measured curves, by attribute group
 
-- **Status:** Accepted; its group table and cap rule superseded by ADR-026
+- **Status:** Accepted; its group table and cap rule superseded by ADR-026, amended by ADR-028
 - **Date:** 2026-11-03
 - **Relates to:** D-01, D-06, D-08, D-11, ADR-008, ADR-020, ADR-021, issue #83, issue #87
 
@@ -84,3 +84,11 @@ could reuse it, but it throws away what the estimator measured for a real Player
   league several Seasons on. That is honest, not a defect.
 - The calibration target is the age profile of level in a ten-Season run, part
   of the Phase 2 gate in `04-validation-targets.md`.
+
+## Amendment, 2026-11-10: the potential of young Players moves (#89, ADR-028)
+
+Until a Player is 22, the draw his attributes share each Season is larger, five
+times the size at first fit, and his `potential` moves with it, never below his
+level. From 23 both are as before. It is what makes the draft uncertain without a
+hidden second ceiling (ADR-028). It changes the development of every young
+Player, so the long-run calibration (item 8) sizes it again.

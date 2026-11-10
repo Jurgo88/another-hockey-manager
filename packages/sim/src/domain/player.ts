@@ -88,3 +88,12 @@ export function goalieLevel(attributes: GoalieAttributes): number {
 export function playerLevel(player: Player): number {
   return isSkater(player) ? skaterLevel(player.attributes) : goalieLevel(player.attributes)
 }
+
+/** Forwards, defencemen and Goalies: ranked apart, and a Roster's shape is kept per group. */
+export type PositionGroup = 'forward' | 'defence' | 'goalie'
+
+export function positionGroup(player: Player): PositionGroup {
+  if (isGoalie(player)) return 'goalie'
+  const natural = player.preferredPositions[0]
+  return natural === 'LD' || natural === 'RD' ? 'defence' : 'forward'
+}

@@ -14,10 +14,12 @@ import { conferenceTables, divisionTables, foldStandings } from '../stats/standi
 import {
   careerTotals,
   clubHistory,
+  draftOutcomes,
   goalieCareer,
   skaterCareer,
   type CareerSeason,
   type ClubSeason,
+  type DraftRoundOutcome,
   type PlayoffResult,
   type SeasonRecord,
 } from '../stats/history.js'
@@ -211,6 +213,7 @@ export function renderRun(run: SimulatedRun, structure: CompetitionStructure): s
   const columns = standingsColumns(run)
   return [
     section(`${structure.name} - ${run.seasons.length} Seasons`, history),
+    ...renderDraft(run.seasons),
     ...run.seasons.map((season) =>
       section(
         `Season ${season.year} (${season.seasonId}), champion ${code(season.champion)}`,
@@ -218,6 +221,30 @@ export function renderRun(run: SimulatedRun, structure: CompetitionStructure): s
       ),
     ),
   ].join('\n\n\n')
+}
+
+/**
+ * What the first four drafts of a run yielded by round, as the Phase 2 gate
+ * reads them (ADR-028): nothing before a run has a draft.
+ */
+function renderDraft(seasons: readonly SeasonRecord[]): string[] {
+  const years = [...new Set(seasons.flatMap((season) => season.draft.map((pick) => pick.year)))]
+    .sort((a, b) => a - b)
+    .slice(0, 4)
+  if (years.length === 0) return []
+  const percent = (share: number) => `${(share * 100).toFixed(1)}%`
+  const table = renderTable<DraftRoundOutcome>(
+    [
+      { header: 'Round', value: (row) => row.round },
+      { header: 'Picks', value: (row) => row.picks },
+      { header: 'Played', value: (row) => percent(row.reached) },
+      { header: '200+ GP', value: (row) => percent(row.regulars) },
+      { header: 'Seasons to debut', value: (row) => row.seasonsToDebut },
+    ],
+    draftOutcomes(seasons, years),
+  )
+  const last = seasons[seasons.length - 1]!.year
+  return [section(`The draft, classes of Seasons ${years.join(', ')}, read in Season ${last}`, table)]
 }
 
 function playoffText(result: PlayoffResult): string {

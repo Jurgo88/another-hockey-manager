@@ -1,3 +1,4 @@
+import type { DraftPick } from '../domain/draft.js'
 import type { ClubId, PlayerId } from '../domain/player.js'
 import type { PlayoffState } from '../domain/playoff.js'
 import type { StandingsRow } from '../domain/standings.js'
@@ -24,6 +25,8 @@ export interface SeasonRecord {
   playoffs: PlayoffState
   /** Player counts, the playoffs kept apart. */
   totals: Readonly<{ regular: SeasonTotals; playoffs: SeasonTotals }>
+  /** The draft held before this Season (ADR-028), empty before the first. */
+  draft: readonly DraftPick[]
 }
 
 /** How far a Club went in the playoffs: the last round it played, from 1. */
@@ -117,4 +120,62 @@ function careerOf<S extends { clubId: ClubId }>(
     if (clubId === undefined) return []
     return [{ seasonId: record.seasonId, year: record.year, clubId, regular, playoffs }]
   })
+}
+
+/** What one round of the draft yielded over a run (ADR-028, the Phase 2 gate). */
+export interface DraftRoundOutcome {
+  round: number
+  picks: number
+  /** Share who played at least one Fixture. */
+  reached: number
+  /** Share who played 200 or more regular-Season Fixtures. */
+  regulars: number
+  /**
+   * Median Seasons from the draft to the first Season played, of those who
+   * played: 0 is the Season right after it, as measured.
+   */
+  seasonsToDebut: number
+}
+
+/**
+ * The draft table of the classes held before the given Seasons, read from the
+ * records of a run as they stand (ADR-025): its picks, and their careers.
+ */
+export function draftOutcomes(
+  records: readonly SeasonRecord[],
+  years: readonly number[],
+): DraftRoundOutcome[] {
+  const picks = records.flatMap((record) => record.draft).filter((pick) => years.includes(pick.year))
+  const careerOf = (playerId: PlayerId) => {
+    let regular = 0
+    let first: number | undefined
+    for (const record of records) {
+      const counts = (totals: SeasonTotals) =>
+        (totals.skaters[playerId] ?? totals.goalies[playerId])?.gamesPlayed ?? 0
+      const season = counts(record.totals.regular)
+      regular += season
+      if (first === undefined && season + counts(record.totals.playoffs) > 0) first = record.year
+    }
+    return { regular, first }
+  }
+  const rounds = [...new Set(picks.map((pick) => pick.round))].sort((a, b) => a - b)
+  return rounds.map((round) => {
+    const inRound = picks.filter((pick) => pick.round === round)
+    const careers = inRound.map((pick) => ({ pick, ...careerOf(pick.playerId) }))
+    const debuts = careers.flatMap((c) => (c.first === undefined ? [] : [c.first - c.pick.year]))
+    return {
+      round,
+      picks: inRound.length,
+      reached: debuts.length / inRound.length,
+      regulars: careers.filter((c) => c.regular >= 200).length / inRound.length,
+      seasonsToDebut: median(debuts),
+    }
+  })
+}
+
+function median(values: readonly number[]): number {
+  if (values.length === 0) return 0
+  const sorted = [...values].sort((a, b) => a - b)
+  const mid = Math.floor(sorted.length / 2)
+  return sorted.length % 2 ? sorted[mid]! : (sorted[mid - 1]! + sorted[mid]!) / 2
 }

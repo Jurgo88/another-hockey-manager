@@ -65,3 +65,9 @@ already say.
   Season will need splitting by Club before they are folded.
 - Ages are not in a record. A career shows them once the Player's age can be
   read for each Season, which development (#87) needs as well.
+
+## Amendment, 2026-11-10: a record holds its draft (#89, ADR-028)
+
+A Season's record also holds the draft held before it: each pick's year, round,
+place, Club and prospect. A class is followed through a run from the records,
+with the careers of its prospects, as the draft table of the Phase 2 gate needs.

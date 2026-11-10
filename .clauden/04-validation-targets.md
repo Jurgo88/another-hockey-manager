@@ -407,7 +407,7 @@ mean sits low in its band: development has to carry it, not fall from it.
 | Middle third | 5.3% | ±3 pp |
 | Bottom third | 20.1% | ±6 pp |
 
-### The draft, classes of Seasons 1 to 4, read in Season 10
+### The draft, its first four classes, read in Season 10
 
 | Round | 200 or more Fixtures, measured | Band | Median Seasons to debut, measured | Band |
 | --- | --- | --- | --- | --- |
@@ -416,7 +416,10 @@ mean sits low in its band: development has to carry it, not fall from it.
 | 3 | 19.9% | ±10 pp | 3 | ±1 |
 | 4 | 16.5% | ±10 pp | 3 | ±1 |
 
-A class drafted in Season 4 has six Seasons to reach 200 Fixtures; the measured
+The first draft is held before Season 2, so the first four classes are those of
+Seasons 2 to 5 (ADR-028). Seasons to debut are the first Season a prospect
+plays in less the year of his draft, as measured: 0 is the Season right after
+it. The class of Season 5 has six Seasons to reach 200 Fixtures; the measured
 classes had eight to sixteen. The run may come in slightly low on round 1 for
 that reason, and the band allows it.
 
