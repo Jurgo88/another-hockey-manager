@@ -64,17 +64,25 @@ matters most.
 
 ## Definition of done
 
-A change to the engine is done when `pnpm test` is green, including
-`packages/sim/test/realism/`. A red realism band means calibrate the engine,
+A change to the engine is done when `pnpm test` is green: every tier, unit,
+`packages/sim/test/realism/` and `packages/sim/test/longrun/`, before a PR is
+opened, and again in CI. `pnpm test:unit` is for the loop while working; it
+does not replace the full run. A red realism band means calibrate the engine,
 not widen the band (see `.clauden/04-validation-targets.md`).
+
+Realism and long-run tests read simulated Seasons from a cache in
+`packages/sim/.cache/`, keyed by a hash of `packages/sim/src`. A change to the
+source simulates them again; delete the folder if a cache is ever in doubt.
 
 ## Commands
 
 ```
 pnpm install
-pnpm test                 # all packages
+pnpm test                 # all packages, every tier
+pnpm test:unit            # unit tests only, the loop while working
 pnpm --filter @ahm/sim test:watch
-pnpm --filter @ahm/sim test:realism
+pnpm --filter @ahm/sim test:realism   # one-Season targets
+pnpm --filter @ahm/sim test:longrun   # ten-Season targets (Phase 2)
 pnpm typecheck
 pnpm sim:season           # simulate a Season, print tables (--roster <file>, --seasons <n>, --club, --player)
 pnpm sim:roster           # write a generated league as a roster file
