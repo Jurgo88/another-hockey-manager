@@ -1,6 +1,6 @@
 # ADR-024 - The draft gives rights to prospects who develop off the Roster
 
-- **Status:** Accepted
+- **Status:** Accepted; refined by ADR-028
 - **Date:** 2026-11-03
 - **Relates to:** D-04, D-08, D-10, D-11, ADR-008, ADR-022, ADR-023, issue #83, issue #89
 

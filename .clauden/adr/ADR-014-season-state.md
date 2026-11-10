@@ -83,3 +83,13 @@ has its champion.
   of this move, added in that order by their own items.
 - Stopping and reloading between Seasons, or on any day within one, changes no
   result over three Seasons from one seed.
+
+## Amendment, 2026-11-10: the phase between Seasons (#89, ADR-028)
+
+The move between Seasons is no longer one step. `endSeason` turns a Season with
+a champion into an `Offseason`, a plain JSON value of its own, in which
+Managers decide: a draft window (`setDraftList`, `runDraft`) and a Roster window
+(`proposedMoves`, `setRosterMoves`). `startNextSeason` makes the next Season
+from it. Each is a pure step, and stopping between any two changes nothing.
+`nextSeason` stays as all of them with nothing declared. Prospects and the draft
+held before a Season are part of its state.
