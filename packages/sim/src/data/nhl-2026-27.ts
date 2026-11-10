@@ -11,6 +11,7 @@
  * structure with generated names. Club marks and logos are not used anywhere.
  */
 
+import type { DraftFormat } from '../domain/draft.js'
 import type { Conference, CompetitionStructure, Division, ScheduleKey } from '../domain/competition.js'
 import type { PlayoffFormat } from '../domain/playoff.js'
 
@@ -137,6 +138,26 @@ export const NHL_PLAYOFF_FORMAT: PlayoffFormat = {
   venuePattern: '2-2-1-1-1',
   // Every second day, so no game is a back-to-back. Unmeasured.
   daysBetweenFixtures: 2,
+}
+
+/**
+ * The NHL entry draft (ADR-024, ADR-028), with 4 rounds to begin with rather
+ * than 7: rounds 5 to 7 yield few regulars, and the undrafted fill stands in for
+ * them. The lottery is the NHL's since 2022, without its rule that a Club may not
+ * win twice in five years.
+ */
+export const NHL_DRAFT_FORMAT: DraftFormat = {
+  id: 'nhl-entry-draft',
+  name: 'NHL entry draft, four rounds',
+  rounds: 4,
+  classSize: 1.5,
+  rightsSeasons: 4,
+  lottery: {
+    odds: [18.5, 13.5, 11.5, 9.5, 8.5, 7.5, 6.5, 6, 5, 3.5, 3, 2.5, 2, 1.5, 0.5, 0.5],
+    draws: 2,
+    maxJump: 10,
+  },
+  deepRunsLast: 2,
 }
 
 export const NHL_2026_27: CompetitionStructure = {
