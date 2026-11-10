@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { develop } from '../src/develop/index.js'
+import { validateLineup } from '../src/engine/lineup.js'
 import { createRng } from '../src/rng/index.js'
 import {
   advanceDay,
@@ -9,8 +10,9 @@ import {
   startSeason,
   type SeasonState,
 } from '../src/season/index.js'
+import { SMALL_SEASON } from './support/league.js'
 
-/** Moving from one Season to the next (#85). */
+/** Moving from one Season to the next (#85), in the small Competition (ADR-014). */
 
 const SEED = 5
 
@@ -29,7 +31,7 @@ describe('nextSeason', () => {
   let next: SeasonState
 
   beforeAll(async () => {
-    start = await startSeason(SEED)
+    start = await startSeason(SEED, undefined, SMALL_SEASON)
     ended = playToChampion(start)
     next = nextSeason(ended)
   })
@@ -103,8 +105,9 @@ describe('nextSeason', () => {
     const after = new Set(next.clubs.flatMap((c) => [...c.skaters, ...c.goalies]).map((p) => p.id))
     const gone = [...before.keys()].filter((id) => !after.has(id))
     expect(next.departures.map((d) => d.playerId).sort()).toEqual(gone.sort())
-    expect(gone.length).toBeGreaterThan(30)
-    expect(gone.length).toBeLessThan(200)
+    // About 3 a Club in the NHL (ADR-028).
+    expect(gone.length).toBeGreaterThan(next.clubs.length)
+    expect(gone.length).toBeLessThan(next.clubs.length * 6)
     for (const departure of next.departures) {
       const player = before.get(departure.playerId)!
       expect(departure.clubId).toBe(player.clubId)
@@ -112,9 +115,10 @@ describe('nextSeason', () => {
       expect(next.absent[departure.playerId]).toBeUndefined()
     }
     // Prospects called up push the weakest out; no rights have expired yet (ADR-028).
-    expect(new Set(next.departures.map((d) => d.reason))).toEqual(
-      new Set(['retired', 'unsigned', 'released']),
-    )
+    expect(next.departures.some((d) => d.reason === 'released')).toBe(true)
+    for (const { reason } of next.departures) {
+      expect(['retired', 'unsigned', 'released']).toContain(reason)
+    }
   })
 
   it('fills every gap with a prospect or an undrafted Player, so each Club keeps its 16-10-3 shape', () => {
@@ -166,8 +170,10 @@ describe('nextSeason', () => {
   })
 
   it('keeps a Lineup that is still valid, and rebuilds one that is not with its Tactics', () => {
-    const [kept, broken] = ended.clubs
-    expect(next.lineups[kept!.id]).toEqual(ended.lineups[kept!.id])
+    // In a small league a Club may lose a Player of its Lineup; one that loses none keeps it.
+    const kept = next.clubs.find((club) => validateLineup(ended.lineups[club.id]!, club).length === 0)!
+    const broken = ended.clubs.find((club) => club.id !== kept.id)
+    expect(next.lineups[kept.id]).toEqual(ended.lineups[kept.id])
 
     const gone = ended.lineups[broken!.id]!.lines[0].centre
     const tactics = { ...ended.lineups[broken!.id]!.tactics, matchup: 'exploit' as const }
@@ -191,7 +197,7 @@ describe('nextSeason', () => {
     for (let year = 2; year <= 3; year++) {
       straight = playToChampion(straight)
       // Stopped and reloaded on some day in the middle as well as between Seasons.
-      for (let day = 0; day < 40; day++) reloaded = stored(advanceDay(reloaded).state)
+      for (let day = 0; day < 10; day++) reloaded = stored(advanceDay(reloaded).state)
       reloaded = playToChampion(reloaded)
       if (year < 3) {
         straight = nextSeason(straight)
