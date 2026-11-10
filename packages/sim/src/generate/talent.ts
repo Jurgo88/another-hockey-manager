@@ -3,7 +3,7 @@ import {
   type GoalieAttributes,
   type SkaterAttributes,
 } from '../domain/attributes.js'
-import type { SkaterPosition } from '../domain/player.js'
+import type { PositionGroup, SkaterPosition } from '../domain/player.js'
 import { gaussian, type Rng } from '../rng/index.js'
 import { NHL_AGES_BY_TIER } from './nhl-age-profile.js'
 
@@ -130,6 +130,16 @@ export function drawAbility(
     (generational ? GENERATIONAL_BONUS : 0)
 
   return { ability: Math.max(0.05, Math.min(0.99, raw)), generational }
+}
+
+/**
+ * The ability of the last call-up in a generated league, at each position
+ * group: an undrafted Player who fills a gap is generated at it (ADR-023).
+ */
+export const FILL_ABILITY: Readonly<Record<PositionGroup, Ability>> = {
+  forward: FORWARD_SLOT_ABILITY[FORWARD_SLOT_ABILITY.length - 1]!,
+  defence: DEFENCE_SLOT_ABILITY[DEFENCE_SLOT_ABILITY.length - 1]!,
+  goalie: GOALIE_SLOT_ABILITY[GOALIE_SLOT_ABILITY.length - 1]!,
 }
 
 /** Exponent on the ability-to-attribute map. Above 1 is convex. */
@@ -271,6 +281,11 @@ const ROOM_AT_18 = 0.22
 export function drawHeadroom(rng: Rng, age: number): Ability {
   const yearsToPrime = Math.max(0, GROWTH_UNTIL - age)
   return (yearsToPrime / (GROWTH_UNTIL - 18)) * ROOM_AT_18 + Math.max(0, gaussian(rng)) * 0.05
+}
+
+/** The level of a Player whose attributes sit on the curve at this ability, without noise. */
+export function levelOfAbility(ability: Ability): number {
+  return 1 + Math.pow(ability, ABILITY_CURVE) * 19
 }
 
 /**

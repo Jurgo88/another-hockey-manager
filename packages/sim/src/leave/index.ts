@@ -2,22 +2,19 @@ import type { Club } from '../domain/club.js'
 import {
   isGoalie,
   playerLevel,
+  positionGroup,
   type ClubId,
   type Goalie,
   type Player,
   type PlayerId,
+  type PositionGroup,
   type Skater,
   type SkaterPosition,
 } from '../domain/player.js'
 import { ROSTER_SHAPE } from '../domain/roster.js'
 import { generateDistinctNames } from '../generate/names.js'
 import { generateGoalie, generateSkater } from '../generate/roster.js'
-import {
-  DEFENCE_SLOT_ABILITY,
-  FORWARD_SLOT_ABILITY,
-  GOALIE_SLOT_ABILITY,
-  generateAgeAndHeadroom,
-} from '../generate/talent.js'
+import { FILL_ABILITY, generateAgeAndHeadroom } from '../generate/talent.js'
 import type { Rng } from '../rng/index.js'
 
 /**
@@ -48,16 +45,11 @@ export interface Departure {
   clubId: ClubId
   /** His age in the Season he last played. */
   age: number
-  reason: 'retired' | 'unsigned'
-}
-
-/** Forwards, defencemen and Goalies are ranked apart, as they were measured. */
-export type PositionGroup = 'forward' | 'defence' | 'goalie'
-
-export function positionGroup(player: Player): PositionGroup {
-  if (isGoalie(player)) return 'goalie'
-  const natural = player.preferredPositions[0]
-  return natural === 'LD' || natural === 'RD' ? 'defence' : 'forward'
+  /**
+   * Retired and unsigned after a Season (ADR-027); released by his Club, or a
+   * prospect whose rights expired and whom no Club took (ADR-028).
+   */
+  reason: 'retired' | 'unsigned' | 'released' | 'rights-expired'
 }
 
 /** Retiring: even odds at about 40, rising by a factor of 1.57 a year. */
@@ -169,13 +161,6 @@ export function departures(
     }
   }
   return out
-}
-
-/** The ability of the last call-up in a generated league, at each position group (ADR-023). */
-export const FILL_ABILITY: Readonly<Record<PositionGroup, number>> = {
-  forward: FORWARD_SLOT_ABILITY[FORWARD_SLOT_ABILITY.length - 1]!,
-  defence: DEFENCE_SLOT_ABILITY[DEFENCE_SLOT_ABILITY.length - 1]!,
-  goalie: GOALIE_SLOT_ABILITY[GOALIE_SLOT_ABILITY.length - 1]!,
 }
 
 /**

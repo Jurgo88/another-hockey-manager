@@ -1,11 +1,10 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import type { Club } from '../src/domain/club.js'
-import { isGoalie, isSkater, playerLevel, type Player } from '../src/domain/player.js'
+import { isGoalie, isSkater, playerLevel, positionGroup, type Player } from '../src/domain/player.js'
 import {
   departures,
   filledRoster,
   leavingChance,
-  positionGroup,
   retirementChance,
   roles,
   unsignedChance,
