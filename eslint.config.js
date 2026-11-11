@@ -22,6 +22,8 @@ const vocabularyRules = BANNED_VOCABULARY.map(({ term, use }) => ({
 
 export default tseslint.config(
   { ignores: ['**/dist/**', '**/node_modules/**', '**/coverage/**', '**/.nuxt/**', '**/.output/**'] },
+  // Claude Code skills: scratch tooling that reads saved runs loosely, run with tsx.
+  { ignores: ['.claude/**'] },
 
   js.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
