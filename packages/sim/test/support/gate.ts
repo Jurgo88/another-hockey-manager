@@ -5,8 +5,6 @@ import {
   ageProfile,
   leavingRate,
   leavingRows,
-  levelByAge,
-  pointsSpread,
   tableDynamics,
   type LeavingRow,
 } from '../../src/stats/league.js'
@@ -17,6 +15,11 @@ import {
  * is read on the runs given pooled: eight generated leagues in `@ahm/sim`, the
  * 2025-26 roster file on its own in `@ahm/estimate`. Tier 1 and Tier 2 in the
  * tenth Season are the realism suites run on the runs' last Seasons.
+ *
+ * The table's longest top-8 run, Clubs finishing first and spread of points
+ * are reported (`pnpm sim:season --seasons 10`) and asserted at the Phase 3
+ * gate; the shape of careers is asserted on development alone
+ * (`test/develop.test.ts`).
  *
  * A red row means calibrating development, departures or the draft, not
  * widening the band.
@@ -141,36 +144,6 @@ export function gateSuite(when: string, runs: () => Promise<readonly SimulatedRu
 
       it('bottom 8 still bottom 8 the next Season: 51% ±12 pp', () => {
         within(mean(tables.map((table) => table.bottomStays)), 0.51, 0.12)
-      })
-
-      it('no Club in the top 8 more than 9 of 10 Seasons, in every run', () => {
-        for (const table of tables) expect(table.longestTopRun).toBeLessThanOrEqual(9)
-      })
-
-      it('at least 5 Clubs finish first, in every run', () => {
-        for (const table of tables) expect(table.firstPlaceClubs).toBeGreaterThanOrEqual(5)
-      })
-
-      it('standard deviation of points, tenth Season: 16.1 ±3', () => {
-        within(mean(tenth.map(pointsSpread)), 16.1, 3)
-      })
-    })
-
-    describe('the shape of careers, Skater level by age in the tenth Season', () => {
-      const level = new Map(levelByAge(tenth).map((band) => [band.label, band.level]))
-      const at = (label: string) => level.get(label)!
-
-      it('rises from 22-24 to 25-27, and from 25-27 to 28-30', () => {
-        expect(at('25-27')).toBeGreaterThan(at('22-24'))
-        expect(at('28-30')).toBeGreaterThan(at('25-27'))
-      })
-
-      it('holds from 28-30 to 31-33, within ±0.3', () => {
-        within(at('31-33'), at('28-30'), 0.3)
-      })
-
-      it('falls at 34 or older', () => {
-        expect(at('34 or older')).toBeLessThan(at('31-33'))
       })
     })
   })

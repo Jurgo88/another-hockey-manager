@@ -224,6 +224,63 @@ describe('develop', () => {
   })
 })
 
+describe('the shape of careers, development alone (04-validation-targets.md, #90)', () => {
+  /**
+   * A generated league aged ten Seasons with nobody leaving, every Skater a
+   * regular. The mean change of level at each age, added up from 18, is the
+   * level of a career by age; each band is its mean over the ages in it.
+   */
+  const band = (() => {
+    let cache: Map<string, number> | undefined
+    return (label: string) => {
+      if (!cache) {
+        const changes = new Map<number, number[]>()
+        let league = skaters()
+        for (let season = 1; season <= 10; season++) {
+          league = league.map((skater) => {
+            const next = develop(skater, streamOf(skater, `career:${season}`), { regular: true })
+            changes.set(skater.age, [...(changes.get(skater.age) ?? []), playerLevel(next) - playerLevel(skater)])
+            return { ...next, age: skater.age + 1 }
+          })
+        }
+        const career = new Map<number, number>()
+        let level = 0
+        for (let age = 18; age <= 39; age++) {
+          career.set(age, level)
+          const at = changes.get(age)
+          if (at) level += at.reduce((sum, d) => sum + d, 0) / at.length
+        }
+        const meanOver = (from: number, to: number) => {
+          let sum = 0
+          for (let age = from; age <= to; age++) sum += career.get(age)!
+          return sum / (to - from + 1)
+        }
+        cache = new Map([
+          ['22-24', meanOver(22, 24)],
+          ['25-27', meanOver(25, 27)],
+          ['28-30', meanOver(28, 30)],
+          ['31-33', meanOver(31, 33)],
+          ['34-36', meanOver(34, 36)],
+        ])
+      }
+      return cache.get(label)!
+    }
+  })()
+
+  it('rises from 22-24 to 25-27, and from 25-27 to 28-30', () => {
+    expect(band('25-27')).toBeGreaterThan(band('22-24'))
+    expect(band('28-30')).toBeGreaterThan(band('25-27'))
+  })
+
+  it('holds from 28-30 to 31-33, within ±0.3', () => {
+    expect(Math.abs(band('31-33') - band('28-30'))).toBeLessThanOrEqual(0.3)
+  })
+
+  it('falls at 34-36', () => {
+    expect(band('34-36')).toBeLessThan(band('31-33'))
+  })
+})
+
 describe('expectedLevel (ADR-028 amendment)', () => {
   const at = (age: number, potential = 20): Skater => ({ ...middling(), age, potential })
 
