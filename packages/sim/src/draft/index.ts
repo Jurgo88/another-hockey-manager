@@ -107,7 +107,9 @@ export function drawLottery(clubs: readonly ClubId[], lottery: DraftLottery, rng
  * undrafted fill at his group. One ladder serves Skaters and Goalies alike.
  *
  * THE VALUES ARE FITTED in #89 against the draft table of the Phase 2 gate, and
- * refitted with the long-run calibration (Phase 2, item 8).
+ * refitted in #90, once a league opens with prospects: a pick now arrives half a
+ * spread better and with half a spread less room, the same ceiling, so a class
+ * competes with the four held before it and the league's age holds.
  */
 export const DRAFT_CLASS = {
   /**
@@ -118,20 +120,25 @@ export const DRAFT_CLASS = {
    * three Seasons to debut alike, and differ in how many become regulars.
    */
   level: [
-    [0, 1.3],
-    [1 / 6, -0.3],
-    [2 / 3, -0.9],
-    [1, -1.4],
+    [0, 1.8],
+    [1 / 6, 0.2],
+    [2 / 3, -0.4],
+    [1, -0.9],
   ],
   /** Room to grow at 18 above his level, by place, the same way. */
   room: [
-    [0, 2.0],
-    [1 / 6, 1.45],
-    [2 / 3, 1.0],
-    [1, 0.8],
+    [0, 1.5],
+    [1 / 6, 0.95],
+    [2 / 3, 0.5],
+    [1, 0.3],
   ],
   /** Noise about each place on the level ladder. */
   noise: 0.3,
+  /**
+   * A Goalie sits this many spreads lower on both ladders: the generated
+   * league's Goalies sit closer to a fill than its Skaters do.
+   */
+  goalieShift: 0.2,
   /** Room fewer at 19. */
   roomLessAt19: 0.15,
   /** Noise of the room, only ever upwards. */
@@ -196,10 +203,11 @@ export function generateClass(rng: Rng, year: number, size: number): Player[] {
       position === 'G' ? 'goalie' : position === 'LD' || position === 'RD' ? 'defence' : 'forward'
     const spread = groupSpread(group)
     const place = (i + 0.5) / size
-    const z = onLadder(c.level, place) + gaussian(rng) * c.noise
+    const shift = group === 'goalie' ? c.goalieShift : 0
+    const z = onLadder(c.level, place) - shift + gaussian(rng) * c.noise
     const age = rng.chance(c.aged19) ? 19 : 18
     const room =
-      onLadder(c.room, place) - (age === 19 ? c.roomLessAt19 : 0) + Math.abs(gaussian(rng)) * c.roomNoise
+      onLadder(c.room, place) - shift - (age === 19 ? c.roomLessAt19 : 0) + Math.abs(gaussian(rng)) * c.roomNoise
     const level = fillLevel(group) + z * spread
     const ability = abilityOfLevel(level)
     const headroom = Math.max(0, abilityOfLevel(level + Math.max(0, room) * spread) - ability)
@@ -323,6 +331,15 @@ const GROUPS: readonly PositionGroup[] = ['forward', 'defence', 'goalie']
  */
 const outlook = (player: Player) => expectedLevel(player)
 
+/**
+ * How much better next Season a prospect must look than the weakest at his
+ * position for a Club to release one for the other. A gap takes any ready
+ * prospect; a swap wants a clear gain.
+ *
+ * FITTED in #90 against the leaving and age tables of the Phase 2 gate.
+ */
+export const SWAP = { margin: 1 }
+
 const byOutlook = (a: Player, b: Player) =>
   outlook(a) - outlook(b) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
 
@@ -388,7 +405,7 @@ export function assistantMoves(
     for (;;) {
       const best = waiting.find((p) => naturalOf(p) === natural)
       const weakest = atNatural(roster, natural)[0]
-      if (!best || !weakest || outlook(best) < outlook(weakest)) break
+      if (!best || !weakest || outlook(best) < outlook(weakest) + SWAP.margin) break
       releases.push(weakest.id)
       roster = roster.filter((p) => p.id !== weakest.id)
       call(best)
