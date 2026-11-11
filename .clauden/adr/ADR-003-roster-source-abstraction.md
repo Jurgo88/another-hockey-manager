@@ -98,3 +98,20 @@ separate from this and stays out of deployed builds.
   into a deployed build.
 - This is a risk-management decision, not legal advice. If the product goal
   activates, the licensing position needs an actual lawyer.
+
+## Amendment, 2026-11-12: the application may start a career on a roster file (#115)
+
+The author decided on 2026-11-12 that a Manager may start a career on the
+Rosters of a roster file (ADR-020), as well as on generated ones, as a choice
+on the Club page. The server offers it only when it is given a roster file
+(`NUXT_ROSTER_FILE`). The file is read from disk when the server runs and is
+never part of a build, so a deployed build without the variable has the
+generator alone, as this ADR requires.
+
+A career keeps which source it started on (ADR-029 amendment). Only its first
+Season reads the source: every Season after it grows from the one before
+(ADR-014, ADR-028), whatever the source.
+
+A file's Players carry their provenance, and the application shows an attribute
+of low confidence as a range, never as a figure (D-11, FR-18). The exact value
+does not leave the server.

@@ -165,3 +165,10 @@ item 10 would rework the storage and the way through to add the windows.
   through the folds of `stats/history.ts`.
 - `loadSeason` finds the current Season through the career. Every other
   route keeps the shape it has.
+
+## Amendment, 2026-11-12: a career keeps its Roster source (#115)
+
+`careers.roster_source` records whether a career began on generated Rosters
+(`generated`, the default, and every career stored before) or on the server's
+roster file (`file`), ADR-003 amendment. Nothing reads it to play: it tells the
+Manager which league the career is.
