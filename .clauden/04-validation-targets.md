@@ -442,9 +442,23 @@ that reason, and the band allows it.
 | Correlation of Club point shares, consecutive Seasons | 0.51 | ±0.12 | Neither frozen nor random |
 | Top 8 still top 8 the next Season | 46% | ±12 pp | |
 | Bottom 8 still bottom 8 the next Season | 51% | ±12 pp | |
+
+Three more targets are measured and reported in Phase 2 but asserted at the
+Phase 3 gate (#90):
+
+| Target | Measured | Band | What it guards |
+| --- | --- | --- | --- |
 | Longest run of any Club in the top 8 | 7 in 11 seasons | at most 9 of 10 | No runaway dynasty |
 | Clubs that finished first | 9 in 11 seasons | at least 5 of 10 | No runaway dynasty |
 | Standard deviation of points over 84 Fixtures, tenth Season | 16.1 | ±3 | No collapse into uniformity |
+
+In Phase 2 nothing keeps a Club strong or weak but its Roster: there are no
+contracts, no trades, no cap and no Manager with a plan. A ten-Season run
+converges: the spread of points falls from about 18 in the first Season to
+about 13 in the tenth, and with it the share of runs in which one Club stays on
+top or few Clubs finish first moves to the edge of its bound. Widening Club
+strength in the generator only moves the start. What holds differences between
+Clubs in the NHL arrives in Phase 3, and so does the assertion.
 
 ### The shape of careers
 
@@ -455,18 +469,23 @@ curves in `07-league-over-time.md`: physical attributes growing to 29, skill to
 decline accelerating after 31. This departs from the measured league, whose level
 peaks at 26-27, on purpose (ADR-026).
 
-The assertion is on the mean level of the Skaters on the Rosters of the tenth
-Season, pooled over the runs, by age:
+The assertion is on development alone (#90): a generated league aged ten
+Seasons without anyone leaving, every Skater a regular. The mean change of a
+Skater's level at each age, added up from 18, gives the level of a career by
+age, and its mean over each band is asserted (`test/develop.test.ts`):
 
 | Assertion | Band |
 | --- | --- |
 | Rises from 22-24 to 25-27, and from 25-27 to 28-30 | |
 | 31-33 against 28-30 | within ±0.3 |
-| 34 or older below 31-33 | |
+| 34-36 below 31-33 | |
 
-The level of those still in the league carries who stayed as well as how they
-developed. Development alone, a generated league aged without anyone leaving,
-holds the same shape (`test/develop.test.ts`).
+The level of the Skaters on the Rosters of a tenth Season is reported, not
+asserted. It carries who stayed as well as how they developed: Players leave
+by their role (ADR-027), so those still playing at 31 and beyond are the good
+ones, and the Rosters' level keeps rising with age even where every career
+declines. The 2025-26 roster file, estimated from real Players, falls slightly after
+28.
 
 ## Tier 3 - Tactics are not placebos
 
