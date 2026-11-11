@@ -3,6 +3,11 @@
 Phase 0 ends when the suite in `packages/sim/test/realism/` is green. Not when
 the engine feels right (R-03). This document is the definition of done.
 
+The targets over one Season are asserted in `packages/sim/test/realism/`, and
+those over a run of Seasons (Phase 2) in `packages/sim/test/longrun/`. Both
+read Seasons simulated once per run of the suite and cached by the source they
+came from, so a test of the same Seasons does not play them again.
+
 ## Method
 
 The reference Competition is the real NHL 2026-27 alignment - 32 Clubs, 4

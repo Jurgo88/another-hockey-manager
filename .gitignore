@@ -20,3 +20,6 @@ Thumbs.db
 # Simulation output artifacts (regenerable)
 out/
 *.season.json
+
+# Simulated Seasons the realism and long-run tests share (#106)
+.cache/

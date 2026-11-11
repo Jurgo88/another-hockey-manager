@@ -93,3 +93,16 @@ Managers decide: a draft window (`setDraftList`, `runDraft`) and a Roster window
 from it. Each is a pure step, and stopping between any two changes nothing.
 `nextSeason` stays as all of them with nothing declared. Prospects and the draft
 held before a Season are part of its state.
+
+## Amendment, 2026-11-10: a Season of any Competition (#106)
+
+`startSeason` takes the Competition it starts as data: its structure, playoff
+format and draft format (D-10). Left out, it is the NHL 2026-27, as before, and
+so is every result. A provider that is not given is the generator for that
+structure. Nothing in a Season's steps reads the NHL directly: they read the
+formats the state carries.
+
+The tests use this for a small Competition of 8 Clubs, two Conferences of two
+Divisions, with a short schedule, a two-round bracket and a one-round draft.
+Tests that need a Season only as an input play it, and tests of the NHL's own
+shape keep the NHL.

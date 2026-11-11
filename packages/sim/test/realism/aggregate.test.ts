@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { simulateSeason } from '../../src/cli/season.js'
+import { cachedSeason } from '../support/simulations.js'
 
 /**
  * Tier 1 aggregate rates (04-validation-targets.md): scoring from possession
@@ -49,8 +49,8 @@ describe('Tier 1 aggregate rates', async () => {
   const highestPenalties: number[] = []
   const homeWinSpread: number[] = []
 
-  for (const seed of SEASON_SEEDS) {
-    const { matches, season } = await simulateSeason(seed)
+  // Asked for together, so Seasons not yet cached are simulated side by side.
+  for (const { matches, season } of await Promise.all(SEASON_SEEDS.map(cachedSeason))) {
     fixtures += matches.length
     for (const club of season.clubs.values()) {
       goals += club.goalsFor

@@ -12,6 +12,7 @@ import {
 } from '../src/cli/format.js'
 import { simulateSeason, type SimulatedSeason } from '../src/cli/season.js'
 import { points } from '../src/stats/match.js'
+import { SMALL_LEAGUE, SMALL_SEASON } from './support/league.js'
 
 const SEED = 11
 
@@ -70,8 +71,10 @@ describe('a printed Season', () => {
   })
 
   it('prints the same report for the same seed (FR-02)', async () => {
-    const again = await simulateSeason(SEED)
-    expect(renderSeason(again, NHL_2026_27, 10)).toBe(renderSeason(season, NHL_2026_27, 10))
+    const [once, again] = await Promise.all(
+      [1, 2].map(() => simulateSeason(SEED, undefined, SMALL_SEASON)),
+    )
+    expect(renderSeason(again!, SMALL_LEAGUE, 10)).toBe(renderSeason(once!, SMALL_LEAGUE, 10))
   })
 
   it('replays a Fixture to the stream its statistics came from', () => {

@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest'
 import { SKATER_ATTRIBUTE_KEYS } from '../../src/domain/attributes.js'
 import type { Club, Lineup, Tactics } from '../../src/domain/club.js'
 import type { MatchEvent, MatchEndEvent } from '../../src/domain/event.js'
@@ -8,18 +7,19 @@ import { buildNaiveLineup, DEFAULT_TACTICS } from '../../src/engine/lineup.js'
 import { simulateFixture } from '../../src/engine/simulate.js'
 import { createGeneratedRosterProvider } from '../../src/generate/roster.js'
 import { foldMatch, points } from '../../src/stats/match.js'
-import { fixtureBetween } from '../support/fixtures.js'
+import { fixtureBetween } from './fixtures.js'
 
 /**
- * Tier 3 (04-validation-targets.md): every Tactics dial has a measurable,
- * directionally correct effect. Rosters and seeds are held fixed and one dial
- * varies, on the home Club, so a difference can only come from that dial.
+ * The measurements of Tier 3 (04-validation-targets.md), shared by the
+ * `test/realism/tactics-*.test.ts` files so that their dials are played side by
+ * side (#106). Rosters and seeds are held fixed and one dial varies, on the home
+ * Club, so a difference can only come from that dial.
  */
 
-const PAIRINGS_OF_CLUBS = 6
-const FIXTURES_PER_PAIR = 300
+export const PAIRINGS_OF_CLUBS = 6
+export const FIXTURES_PER_PAIR = 300
 const MEETINGS = 1000
-const BEST_BEATS_WORST = 65
+export const BEST_BEATS_WORST = 65
 
 const provider = createGeneratedRosterProvider({
   structure: NHL_2026_27,
@@ -28,9 +28,9 @@ const provider = createGeneratedRosterProvider({
     NHL_2026_27_CLUB_SEEDS.map((club) => [club.id, { code: club.code, name: club.name }]),
   ),
 })
-const { clubs } = await provider.loadCompetition('nhl')
+export const { clubs } = await provider.loadCompetition('nhl')
 
-interface Aggregate {
+export interface Aggregate {
   fixtures: number
   shotsFor: number
   shotsAgainst: number
@@ -47,7 +47,7 @@ const firstLine = (lineup: Lineup): readonly PlayerId[] => {
   return [leftWing, centre, rightWing]
 }
 
-function playAll(tactics: Partial<Tactics>): Aggregate {
+export function playAll(tactics: Partial<Tactics>): Aggregate {
   const total: Aggregate = {
     fixtures: 0,
     shotsFor: 0,
@@ -145,7 +145,7 @@ function twin(club: Club): Club {
   }
 }
 
-function bestBeatsWorstRate(club: Club): number {
+export function bestBeatsWorstRate(club: Club): number {
   const other = twin(club)
   const best = buildNaiveLineup(club)
   const worst = worstLineup(other)
@@ -163,58 +163,3 @@ function bestBeatsWorstRate(club: Club): number {
   }
   return (100 * wins) / MEETINGS
 }
-
-describe('Tier 3 - tactics are not placebos', () => {
-  const none = playAll({})
-  const aggressive = playAll({ aggression: 75 })
-  const passive = playAll({ aggression: 25 })
-  const shooting = playAll({ shotVolume: 75 })
-  const selective = playAll({ shotVolume: 25 })
-  const shortShifts = playAll({ shiftLength: 75 })
-  const longShifts = playAll({ shiftLength: 25 })
-  const exploit = playAll({ matchup: 'exploit' })
-  const shutdown = playAll({ matchup: 'shutdown' })
-  const exploitLongShifts = playAll({ matchup: 'exploit', shiftLength: 25 })
-  const exploitShortShifts = playAll({ matchup: 'exploit', shiftLength: 75 })
-
-  it('plays the same number of Fixtures under every dial', () => {
-    expect(aggressive.fixtures).toBe(none.fixtures)
-    expect(none.fixtures).toBe(PAIRINGS_OF_CLUBS * FIXTURES_PER_PAIR)
-  })
-
-  it('aggression raises shots for, shots against and penalties', () => {
-    expect(aggressive.shotsFor).toBeGreaterThan(passive.shotsFor)
-    expect(aggressive.shotsAgainst).toBeGreaterThan(passive.shotsAgainst)
-    expect(aggressive.penalties).toBeGreaterThan(passive.penalties)
-  })
-
-  it('shotVolume raises shots and lowers their mean danger', () => {
-    expect(shooting.shotsFor).toBeGreaterThan(selective.shotsFor)
-    expect(shooting.meanDanger).toBeLessThan(selective.meanDanger)
-  })
-
-  it('shorter Shifts leave a Roster less tired at the end of a Fixture', () => {
-    expect(shortShifts.endFatigue).toBeLessThan(longShifts.endFatigue)
-  })
-
-  it('exploit raises the first Line point production', () => {
-    expect(exploit.firstLinePoints).toBeGreaterThan(none.firstLinePoints)
-  })
-
-  it('shutdown lowers the opposing first Line point production', () => {
-    expect(shutdown.opposingFirstLinePoints).toBeLessThan(none.opposingFirstLinePoints)
-  })
-
-  it('a matchup tires the Skaters it sends out', () => {
-    expect(exploit.endFatigue).toBeGreaterThan(none.endFatigue)
-    expect(shutdown.endFatigue).toBeGreaterThan(none.endFatigue)
-  })
-
-  it('shorter Shifts weaken a matchup', () => {
-    expect(exploitShortShifts.firstLineSeconds).toBeLessThan(exploitLongShifts.firstLineSeconds)
-  })
-
-  it(`a Club's best Lineup beats its worst more than ${BEST_BEATS_WORST}% of the time`, () => {
-    expect(bestBeatsWorstRate(clubs[0]!)).toBeGreaterThan(BEST_BEATS_WORST)
-  })
-})

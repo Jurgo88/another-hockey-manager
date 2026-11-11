@@ -1,5 +1,5 @@
 import type { Club, Lineup, Tactics } from '../domain/club.js'
-import type { CompetitionStructure } from '../domain/competition.js'
+import type { CompetitionStructure, SeasonFormat } from '../domain/competition.js'
 import type { MatchEvent } from '../domain/event.js'
 import type { Fixture, FixtureChange, FixtureId, FixtureInput } from '../domain/fixture.js'
 import type { DraftFormat, DraftPick, Prospect, RosterMoves } from '../domain/draft.js'
@@ -17,12 +17,7 @@ import {
 import type { PlayoffFormat, PlayoffState } from '../domain/playoff.js'
 import { ROSTER_SHAPE, type RosterProvider } from '../domain/roster.js'
 import type { StandingsRow } from '../domain/standings.js'
-import {
-  NHL_2026_27,
-  NHL_2026_27_CLUB_SEEDS,
-  NHL_DRAFT_FORMAT,
-  NHL_PLAYOFF_FORMAT,
-} from '../data/nhl-2026-27.js'
+import { NHL_2026_27_CLUB_SEEDS, NHL_2026_27_SEASON } from '../data/nhl-2026-27.js'
 import { develop } from '../develop/index.js'
 import {
   applyMoves,
@@ -221,25 +216,31 @@ export class InvalidLineupError extends Error {
 }
 
 /**
- * One full NHL 2026-27 Season before its first day, on the Rosters a provider
- * gives (D-05), or on 32 generated Clubs.
+ * One full Season before its first day, of the NHL 2026-27 unless another
+ * format is given (D-10, ADR-014), on the Rosters a provider gives (D-05), or on
+ * Clubs generated for its structure.
  */
 export async function startSeason(
   seed: number,
-  provider: RosterProvider = createGeneratedRosterProvider({
-    structure: NHL_2026_27,
-    seed,
-    clubIdentities: new Map(
-      NHL_2026_27_CLUB_SEEDS.map((club) => [club.id, { code: club.code, name: club.name }]),
-    ),
-  }),
+  provider?: RosterProvider,
+  format: SeasonFormat = NHL_2026_27_SEASON,
 ): Promise<SeasonState> {
-  const { clubs } = await provider.loadCompetition(NHL_2026_27.id)
+  const { structure } = format
+  const rosters =
+    provider ??
+    createGeneratedRosterProvider({
+      structure,
+      seed,
+      clubIdentities: new Map(
+        NHL_2026_27_CLUB_SEEDS.map((club) => [club.id, { code: club.code, name: club.name }]),
+      ),
+    })
+  const { clubs } = await rosters.loadCompetition(structure.id)
   const unset: SeasonState = {
-    ...freshSeason(seed, NHL_2026_27, 1),
+    ...freshSeason(seed, structure, 1),
     seed,
-    playoffFormat: NHL_PLAYOFF_FORMAT,
-    draftFormat: NHL_DRAFT_FORMAT,
+    playoffFormat: format.playoffs,
+    draftFormat: format.draft,
     clubs,
     lineups: {},
     absent: {},

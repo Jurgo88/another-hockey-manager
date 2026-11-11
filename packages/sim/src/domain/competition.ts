@@ -1,5 +1,6 @@
 import type { ClubId } from './player.js'
-import type { OvertimeRegime } from './playoff.js'
+import type { DraftFormat } from './draft.js'
+import type { OvertimeRegime, PlayoffFormat } from './playoff.js'
 
 export type ConferenceId = string
 export type DivisionId = string
@@ -67,4 +68,11 @@ export function gamesPerClub(key: ScheduleKey, divisionSize: number, conferenceS
     intraConferenceOpponents * key.intraConference.games +
     interConferenceOpponents * key.interConference.games
   )
+}
+
+/** All a Season of a Competition is played to, as data (D-10, ADR-014). */
+export interface SeasonFormat {
+  structure: CompetitionStructure
+  playoffs: PlayoffFormat
+  draft: DraftFormat
 }

@@ -9,14 +9,20 @@ import {
   type PlayoffResult,
 } from '../src/stats/history.js'
 import { points } from '../src/stats/match.js'
+import { SMALL_SEASON } from './support/league.js'
 
-/** Season history and Player careers, read from the records of a run (#86). */
+/** Season history and Player careers, read from the records of a run (#86), in the small Competition. */
+
+const { structure, playoffs: bracket } = SMALL_SEASON
+const DIVISION_SIZE = structure.divisions[0]!.clubIds.length
+const ROUNDS = bracket.winsPerRound.length
+const QUALIFIED = 2 ** ROUNDS
 
 describe('Season history and careers', () => {
   let run: SimulatedRun
 
   beforeAll(async () => {
-    run = await simulateSeasons(4, 2)
+    run = await simulateSeasons(4, 2, undefined, SMALL_SEASON)
   })
 
   it('keeps one record for each Season, in order', () => {
@@ -35,20 +41,17 @@ describe('Season history and careers', () => {
       expect(ofSeason.map((line) => line.leagueRank).sort((a, b) => a - b)).toEqual(
         run.clubs.map((_, rank) => rank + 1),
       )
-      expect(ofSeason.every((line) => line.divisionRank >= 1 && line.divisionRank <= 8)).toBe(true)
+      expect(
+        ofSeason.every((line) => line.divisionRank >= 1 && line.divisionRank <= DIVISION_SIZE),
+      ).toBe(true)
 
       const results = ofSeason.map((line) => line.playoffs)
       const count = (test: (result: PlayoffResult) => boolean) => results.filter(test).length
-      expect(count((r) => r.kind === 'missed')).toBe(16)
+      expect(count((r) => r.kind === 'missed')).toBe(run.clubs.length - QUALIFIED)
       expect(count((r) => r.kind === 'champion')).toBe(1)
-      // 16 Clubs in, halved each round: 8 lose in the first, 4, 2, and one in the final.
-      for (const [round, losers] of [
-        [1, 8],
-        [2, 4],
-        [3, 2],
-        [4, 1],
-      ] as const) {
-        expect(count((r) => r.kind === 'lost' && r.round === round)).toBe(losers)
+      // The Clubs in are halved each round, and one loses the final.
+      for (let round = 1; round <= ROUNDS; round++) {
+        expect(count((r) => r.kind === 'lost' && r.round === round)).toBe(QUALIFIED / 2 ** round)
       }
       const champion = ofSeason.find((line) => line.playoffs.kind === 'champion')!
       expect(champion.row.clubId).toBe(season.champion)

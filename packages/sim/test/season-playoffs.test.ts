@@ -19,16 +19,24 @@ let playoffFixtures: PlayedFixture[]
 let straight: PlayedFixture[]
 let fromSaved: PlayedFixture[]
 
-/** A whole Season. With `saved`, the state goes through JSON after every day. */
-async function playThrough(saved: boolean): Promise<{ end: SeasonState; all: PlayedFixture[] }> {
-  let state = await startSeason(SEED)
+/**
+ * Plays from `state` while `until` is false. With `saved`, the state goes
+ * through JSON after every day. The regular Season through saved state is
+ * `season.test.ts`'s; here the playoffs are played both ways.
+ */
+function playUntil(
+  state: SeasonState,
+  until: (state: SeasonState) => boolean,
+  saved = false,
+): { end: SeasonState; all: PlayedFixture[] } {
   const all: PlayedFixture[] = []
-  while (!isSeasonOver(state)) {
-    const day = advanceDay(state)
+  let current = state
+  while (!until(current)) {
+    const day = advanceDay(current)
     all.push(...day.played)
-    state = saved ? (JSON.parse(JSON.stringify(day.state)) as SeasonState) : day.state
+    current = saved ? (JSON.parse(JSON.stringify(day.state)) as SeasonState) : day.state
   }
-  return { end: state, all }
+  return { end: current, all }
 }
 
 const allSeries = (state: SeasonState): readonly PlayoffSeries[] =>
@@ -42,15 +50,16 @@ const fixturesOf = (series: PlayoffSeries) =>
   )
 
 beforeAll(async () => {
-  const whole = await playThrough(false)
-  end = whole.end
-  straight = whole.all
+  const regular = playUntil(await startSeason(SEED), isRegularSeasonOver)
+  const playoffs = playUntil(regular.end, isSeasonOver)
+  end = playoffs.end
+  straight = [...regular.all, ...playoffs.all]
   playoffFixtures = straight.slice(REGULAR_FIXTURES)
-  fromSaved = (await playThrough(true)).all
+  fromSaved = [...regular.all, ...playUntil(regular.end, isSeasonOver, true).all]
 }, 120_000)
 
 describe('a Season to its champion', () => {
-  it('runs from the first Fixture to a champion through saved state', () => {
+  it('runs from the first Fixture to a champion, the playoffs through saved state', () => {
     expect(end.playoffs!.champion).not.toBeNull()
     expect(fromSaved.map((p) => p.events)).toEqual(straight.map((p) => p.events))
   })

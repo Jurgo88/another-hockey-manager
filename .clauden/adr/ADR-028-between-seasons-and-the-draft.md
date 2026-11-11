@@ -177,7 +177,7 @@ fitted to the draft table of the Phase 2 gate. A fast harness of classes
 developed without Fixtures was planned. It was not needed: a ten-Season run takes
 about a minute, so three generated leagues in parallel were the fit itself, and
 they measure the real table rather than proxies of it.
-`test/realism/draft.test.ts` holds it.
+`test/longrun/draft.test.ts` holds it.
 
 Fitted on 2026-11-10, of the first four classes read in Season 10:
 

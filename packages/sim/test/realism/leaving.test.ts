@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { simulateSeason } from '../../src/cli/season.js'
+import { cachedSeason } from '../support/simulations.js'
 import { isGoalie, positionGroup, type Player } from '../../src/domain/player.js'
 import { leavingChance, roles } from '../../src/leave/index.js'
 
@@ -41,7 +41,7 @@ describe('leaving the league', async () => {
   const rows: Row[] = (
     await Promise.all(
       SEASON_SEEDS.map(async (seed) => {
-        const { clubs, season } = await simulateSeason(seed)
+        const { clubs, season } = await cachedSeason(seed)
         const usage = (player: Player) => {
           const skater = season.skaters.get(player.id)
           const fixtures = (skater ?? season.goalies.get(player.id))?.gamesPlayed ?? 0

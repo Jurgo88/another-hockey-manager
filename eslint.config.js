@@ -31,7 +31,7 @@ export default tseslint.config(
       parserOptions: {
         projectService: {
           // Config files that sit outside every package's tsconfig.
-          allowDefaultProject: ['packages/*/vitest.config.ts'],
+          allowDefaultProject: ['packages/*/vitest.workspace.ts'],
         },
         tsconfigRootDir: import.meta.dirname,
       },

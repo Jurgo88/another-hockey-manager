@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { simulateSeason } from '../../src/cli/season.js'
+import { cachedSeason } from '../support/simulations.js'
 
 /**
  * The age of a generated league (#84), against the Phase 2 targets in
@@ -18,7 +18,7 @@ const within = (value: number, target: number, band: number) => {
 describe('the age of a generated league', async () => {
   const leagues = await Promise.all(
     SEASON_SEEDS.map(async (seed) => {
-      const season = await simulateSeason(seed)
+      const season = await cachedSeason(seed)
       const ages = new Map(
         season.clubs.flatMap((club) => [...club.skaters, ...club.goalies]).map((p) => [p.id, p.age]),
       )
