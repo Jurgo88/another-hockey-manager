@@ -438,6 +438,8 @@ describe('the draft table', () => {
         },
         playoffs: { matches: 0, skaters: {}, goalies: {} },
       },
+      departures: [],
+      roster: [],
       draft:
         year === 2
           ? [

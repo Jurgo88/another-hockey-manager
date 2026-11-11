@@ -97,3 +97,23 @@ export function positionGroup(player: Player): PositionGroup {
   const natural = player.preferredPositions[0]
   return natural === 'LD' || natural === 'RD' ? 'defence' : 'forward'
 }
+
+/** Who left the league between one Season and the next, and why. */
+export interface Departure {
+  playerId: PlayerId
+  clubId: ClubId
+  /** His age in the Season he last played. */
+  age: number
+  /**
+   * Retired and unsigned after a Season (ADR-027); released by his Club, or a
+   * prospect whose rights expired and whom no Club took (ADR-028).
+   */
+  reason: 'retired' | 'unsigned' | 'released' | 'rights-expired'
+}
+
+/** A Player's natural position: the first he prefers, or a Goalie's net. */
+export type NaturalPosition = SkaterPosition | 'G'
+
+export function naturalPosition(player: Player): NaturalPosition {
+  return isGoalie(player) ? 'G' : player.preferredPositions[0]!
+}

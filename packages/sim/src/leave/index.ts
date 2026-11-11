@@ -3,7 +3,6 @@ import {
   isGoalie,
   playerLevel,
   positionGroup,
-  type ClubId,
   type Goalie,
   type Player,
   type PlayerId,
@@ -11,6 +10,7 @@ import {
   type Skater,
   type SkaterPosition,
 } from '../domain/player.js'
+import type { Departure } from '../domain/player.js'
 import { ROSTER_SHAPE } from '../domain/roster.js'
 import { generateDistinctNames } from '../generate/names.js'
 import { generateGoalie, generateSkater } from '../generate/roster.js'
@@ -39,18 +39,7 @@ import type { Rng } from '../rng/index.js'
  * calibration (Phase 2, item 8).
  */
 
-/** Who left the league between one Season and the next, and why. */
-export interface Departure {
-  playerId: PlayerId
-  clubId: ClubId
-  /** His age in the Season he last played. */
-  age: number
-  /**
-   * Retired and unsigned after a Season (ADR-027); released by his Club, or a
-   * prospect whose rights expired and whom no Club took (ADR-028).
-   */
-  reason: 'retired' | 'unsigned' | 'released' | 'rights-expired'
-}
+export type { Departure } from '../domain/player.js'
 
 /** Retiring: even odds at about 40, rising by a factor of 1.57 a year. */
 export const RETIREMENT = { logOddsAt35: -2.27, perYear: 0.45 } as const

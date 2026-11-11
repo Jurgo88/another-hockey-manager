@@ -75,6 +75,11 @@ export async function simulateSeason(
 export interface SimulatedRun {
   /** The Clubs as the last Season ended. */
   clubs: readonly Club[]
+  /**
+   * The regular Season of the last Season, as `simulateSeason` gives the first,
+   * so the Tier 1 and Tier 2 targets can be read late in a run (#90).
+   */
+  last: Omit<SimulatedSeason, 'seed' | 'replay'>
   /** Everyone who was on a Roster in any Season, as last seen. */
   players: ReadonlyMap<PlayerId, Player>
   /** Every Season of the run, oldest first, kept as the caller keeps them (#86). */
@@ -92,12 +97,28 @@ export async function simulateSeasons(
   const players = new Map<PlayerId, Player>()
   const seasons: SeasonRecord[] = []
   for (;;) {
+    const fixtures: Fixture[] = []
+    const matches: MatchStats[] = []
+    while (!isRegularSeasonOver(state)) {
+      const day = advanceDay(state)
+      state = day.state
+      if (state.year < count) continue
+      for (const { fixture, match } of day.played) {
+        fixtures.push(fixture)
+        matches.push(match)
+      }
+    }
+    const { clubs } = state
+    const lineups = new Map(Object.entries(state.lineups))
     while (!isSeasonOver(state)) state = advanceDay(state).state
     for (const club of state.clubs) {
       for (const player of [...club.skaters, ...club.goalies]) players.set(player.id, player)
     }
     seasons.push(recordOf(state))
-    if (state.year === count) return { clubs: state.clubs, players, seasons }
+    if (state.year === count) {
+      const last = { clubs, lineups, fixtures, matches, season: foldSeason(matches) }
+      return { clubs: state.clubs, last, players, seasons }
+    }
     state = nextSeason(state)
   }
 }

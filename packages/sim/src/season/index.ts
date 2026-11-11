@@ -5,6 +5,7 @@ import type { Fixture, FixtureChange, FixtureId, FixtureInput } from '../domain/
 import type { DraftFormat, DraftPick, Prospect, RosterMoves } from '../domain/draft.js'
 import {
   isGoalie,
+  naturalPosition,
   playerLevel,
   positionGroup,
   type ClubId,
@@ -566,6 +567,16 @@ export function recordOf(state: SeasonState): SeasonRecord {
     playoffs: state.playoffs,
     totals: state.totals,
     draft: state.draft,
+    departures: state.departures,
+    roster: state.clubs.flatMap((club) =>
+      [...club.skaters, ...club.goalies].map((player) => ({
+        playerId: player.id,
+        clubId: club.id,
+        age: player.age,
+        position: naturalPosition(player),
+        level: playerLevel(player),
+      })),
+    ),
   }
 }
 

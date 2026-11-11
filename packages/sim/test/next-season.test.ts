@@ -1,6 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { develop } from '../src/develop/index.js'
 import { validateLineup } from '../src/engine/lineup.js'
+import { playerLevel } from '../src/domain/player.js'
 import { createRng } from '../src/rng/index.js'
 import {
   advanceDay,
@@ -55,7 +56,19 @@ describe('nextSeason', () => {
       playoffs: ended.playoffs,
       totals: ended.totals,
       draft: [],
+      departures: [],
+      roster: expect.any(Array) as unknown,
     })
+    const [first] = recordOf(ended).roster
+    const player = ended.clubs[0]!.skaters[0]!
+    expect(first).toEqual({
+      playerId: player.id,
+      clubId: ended.clubs[0]!.id,
+      age: player.age,
+      position: player.preferredPositions[0],
+      level: playerLevel(player),
+    })
+    expect(recordOf(playToChampion(next)).departures).toEqual(next.departures)
     expect(() => recordOf(start)).toThrow(/no champion/)
   })
 

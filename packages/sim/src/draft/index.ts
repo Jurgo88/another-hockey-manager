@@ -2,10 +2,12 @@ import type { Club } from '../domain/club.js'
 import type { DraftFormat, DraftLottery, DraftPick, Prospect, RosterMoves } from '../domain/draft.js'
 import {
   isGoalie,
+  naturalPosition,
   playerLevel,
   positionGroup,
   type ClubId,
   type Player,
+  type NaturalPosition,
   type PlayerId,
   type PositionGroup,
   type Skater,
@@ -291,11 +293,8 @@ function groupOf(club: Club, group: PositionGroup): Player[] {
 }
 
 /** A Player's natural position, a Goalie's being his own. A Roster keeps its balance of them. */
-export type Natural = SkaterPosition | 'G'
-
-export function naturalOf(player: Player): Natural {
-  return isGoalie(player) ? 'G' : player.preferredPositions[0]!
-}
+export type Natural = NaturalPosition
+export const naturalOf = naturalPosition
 
 /** A Club's Roster at a natural position, weakest first. */
 function atNatural(players: readonly Player[], natural: Natural): Player[] {

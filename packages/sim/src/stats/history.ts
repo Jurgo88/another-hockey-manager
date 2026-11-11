@@ -1,5 +1,5 @@
 import type { DraftPick } from '../domain/draft.js'
-import type { ClubId, PlayerId } from '../domain/player.js'
+import type { ClubId, Departure, NaturalPosition, PlayerId } from '../domain/player.js'
 import type { PlayoffState } from '../domain/playoff.js'
 import type { StandingsRow } from '../domain/standings.js'
 import type { GoalieStats, SkaterStats } from './match.js'
@@ -27,6 +27,20 @@ export interface SeasonRecord {
   totals: Readonly<{ regular: SeasonTotals; playoffs: SeasonTotals }>
   /** The draft held before this Season (ADR-028), empty before the first. */
   draft: readonly DraftPick[]
+  /** Who left the league between the Season before and this one, empty before the first. */
+  departures: readonly Departure[]
+  /** Everyone on a Roster as the Season ended (ADR-025 amendment). */
+  roster: readonly RosterEntry[]
+}
+
+/** A Player on a Roster as a Season ended: enough to read the league's age and level. */
+export interface RosterEntry {
+  playerId: PlayerId
+  clubId: ClubId
+  age: number
+  position: NaturalPosition
+  /** His level (ADR-020) as the Season ended, before he developed. */
+  level: number
 }
 
 /** How far a Club went in the playoffs: the last round it played, from 1. */
