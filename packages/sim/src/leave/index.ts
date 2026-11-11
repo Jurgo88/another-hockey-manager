@@ -22,8 +22,8 @@ import type { Rng } from '../rng/index.js'
  *
  * Two ways out, drawn in turn from one stream per Player and Season (D-08):
  *
- * - **Retired**: the Player's decision, by age alone. A Manager cannot
- *   overrule it.
+ * - **Retired**: the Player's decision, by age, and later for a Player who
+ *   still plays a large role (#90). A Manager cannot overrule it.
  * - **Unsigned**: nobody gives him a new contract. Its chance falls steeply
  *   with his role, his ice time per Fixture among the Players at his position
  *   across the league. It stands in for contracts until Phase 3, where a
@@ -41,19 +41,28 @@ import type { Rng } from '../rng/index.js'
 
 export type { Departure } from '../domain/player.js'
 
-/** Retiring: even odds at about 40, rising by a factor of 1.57 a year. */
-export const RETIREMENT = { logOddsAt35: -2.27, perYear: 0.45 } as const
+/**
+ * Retiring: about 9% at 35 for a Player of middle role, rising by a factor of
+ * 1.67 a year. A Player at the top of his position plays on: his odds are a
+ * fifth of the middle's, and the smallest role's five times them (#90).
+ */
+export const RETIREMENT = { logOddsAt35: -2.28, perYear: 0.51, roleWeight: 3.48 } as const
 
-/** A Player's chance to retire after a Season, from his age in it. */
-export function retirementChance(age: number): number {
-  return logistic(RETIREMENT.logOddsAt35 + RETIREMENT.perYear * (age - 35))
+/** A Player's chance to retire after a Season, from his age in it and his role. */
+export function retirementChance(age: number, role: number): number {
+  return logistic(
+    RETIREMENT.logOddsAt35 +
+      RETIREMENT.perYear * (age - 35) +
+      RETIREMENT.roleWeight * (0.5 - role),
+  )
 }
 
 /**
- * Not signed again: about 37% for a Player with the smallest role, below 1% for
- * a regular in the top half, and slightly likelier the older he is.
+ * Not signed again: about 41% at 27 for a Player with the smallest role, below
+ * 1% for a regular in the top half, and likelier by a fifth for each year older,
+ * so a young Player who barely played is more often kept than a veteran (#90).
  */
-export const UNSIGNED = { logOdds: -3.28, roleWeight: 5.48, perYear: 0.11, aroundAge: 27 } as const
+export const UNSIGNED = { logOdds: -3.81, roleWeight: 6.86, perYear: 0.19, aroundAge: 27 } as const
 
 /**
  * A Player's chance to be left without a contract after a Season, from his age
@@ -69,7 +78,7 @@ export function unsignedChance(age: number, role: number): number {
 
 /** The chance to leave by either way, as `departures` draws them in turn. */
 export function leavingChance(age: number, role: number): number {
-  return 1 - (1 - retirementChance(age)) * (1 - unsignedChance(age, role))
+  return 1 - (1 - retirementChance(age, role)) * (1 - unsignedChance(age, role))
 }
 
 function logistic(logOdds: number): number {
@@ -141,9 +150,10 @@ export function departures(
   for (const club of clubs) {
     for (const player of [...club.skaters, ...club.goalies]) {
       const rng = streamOf(player)
-      const reason = rng.chance(retirementChance(player.age))
+      const role = roleOf.get(player.id) ?? 0
+      const reason = rng.chance(retirementChance(player.age, role))
         ? 'retired'
-        : rng.chance(unsignedChance(player.age, roleOf.get(player.id) ?? 0))
+        : rng.chance(unsignedChance(player.age, role))
           ? 'unsigned'
           : null
       if (reason) out.push({ playerId: player.id, clubId: club.id, age: player.age, reason })
