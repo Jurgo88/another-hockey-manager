@@ -41,7 +41,9 @@ describe('Season history and careers', () => {
       expect(ofSeason.map((line) => line.leagueRank).sort((a, b) => a - b)).toEqual(
         run.clubs.map((_, rank) => rank + 1),
       )
-      expect(ofSeason.every((line) => line.divisionRank >= 1 && line.divisionRank <= DIVISION_SIZE)).toBe(true)
+      expect(
+        ofSeason.every((line) => line.divisionRank >= 1 && line.divisionRank <= DIVISION_SIZE),
+      ).toBe(true)
 
       const results = ofSeason.map((line) => line.playoffs)
       const count = (test: (result: PlayoffResult) => boolean) => results.filter(test).length

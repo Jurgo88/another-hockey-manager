@@ -163,4 +163,3 @@ export function bestBeatsWorstRate(club: Club): number {
   }
   return (100 * wins) / MEETINGS
 }
-

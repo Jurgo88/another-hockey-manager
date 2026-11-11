@@ -71,7 +71,9 @@ describe('a printed Season', () => {
   })
 
   it('prints the same report for the same seed (FR-02)', async () => {
-    const [once, again] = await Promise.all([1, 2].map(() => simulateSeason(SEED, undefined, SMALL_SEASON)))
+    const [once, again] = await Promise.all(
+      [1, 2].map(() => simulateSeason(SEED, undefined, SMALL_SEASON)),
+    )
     expect(renderSeason(again!, SMALL_LEAGUE, 10)).toBe(renderSeason(once!, SMALL_LEAGUE, 10))
   })
 

@@ -1,6 +1,17 @@
 import { execFile } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { closeSync, existsSync, mkdirSync, openSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs'
+import {
+  closeSync,
+  existsSync,
+  mkdirSync,
+  openSync,
+  readdirSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs'
 import { createRequire } from 'node:module'
 import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -46,7 +57,13 @@ export function cachedRun(seed: number, count: number): Promise<SimulatedRun> {
 type SeasonEntry = Omit<CachedSeason, 'season'>
 
 /** What is kept of a Season: its statistics are folded again on reading, which is cheap. */
-export function seasonEntry({ seed, clubs, lineups, fixtures, matches }: SimulatedSeason): SeasonEntry {
+export function seasonEntry({
+  seed,
+  clubs,
+  lineups,
+  fixtures,
+  matches,
+}: SimulatedSeason): SeasonEntry {
   return { seed, clubs, lineups, fixtures, matches }
 }
 
@@ -73,8 +90,14 @@ async function cached<T>(name: string, args: readonly string[]): Promise<T> {
 function inProcessOf(args: readonly string[]): Promise<void> {
   const tsx = createRequire(import.meta.url).resolve('tsx/cli')
   return new Promise((resolve, reject) => {
-    execFile(process.execPath, [tsx, WORKER, ...args], { cwd: PACKAGE, maxBuffer: 1 << 24 }, (error, _out, stderr) =>
-      error ? reject(new Error(`${args.join(' ')} failed: ${stderr || error.message}`)) : resolve(),
+    execFile(
+      process.execPath,
+      [tsx, WORKER, ...args],
+      { cwd: PACKAGE, maxBuffer: 1 << 24 },
+      (error, _out, stderr) =>
+        error
+          ? reject(new Error(`${args.join(' ')} failed: ${stderr || error.message}`))
+          : resolve(),
     )
   })
 }
@@ -104,13 +127,18 @@ function abandoned(lock: string): boolean {
 export function write(file: string, value: unknown): void {
   mkdirSync(dirname(file), { recursive: true })
   const partial = `${file}.${process.pid}.partial`
-  writeFileSync(partial, gzipSync(JSON.stringify(value, (_, v: unknown) => (v instanceof Map ? { __map: [...v] } : v))))
+  writeFileSync(
+    partial,
+    gzipSync(JSON.stringify(value, (_, v: unknown) => (v instanceof Map ? { __map: [...v] } : v))),
+  )
   renameSync(partial, file)
 }
 
 function decode<T>(bytes: Buffer): T {
   return JSON.parse(gunzipSync(bytes).toString('utf8'), (_, v: unknown) =>
-    v !== null && typeof v === 'object' && '__map' in v ? new Map((v as { __map: [unknown, unknown][] }).__map) : v,
+    v !== null && typeof v === 'object' && '__map' in v
+      ? new Map((v as { __map: [unknown, unknown][] }).__map)
+      : v,
   ) as T
 }
 
