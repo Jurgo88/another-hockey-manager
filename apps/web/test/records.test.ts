@@ -1,8 +1,10 @@
 import {
   advanceDay,
+  endSeason,
   isSeasonOver,
   nextSeason,
   recordOf,
+  startNextSeason,
   startSeason,
   type SeasonState,
 } from '@ahm/sim'
@@ -58,5 +60,14 @@ describe('a Season record stored split (ADR-029)', () => {
     expect(row.roster_order).toBeNull()
     expect(row.regular).not.toBeNull()
     expect(joinRecord(own, players)).toEqual(trimmed)
+  })
+})
+
+describe('a career moving on through storage (ADR-029)', () => {
+  it('gives the same next Season when the Offseason is stored between the steps', async () => {
+    const ended = played(await startSeason(7, undefined, SMALL_SEASON))
+    // What the routes do: the ended Season, then the Offseason, each through a json column.
+    const offseason = throughJson(endSeason(throughJson(ended)))
+    expect(startNextSeason(offseason)).toEqual(nextSeason(ended))
   })
 })
