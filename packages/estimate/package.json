@@ -12,6 +12,7 @@
     "test": "vitest run",
     "test:unit": "vitest run --project unit",
     "test:realism": "vitest run --project realism",
+    "test:longrun": "vitest run --project longrun",
     "sim:estimate": "tsx src/cli.ts",
     "sim:validate": "tsx src/cli-validate.ts",
     "sim:measure": "tsx src/cli-measure.ts"

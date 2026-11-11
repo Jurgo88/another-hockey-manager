@@ -200,7 +200,12 @@ genre to balance, and an open bidding market inflates without fail.
 - Scouting, which is where `potential` finally becomes visible and uncertain
 
 **Gate:** ten simulated Seasons of AI-only transfer activity leave wage
-inflation and talent distribution inside defined bounds.
+inflation and talent distribution inside defined bounds, and the table targets
+deferred from the Phase 2 gate hold: no Club in the top 8 more than 9 of 10
+Seasons, at least 5 Clubs finishing first, and a spread of points of 16.1 ±3 in
+the tenth Season. So do the tenth Season's highest and lowest Club penalties, scoring
+leader, forward tier-1 to tier-4 points-per-minute ratio and standings spread
+(`04-validation-targets.md`).
 
 ## Phase 4 - Other Managers
 

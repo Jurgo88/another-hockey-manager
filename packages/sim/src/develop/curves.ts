@@ -59,10 +59,15 @@ export const ICE_TIME: AgeCurve = {
   ]),
 }
 
-/** Skaters' NHL EDGE top speed, in mph, from one pair of seasons. */
+/**
+ * Skaters' NHL EDGE top speed, in mph, from one pair of seasons. The spread is
+ * sized in #90: at 0.75 speed and stamina grew by eight points from 19 to 28,
+ * and the tenth Season of a run played faster, with more penalties, than the
+ * first.
+ */
 export const TOP_SPEED: AgeCurve = {
   measure: 'Skaters’ NHL EDGE top speed, mph, one pair of seasons',
-  spread: 0.75,
+  spread: 1.5,
   smoothing: 2,
   // prettier-ignore
   steps: steps([

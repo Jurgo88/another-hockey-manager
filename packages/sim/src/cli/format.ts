@@ -23,6 +23,15 @@ import {
   type PlayoffResult,
   type SeasonRecord,
 } from '../stats/history.js'
+import {
+  ageProfile,
+  leavingRate,
+  leavingRows,
+  levelByAge,
+  pointsSpread,
+  tableDynamics,
+  type LeavingRow,
+} from '../stats/league.js'
 import type { SimulatedRun, SimulatedSeason } from './season.js'
 
 /**
@@ -214,6 +223,7 @@ export function renderRun(run: SimulatedRun, structure: CompetitionStructure): s
   return [
     section(`${structure.name} - ${run.seasons.length} Seasons`, history),
     ...renderDraft(run.seasons),
+    ...renderLeague(run.seasons),
     ...run.seasons.map((season) =>
       section(
         `Season ${season.year} (${season.seasonId}), champion ${code(season.champion)}`,
@@ -245,6 +255,79 @@ function renderDraft(seasons: readonly SeasonRecord[]): string[] {
   )
   const last = seasons[seasons.length - 1]!.year
   return [section(`The draft, classes of Seasons ${years.join(', ')}, read in Season ${last}`, table)]
+}
+
+/**
+ * The league across a run, as the Phase 2 gate reads it (#90): its age and
+ * spread each Season, who left by age and ice-time third, the level by age in
+ * the last Season, and how the table moved.
+ */
+function renderLeague(seasons: readonly SeasonRecord[]): string[] {
+  if (seasons.length < 2) return []
+  const percent = (share: number) => `${(share * 100).toFixed(1)}%`
+  const ages = renderTable<SeasonRecord>(
+    [
+      { header: 'Season', value: (season) => season.year },
+      { header: 'Mean age', value: (season) => ageProfile(season).meanAge.toFixed(2) },
+      { header: '31+', value: (season) => percent(ageProfile(season).oldShare) },
+      { header: '23-', value: (season) => percent(ageProfile(season).youngShare) },
+      { header: 'Oldest', value: (season) => ageProfile(season).oldest },
+      { header: 'PTS SD', value: (season) => pointsSpread(season).toFixed(1) },
+    ],
+    seasons,
+  )
+  const rows = leavingRows(seasons)
+  const band = (label: string, test: (row: LeavingRow) => boolean) => {
+    const members = rows.filter(test)
+    return { label, rate: leavingRate(members), players: members.length }
+  }
+  const leaving = renderTable(
+    [
+      { header: 'Who', align: 'left', value: (row) => row.label },
+      { header: 'Left', value: (row) => percent(row.rate) },
+      { header: 'Players', value: (row) => row.players },
+    ],
+    [
+      band('23 or younger', (row) => row.age <= 23),
+      band('24-27', (row) => row.age >= 24 && row.age <= 27),
+      band('28-30', (row) => row.age >= 28 && row.age <= 30),
+      band('31-33', (row) => row.age >= 31 && row.age <= 33),
+      band('34-36', (row) => row.age >= 34 && row.age <= 36),
+      band('37 or older', (row) => row.age >= 37),
+      band('Top third', (row) => row.third === 0),
+      band('Middle third', (row) => row.third === 1),
+      band('Bottom third', (row) => row.third === 2),
+    ],
+  )
+  const last = seasons[seasons.length - 1]!
+  const level = renderTable(
+    [
+      { header: 'Age', align: 'left', value: (row) => row.label },
+      { header: 'Level', value: (row) => row.level.toFixed(2) },
+      { header: 'Skaters', value: (row) => row.players },
+    ],
+    levelByAge([last]),
+  )
+  const table = tableDynamics(seasons)
+  const dynamics = renderTable(
+    [
+      { header: 'Measure', align: 'left', value: (row) => row.label },
+      { header: 'Value', value: (row) => row.value },
+    ],
+    [
+      { label: 'Correlation of points, Season to Season', value: table.correlation.toFixed(2) },
+      { label: 'Top 8 still top 8', value: percent(table.topStays) },
+      { label: 'Bottom 8 still bottom 8', value: percent(table.bottomStays) },
+      { label: 'Longest run in the top 8', value: table.longestTopRun },
+      { label: 'Clubs that finished first', value: table.firstPlaceClubs },
+    ],
+  )
+  return [
+    section('The age and spread of the league', ages),
+    section(`Players with 20+ Fixtures who left before the next Season`, leaving),
+    section(`Skater level by age, Season ${last.year}`, level),
+    section('The table across the run', dynamics),
+  ]
 }
 
 function playoffText(result: PlayoffResult): string {

@@ -237,3 +237,47 @@ generated fill, but ADR-024 made them free to fill any Club's gap.
 - Releases add turnover the leaving rates of ADR-027 do not include, so item 8
   refits them together.
 - The web shows both windows and their notices in item 10.
+
+## Amendment, 2026-11-11: the assistant releases by the Season ahead (#90)
+
+The assistant no longer releases the weakest at a position as he stands. It
+releases the Player it expects to be weakest next Season: his level moved by
+what development (ADR-022, ADR-026) brings at his age, without its noise. A
+prospect is ready, likewise, when his expected level reaches that of the
+weakest. A declining veteran so makes room before a young Player still growing,
+as a Club looking a Season ahead would choose. Over ten Seasons, releasing by
+the present kept veterans and let young Players go: 31-33 became the strongest
+ages and 27-29% of the league was 31 or older, against 18%.
+
+A Manager still releases whom he chooses (D-04).
+
+## Amendment, 2026-11-11: a league opens with prospects, and the class is refitted (#90)
+
+The author decided on 2026-11-11 that a league opens with the prospects of its
+last four drafts, generated or read from a roster file alike. Without them the
+first four Seasons had no prospects to call up, gaps were filled by undrafted
+Players, and the league aged until the draft caught up. Each opening class is
+generated and drafted as a Season's class is, in an order shuffled from its own
+stream (D-08), then developed off the Roster for each Season since its draft.
+Rights still last four Seasons, so the oldest opening class expires after the
+first.
+
+A class now competes with the four held before it. Refitted over ten Seasons on
+eight generated leagues and the roster file:
+
+- **The ladders.** A pick arrives half a spread better, with half a spread less
+  room, so the same ceiling: level 1.8, 0.2, -0.4 and -0.9 at places 0, 1/6,
+  2/3 and 1, room 1.5, 0.95, 0.5 and 0.3.
+- **Goalies sit 0.2 spreads lower** on both ladders. The generated league's
+  Goalies sit closer to a fill than its Skaters do, and at the Skaters' ladder
+  drafted Goalies pushed them out.
+- **A swap needs a margin.** The assistant releases a Player for a prospect only
+  when it expects the prospect to be at least one level better next Season.
+  Without it, Clubs swapped for differences development noise erases. A gap is
+  still filled by any ready prospect.
+- **Club strength in the generator** weighs 0.04, from 0.02. A run converges,
+  and at 0.02 the correlation of the table from one Season to the next fell
+  below its band. The first Season stays inside the Tier 2 bands.
+
+The age, leaving, draft and table targets of the Phase 2 gate hold. What does
+not, and why, is in `04-validation-targets.md`.

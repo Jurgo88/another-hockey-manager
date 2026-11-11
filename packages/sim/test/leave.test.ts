@@ -25,14 +25,19 @@ const everyone = () => clubs.flatMap((club) => [...club.skaters, ...club.goalies
 const streamOf = (label: string) => (player: Player) => createRng(88).fork(`${label}:${player.id}`)
 
 describe('the chances', () => {
-  it('make retirement rare before 30 and likely past 40', () => {
-    expect(retirementChance(25)).toBeLessThan(0.005)
-    expect(retirementChance(29)).toBeLessThan(0.01)
-    expect(retirementChance(35)).toBeGreaterThan(0.05)
-    expect(retirementChance(41)).toBeGreaterThan(0.5)
+  it('make retirement rare before 30 and likely past 40, for a Player of middle role', () => {
+    expect(retirementChance(25, 0.5)).toBeLessThan(0.005)
+    expect(retirementChance(29, 0.5)).toBeLessThan(0.01)
+    expect(retirementChance(35, 0.5)).toBeGreaterThan(0.05)
+    expect(retirementChance(41, 0.5)).toBeGreaterThan(0.5)
     for (let age = 19; age < 45; age++) {
-      expect(retirementChance(age + 1)).toBeGreaterThan(retirementChance(age))
+      expect(retirementChance(age + 1, 0.5)).toBeGreaterThan(retirementChance(age, 0.5))
     }
+  })
+
+  it('let a Player who still plays a large role retire later (#90)', () => {
+    expect(retirementChance(36, 1)).toBeLessThan(retirementChance(36, 0.5) / 3)
+    expect(retirementChance(36, 0)).toBeGreaterThan(retirementChance(36, 0.5) * 3)
   })
 
   it('leave a regular signed and a Player who barely played often not', () => {
@@ -44,7 +49,7 @@ describe('the chances', () => {
 
   it('combine both ways as one is drawn after the other', () => {
     const [age, role] = [36, 0.3]
-    const expected = 1 - (1 - retirementChance(age)) * (1 - unsignedChance(age, role))
+    const expected = 1 - (1 - retirementChance(age, role)) * (1 - unsignedChance(age, role))
     expect(leavingChance(age, role)).toBeCloseTo(expected, 12)
   })
 })

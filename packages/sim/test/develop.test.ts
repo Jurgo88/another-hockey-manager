@@ -10,6 +10,7 @@ import {
 } from '../src/develop/curves.js'
 import {
   develop,
+  expectedLevel,
   PLAYER_DEVELOPMENT_NOISE,
   POTENTIAL_SETTLES_AT,
   withinPotential,
@@ -42,20 +43,27 @@ const middling = () =>
   )
 const goalies = () => players.filter(isGoalie)
 /** A Player without what development changes. */
-const identity = (player: Player) => ({ ...player, attributes: null, provenance: null, potential: null })
+const identity = (player: Player) => ({
+  ...player,
+  attributes: null,
+  provenance: null,
+  potential: null,
+})
 const streamOf = (player: Player, label = 'd') => createRng(87).fork(`${label}:${player.id}`)
 
 /** The mean change of level over `draws` Seasons from the same start, each on its own stream. */
 function meanGrowth(player: Player, regular: boolean, draws = 200): number {
   let sum = 0
   for (let i = 0; i < draws; i++) {
-    sum += playerLevel(develop(player, streamOf(player, `m${i}`), { regular })) - playerLevel(player)
+    sum +=
+      playerLevel(develop(player, streamOf(player, `m${i}`), { regular })) - playerLevel(player)
   }
   return sum / draws
 }
 
 describe('the curves (ADR-026)', () => {
-  const ages = (from: number, to: number) => Array.from({ length: to - from + 1 }, (_, i) => from + i)
+  const ages = (from: number, to: number) =>
+    Array.from({ length: to - from + 1 }, (_, i) => from + i)
 
   it('rise in youth and fall in old age, in every group', () => {
     for (const curve of [SKILL_CURVE, READING_CURVE, PHYSICAL_CURVE]) {
@@ -131,8 +139,11 @@ describe('develop', () => {
   it('varies a young Player more than one who has settled (ADR-028)', () => {
     const spread = (age: number) => {
       const player: Skater = { ...middling(), age, potential: 20 }
-      const changes = Array.from({ length: 200 }, (_, i) =>
-        playerLevel(develop(player, streamOf(player, `v${i}`), { regular: false })) - playerLevel(player),
+      const changes = Array.from(
+        { length: 200 },
+        (_, i) =>
+          playerLevel(develop(player, streamOf(player, `v${i}`), { regular: false })) -
+          playerLevel(player),
       )
       const mean = changes.reduce((a, b) => a + b, 0) / changes.length
       return Math.sqrt(changes.reduce((a, b) => a + (b - mean) ** 2, 0) / changes.length)
@@ -213,6 +224,78 @@ describe('develop', () => {
   })
 })
 
+describe('the shape of careers, development alone (04-validation-targets.md, #90)', () => {
+  /**
+   * A generated league aged ten Seasons with nobody leaving, every Skater a
+   * regular. The mean change of level at each age, added up from 18, is the
+   * level of a career by age; each band is its mean over the ages in it.
+   */
+  const band = (() => {
+    let cache: Map<string, number> | undefined
+    return (label: string) => {
+      if (!cache) {
+        const changes = new Map<number, number[]>()
+        let league = skaters()
+        for (let season = 1; season <= 10; season++) {
+          league = league.map((skater) => {
+            const next = develop(skater, streamOf(skater, `career:${season}`), { regular: true })
+            changes.set(skater.age, [...(changes.get(skater.age) ?? []), playerLevel(next) - playerLevel(skater)])
+            return { ...next, age: skater.age + 1 }
+          })
+        }
+        const career = new Map<number, number>()
+        let level = 0
+        for (let age = 18; age <= 39; age++) {
+          career.set(age, level)
+          const at = changes.get(age)
+          if (at) level += at.reduce((sum, d) => sum + d, 0) / at.length
+        }
+        const meanOver = (from: number, to: number) => {
+          let sum = 0
+          for (let age = from; age <= to; age++) sum += career.get(age)!
+          return sum / (to - from + 1)
+        }
+        cache = new Map([
+          ['22-24', meanOver(22, 24)],
+          ['25-27', meanOver(25, 27)],
+          ['28-30', meanOver(28, 30)],
+          ['31-33', meanOver(31, 33)],
+          ['34-36', meanOver(34, 36)],
+        ])
+      }
+      return cache.get(label)!
+    }
+  })()
+
+  it('rises from 22-24 to 25-27, and from 25-27 to 28-30', () => {
+    expect(band('25-27')).toBeGreaterThan(band('22-24'))
+    expect(band('28-30')).toBeGreaterThan(band('25-27'))
+  })
+
+  it('holds from 28-30 to 31-33, within ±0.3', () => {
+    expect(Math.abs(band('31-33') - band('28-30'))).toBeLessThanOrEqual(0.3)
+  })
+
+  it('falls at 34-36', () => {
+    expect(band('34-36')).toBeLessThan(band('31-33'))
+  })
+})
+
+describe('expectedLevel (ADR-028 amendment)', () => {
+  const at = (age: number, potential = 20): Skater => ({ ...middling(), age, potential })
+
+  it('expects a young Player to grow, a Player at his peak to hold and a veteran to decline', () => {
+    expect(expectedLevel(at(20))).toBeGreaterThan(playerLevel(at(20)) + 0.3)
+    expect(Math.abs(expectedLevel(at(29)) - playerLevel(at(29)))).toBeLessThan(0.1)
+    expect(expectedLevel(at(35))).toBeLessThan(playerLevel(at(35)) - 0.3)
+  })
+
+  it('does not expect growth past potential', () => {
+    const capped = at(20, Math.floor(playerLevel(at(20))))
+    expect(expectedLevel(capped)).toBeLessThanOrEqual(playerLevel(capped) + 1e-9)
+  })
+})
+
 describe('withinPotential', () => {
   const keys = ['a', 'b'] as const
 
@@ -259,7 +342,11 @@ describe('provenance follows the change (D-11)', () => {
       note: 'NHL EDGE max speed 23.9 mph',
       seasonsAged: 1,
     })
-    expect(once.provenance!.shooting).toEqual({ source: 'derived', confidence: 0.25, seasonsAged: 1 })
+    expect(once.provenance!.shooting).toEqual({
+      source: 'derived',
+      confidence: 0.25,
+      seasonsAged: 1,
+    })
 
     let later = once
     for (let season = 2; season <= 10; season++) {

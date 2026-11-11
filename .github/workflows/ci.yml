@@ -73,3 +73,4 @@ jobs:
           path: packages/sim/.cache
           key: sim-longrun-${{ hashFiles('packages/sim/src/**', 'packages/sim/test/support/simulat*.ts') }}
       - run: pnpm --filter @ahm/sim test:longrun
+      - run: pnpm --filter @ahm/estimate test:longrun

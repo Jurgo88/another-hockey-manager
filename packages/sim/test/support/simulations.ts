@@ -35,6 +35,9 @@ import { foldSeason } from '../../src/stats/season.js'
 
 export type CachedSeason = Omit<SimulatedSeason, 'replay'>
 
+/** A regular Season as the realism suites read it: a first Season, or the last of a run (#90). */
+export type SeasonSample = Omit<CachedSeason, 'seed'>
+
 const HERE = dirname(fileURLToPath(import.meta.url))
 const PACKAGE = join(HERE, '..', '..')
 const WORKER = join(HERE, 'simulate-worker.ts')
@@ -52,6 +55,14 @@ export function cachedSeason(seed: number): Promise<CachedSeason> {
 /** `count` Seasons in a row from one seed, as `simulateSeasons(seed, count)` plays them. */
 export function cachedRun(seed: number, count: number): Promise<SimulatedRun> {
   return cached<SimulatedRun>(`run-${seed}-${count}`, ['run', String(seed), String(count)])
+}
+
+/** The generated leagues of the Phase 2 gate, as the realism suites pool eight (#90). */
+export const LONG_RUN_SEEDS = [1, 2, 3, 4, 5, 6, 7, 8]
+
+/** Ten Seasons from each of the gate's seeds, simulated side by side. */
+export function longRuns(): Promise<SimulatedRun[]> {
+  return Promise.all(LONG_RUN_SEEDS.map((seed) => cachedRun(seed, 10)))
 }
 
 type SeasonEntry = Omit<CachedSeason, 'season'>

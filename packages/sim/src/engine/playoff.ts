@@ -46,11 +46,7 @@ function applyRule(
 ): PlayoffSeed[] {
   const available = ranked.filter((row) => !taken.has(row.clubId))
 
-  const seed = (
-    row: StandingsRow,
-    rankInGroup: number,
-    via: PlayoffSeed['via'],
-  ): PlayoffSeed => ({
+  const seed = (row: StandingsRow, rankInGroup: number, via: PlayoffSeed['via']): PlayoffSeed => ({
     clubId: row.clubId,
     conferenceId: row.conferenceId,
     divisionId: row.divisionId,
@@ -323,10 +319,12 @@ export function afterSeriesFixture(
   return { ...playoffs, wins: { ...playoffs.wins, [series.id]: wins } }
 }
 
-/** Better regular-Season record first. */
+/** Better regular-Season record first; then by id, by code unit, not the host's locale (D-01). */
 function byHomeIce(a: PlayoffSeed, b: PlayoffSeed): number {
   return (
-    b.points - a.points || a.conferenceRank - b.conferenceRank || a.clubId.localeCompare(b.clubId)
+    b.points - a.points ||
+    a.conferenceRank - b.conferenceRank ||
+    (a.clubId < b.clubId ? -1 : a.clubId > b.clubId ? 1 : 0)
   )
 }
 

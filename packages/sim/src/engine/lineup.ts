@@ -467,8 +467,13 @@ function skaterQuality(skater: Skater): number {
   return skaterLevel(skater.attributes)
 }
 
+/**
+ * Equal quality goes by id, compared by code unit: `localeCompare` follows the
+ * host's locale, and a Slovak one sorts "ch" after "h", so a Season played on
+ * another machine came out different (D-01).
+ */
 function byQualityDesc(a: Skater, b: Skater): number {
-  return skaterQuality(b) - skaterQuality(a) || a.id.localeCompare(b.id)
+  return skaterQuality(b) - skaterQuality(a) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
 }
 
 /**

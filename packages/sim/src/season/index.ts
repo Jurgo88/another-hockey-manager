@@ -5,6 +5,7 @@ import type { Fixture, FixtureChange, FixtureId, FixtureInput } from '../domain/
 import type { DraftFormat, DraftPick, Prospect, RosterMoves } from '../domain/draft.js'
 import {
   isGoalie,
+  naturalPosition,
   playerLevel,
   positionGroup,
   type ClubId,
@@ -28,6 +29,7 @@ import {
   naturalOf,
   type Natural,
   movesViolations,
+  openingProspects,
   assistantMoves,
 } from '../draft/index.js'
 import { afterRest } from '../engine/fatigue.js'
@@ -218,7 +220,8 @@ export class InvalidLineupError extends Error {
 /**
  * One full Season before its first day, of the NHL 2026-27 unless another
  * format is given (D-10, ADR-014), on the Rosters a provider gives (D-05), or on
- * Clubs generated for its structure.
+ * Clubs generated for its structure. Its Clubs hold the prospects of the drafts
+ * before it (ADR-028 amendment, #90).
  */
 export async function startSeason(
   seed: number,
@@ -245,7 +248,11 @@ export async function startSeason(
     lineups: {},
     absent: {},
     departures: [],
-    prospects: [],
+    prospects: openingProspects(
+      format.draft,
+      clubs.map((club) => club.id),
+      createRng(seed).fork('opening'),
+    ),
     draft: [],
   }
   // Every Club opens as an AI Manager would, through the call any Manager uses (D-04).
@@ -566,6 +573,16 @@ export function recordOf(state: SeasonState): SeasonRecord {
     playoffs: state.playoffs,
     totals: state.totals,
     draft: state.draft,
+    departures: state.departures,
+    roster: state.clubs.flatMap((club) =>
+      [...club.skaters, ...club.goalies].map((player) => ({
+        playerId: player.id,
+        clubId: club.id,
+        age: player.age,
+        position: naturalPosition(player),
+        level: playerLevel(player),
+      })),
+    ),
   }
 }
 

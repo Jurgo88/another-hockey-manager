@@ -78,9 +78,11 @@ export const GOALIE_SLOT_ABILITY: readonly Ability[] = [0.84, 0.83, 0.8]
  * the work. 0.02 adds the rest, landing on 126, 58 and a 67-point spread
  * across eight Seasons. Earlier values were 0.16 - seven attribute points
  * between best and worst Club, caught by a test - and then 0.06, which
- * stretched standings to 134 and 52.
+ * stretched standings to 134 and 52. Raised to 0.04 in #90: a run converges,
+ * and at 0.02 the table's correlation from one Season to the next fell below
+ * its band. The first Season stays inside the Tier 2 bands.
  */
-export const CLUB_WEIGHT = 0.02
+export const CLUB_WEIGHT = 0.04
 
 /** Per-Player noise, so a depth chart is not perfectly ordered by slot. */
 export const ABILITY_NOISE = 0.04

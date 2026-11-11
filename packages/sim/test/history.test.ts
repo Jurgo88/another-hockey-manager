@@ -1,6 +1,11 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { renderCareer, renderClubHistory } from '../src/cli/format.js'
-import { leadingScorer, simulateSeasons, type SimulatedRun } from '../src/cli/season.js'
+import {
+  leadingScorer,
+  simulateSeason,
+  simulateSeasons,
+  type SimulatedRun,
+} from '../src/cli/season.js'
 import {
   careerTotals,
   clubHistory,
@@ -77,6 +82,15 @@ describe('Season history and careers', () => {
     if (idle) expect(goalieCareer(run.seasons, idle.id)).toEqual([])
     expect(skaterCareer(run.seasons, 'nobody')).toEqual([])
     expect(careerTotals([])).toEqual({ regular: null, playoffs: null })
+  })
+
+  it('keeps the last regular Season as simulateSeason gives the first (#90)', async () => {
+    const [run, season] = await Promise.all([
+      simulateSeasons(4, 1, undefined, SMALL_SEASON),
+      simulateSeason(4, undefined, SMALL_SEASON),
+    ])
+    const { clubs, lineups, fixtures, matches } = season
+    expect(run.last).toEqual({ clubs, lineups, fixtures, matches, season: season.season })
   })
 
   it('prints a Club history and a career', () => {
