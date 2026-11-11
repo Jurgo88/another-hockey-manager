@@ -10,7 +10,8 @@
   },
   "scripts": {
     "build": "pnpm -r build",
-    "test": "pnpm -r test",
+    "test": "pnpm -r --parallel test",
+    "test:unit": "pnpm -r --parallel test:unit",
     "test:watch": "pnpm --filter @ahm/sim test:watch",
     "typecheck": "pnpm -r typecheck",
     "lint": "eslint .",

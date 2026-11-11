@@ -9,26 +9,67 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# The tiers of the Definition of Done run side by side (#106). Realism and
+# long-run tests share Seasons cached under a hash of the source they came from.
 jobs:
-  verify:
+  check:
+    name: Typecheck and lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: pnpm/action-setup@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
-
       - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm lint
 
-      - name: Typecheck
-        run: pnpm typecheck
+  unit:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:unit
 
-      - name: Lint
-        run: pnpm lint
+  realism:
+    name: Realism tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@v4
+        with:
+          path: packages/sim/.cache
+          key: sim-realism-${{ hashFiles('packages/sim/src/**', 'packages/sim/test/support/simulat*.ts') }}
+      - run: pnpm --filter @ahm/sim test:realism
+      - run: pnpm --filter @ahm/estimate test:realism
 
-      - name: Test
-        run: pnpm test
+  longrun:
+    name: Long-run tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@v4
+        with:
+          path: packages/sim/.cache
+          key: sim-longrun-${{ hashFiles('packages/sim/src/**', 'packages/sim/test/support/simulat*.ts') }}
+      - run: pnpm --filter @ahm/sim test:longrun
