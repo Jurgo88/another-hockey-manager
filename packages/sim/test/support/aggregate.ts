@@ -150,7 +150,7 @@ export function aggregateSuite(
       within(mean(penaltySpread), 0.22, 0.1)
     })
 
-    it('lowest Club penalties per Fixture: 2.40 ±0.15', () => {
+    target('lowest Club penalties per Fixture: 2.40 ±0.15', () => {
       within(mean(lowestPenalties), 2.4, 0.15)
     })
 

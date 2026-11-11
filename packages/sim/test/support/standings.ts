@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { NHL_2026_27 } from '../../src/data/nhl-2026-27.js'
 import { foldStandings } from '../../src/stats/standings.js'
+import { targetIt, type Reported } from './reported.js'
 import type { SeasonSample } from './simulations.js'
 
 /**
@@ -26,7 +27,9 @@ const mean = (values: readonly number[]) => values.reduce((sum, v) => sum + v, 0
 export function standingsSuite(
   when: string,
   samples: () => Promise<readonly SeasonSample[]>,
+  reported: Reported = {},
 ): void {
+  const target = targetIt(reported)
   describe(`standings over a full Season, ${when}`, async () => {
     const all = await samples()
     const seasons = all.map(({ matches }) => ({
@@ -54,7 +57,7 @@ export function standingsSuite(
       within(mean(seasons.map(({ rows }) => rows.at(-1)!.points)), 59, 14)
     })
 
-    it('standings spread, best minus worst: 65 ±18 (Tier 2)', () => {
+    target('standings spread, best minus worst: 65 ±18 (Tier 2)', () => {
       within(mean(seasons.map(({ rows }) => rows[0]!.points - rows.at(-1)!.points)), 65, 18)
     })
   })

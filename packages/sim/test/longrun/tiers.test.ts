@@ -10,7 +10,7 @@ import { standingsSuite } from '../support/standings.js'
  * gate, #90): the realism suites on the last regular Season of each of the
  * eight generated runs, pooled as the first Seasons are.
  *
- * Four targets are reported here, not asserted (04-validation-targets.md). They
+ * Six targets are reported here, not asserted (04-validation-targets.md). They
  * stay asserted in the first Season.
  */
 
@@ -23,14 +23,20 @@ const tenth = async () => (await longRuns()).map((run) => run.last)
  */
 const DEPTH = 'deeper Rosters over ten Seasons, asserted at the Phase 3 gate'
 
+/** Nothing but a Roster keeps a Club strong or weak until Phase 3, so a run converges. */
+const CONVERGES = 'a run converges without contracts, asserted at the Phase 3 gate'
+
 aggregateSuite('eight tenth Seasons', tenth, {
+  'lowest Club penalties per Fixture: 2.40 ±0.15': DEPTH,
   'highest Club penalties per Fixture: 3.24 ±0.15': DEPTH,
 })
 distributionSuite('eight tenth Seasons', tenth, {
   'league scoring leader: 141 ±25 points': DEPTH,
   'forward tier-1 to tier-4 points-per-minute ratio: 2.71 ±0.50': DEPTH,
 })
-standingsSuite('eight tenth Seasons', tenth)
+standingsSuite('eight tenth Seasons', tenth, {
+  'standings spread, best minus worst: 65 ±18 (Tier 2)': CONVERGES,
+})
 restSuite('eight tenth Seasons', tenth, {
   'a back-to-back costs 0.20 ±0.15 goals for': "the engine's fatigue is weak in every Season, #109",
 })
