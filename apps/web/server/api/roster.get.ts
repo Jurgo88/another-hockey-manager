@@ -17,7 +17,7 @@ function placements(lineup: Lineup): ReadonlyMap<PlayerId, string> {
 
 export default defineEventHandler(async (event) => {
   const manager = await requireManager(event)
-  const { clubId, state } = await requireSeason(manager.id)
+  const { clubId, state } = await readSeason(manager.id)
   const club = state.clubs.find((candidate) => candidate.id === clubId)!
   const places = placements(state.lineups[clubId]!)
   const { skaters, goalies } = state.totals.regular

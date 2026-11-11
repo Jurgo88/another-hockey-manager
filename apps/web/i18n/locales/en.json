@@ -15,14 +15,23 @@
   },
   "clubs": {
     "title": "Choose your Club",
-    "intro": "You manage one Club through a full Season. Choosing replaces any Season you have running."
+    "intro": "You manage one Club, Season after Season. Choosing starts a new career and replaces the one you have running."
   },
   "season": {
     "manager": "Manager: {name}",
     "record": "{fixtures} Fixtures, {wins}-{losses}-{otLosses}, {points} points",
     "nextHome": "Next: {opponent} at home, day {day}",
     "nextAway": "Next: away at {opponent}, day {day}",
-    "newSeason": "Start a new Season",
+    "newCareer": "Start a new career",
+    "year": "Season {year}",
+    "close": "Close the Season",
+    "endedTitle": "Season {year} is over",
+    "leagueRank": "Finished {rank}. in the league.",
+    "playoffs_missed": "Missed the playoffs.",
+    "playoffsLost": "Out of the playoffs in round {round}.",
+    "playoffs_champion": "Won the championship.",
+    "assistantDecides": "Your assistant makes the draft picks, call-ups and releases.",
+    "startNext": "Start Season {year}",
     "signOut": "Sign out",
     "nextTitle": "Next up",
     "playoffsTitle": "Playoffs",
@@ -52,7 +61,10 @@
     "fixtureFollowed": "The Lineup is locked while you follow a Fixture.",
     "saveFailed": "That could not be saved. Refresh the page and try again.",
     "notFollowing": "No Fixture is being followed.",
-    "fixtureOver": "That Fixture has been played to its end."
+    "fixtureOver": "That Fixture has been played to its end.",
+    "offseason": "The Season is over. Start the next one first.",
+    "seasonNotOver": "The Season has no champion yet.",
+    "moveOnFailed": "The career did not move on. Refresh the page and try again."
   },
   "nav": {
     "label": "Main menu",

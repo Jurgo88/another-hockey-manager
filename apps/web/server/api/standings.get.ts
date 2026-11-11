@@ -2,7 +2,7 @@ import { divisionTables } from '@ahm/sim'
 
 export default defineEventHandler(async (event) => {
   const manager = await requireManager(event)
-  const { clubId, state } = await requireSeason(manager.id)
+  const { clubId, state } = await readSeason(manager.id)
 
   const tables = divisionTables(state.standings)
   return state.structure.divisions.map((division) => ({

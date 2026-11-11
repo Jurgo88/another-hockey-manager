@@ -11,6 +11,6 @@ export default defineEventHandler(async (event) => {
   }
 
   const state = await startSeason(randomInt(MAX_SEED))
-  await replaceSeason(manager.id, clubId as string, state)
+  await startCareer(manager.id, clubId as string, state)
   return { ok: true }
 })
