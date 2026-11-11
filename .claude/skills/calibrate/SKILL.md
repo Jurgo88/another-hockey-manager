@@ -113,6 +113,12 @@ What the long run does by itself:
 
 ## Rules that still apply
 
+- **Local runs must match CI.** CI runs Linux with an English locale; this
+  machine is Windows with a Slovak one. Anything host-dependent in `src` makes
+  a fit lie: `localeCompare` and `Intl` (Slovak sorts "ch" after "h"),
+  directory order, the clock. Compare ids with `<` and `>`. #90 was fitted
+  before this was fixed, and CI's tenth Seasons came out different. When a fit
+  and CI disagree, suspect the host first.
 - D-08: a new random draw takes its own named fork of the stream. A new fork
   changes every downstream number, so expect near-edge targets to move.
 - D-06: no attribute without an engine read site.
