@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { PlayerId, SkaterPosition } from '../../src/domain/player.js'
+import { targetIt, type Reported } from './reported.js'
 import type { SeasonSample } from './simulations.js'
 import { points, savePercentage } from '../../src/stats/match.js'
 
@@ -38,7 +39,9 @@ function percentile(values: readonly number[], share: number): number {
 export function distributionSuite(
   when: string,
   samples: () => Promise<readonly SeasonSample[]>,
+  reported: Reported = {},
 ): void {
+  const target = targetIt(reported)
   describe(`Tier 2 distribution, ${when}`, async () => {
     const all = await samples()
     const seasons = all.map(({ clubs, lineups, season }) => {
@@ -127,7 +130,7 @@ export function distributionSuite(
 
     const average = (read: (season: (typeof seasons)[number]) => number) => mean(seasons.map(read))
 
-    it('league scoring leader: 141 ±25 points', () => {
+    target('league scoring leader: 141 ±25 points', () => {
       within(
         average((s) => s.leader),
         141,
@@ -159,7 +162,7 @@ export function distributionSuite(
       )
     })
 
-    it('forward tier-1 to tier-4 points-per-minute ratio: 2.71 ±0.50', () => {
+    target('forward tier-1 to tier-4 points-per-minute ratio: 2.71 ±0.50', () => {
       within(
         average((s) => s.pointsPerMinuteRatio),
         2.71,

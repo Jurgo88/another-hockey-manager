@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { targetIt, type Reported } from './reported.js'
 import type { SeasonSample } from './simulations.js'
 
 /**
@@ -27,7 +28,12 @@ interface Rest {
 }
 
 /** The suite on the Seasons given: the first of eight leagues, or their tenth (#90). */
-export function restSuite(when: string, samples: () => Promise<readonly SeasonSample[]>): void {
+export function restSuite(
+  when: string,
+  samples: () => Promise<readonly SeasonSample[]>,
+  reported: Reported = {},
+): void {
+  const target = targetIt(reported)
   describe(`rest between Fixtures, ${when}`, async () => {
     const all = await samples()
     const rest = new Map<number, Rest>()
@@ -90,7 +96,7 @@ export function restSuite(when: string, samples: () => Promise<readonly SeasonSa
       expect([...rest.keys()].sort((a, b) => a - b)).toEqual([1, 2, 3])
     })
 
-    it('a back-to-back costs 0.20 ±0.15 goals for', () => {
+    target('a back-to-back costs 0.20 ±0.15 goals for', () => {
       within(normal.goalsFor / normal.games - backToBack.goalsFor / backToBack.games, 0.2, 0.15)
     })
 

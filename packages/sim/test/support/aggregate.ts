@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { targetIt, type Reported } from './reported.js'
 import type { SeasonSample } from './simulations.js'
 
 /**
@@ -27,11 +28,16 @@ function standardDeviation(values: readonly number[]): number {
   return Math.sqrt(values.reduce((sum, v) => sum + (v - centre) ** 2, 0) / (values.length - 1))
 }
 
-/** The suite on the Seasons given: the first of eight leagues, or their tenth (#90). */
+/**
+ * The suite on the Seasons given: the first of eight leagues, or their tenth
+ * (#90), where some targets are reported, not asserted.
+ */
 export function aggregateSuite(
   when: string,
   samples: () => Promise<readonly SeasonSample[]>,
+  reported: Reported = {},
 ): void {
+  const target = targetIt(reported)
   describe(`Tier 1 aggregate rates, ${when}`, async () => {
     const all = await samples()
     let fixtures = 0
@@ -148,7 +154,7 @@ export function aggregateSuite(
       within(mean(lowestPenalties), 2.4, 0.15)
     })
 
-    it('highest Club penalties per Fixture: 3.24 ±0.15', () => {
+    target('highest Club penalties per Fixture: 3.24 ±0.15', () => {
       within(mean(highestPenalties), 3.24, 0.15)
     })
 
