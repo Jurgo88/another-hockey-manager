@@ -189,6 +189,21 @@ leagues and on the 2025-26 roster file. The mean age of the tenth Season falls
 from 29.6 to about 27.2, but with too many Players aged 31 or more and 23 or
 younger; item 8 sets the age profile.
 
+Item 8 is done in #90: eight generated leagues and the 2025-26 roster file each
+play ten Seasons, and the gate in `04-validation-targets.md` asserts the age of
+the league, who leaves by age and role, what each draft round yields and how the
+table moves, with Tier 1 and Tier 2 on the tenth Seasons as on the first. A
+league opens with the prospects of its last four drafts, the assistant releases
+and calls up by the level it expects next Season, and a Player with a large role
+retires later (ADR-027, ADR-028 amendments). Without contracts a run converges,
+so the table targets and five tenth-Season Tier 1 and Tier 2 targets are
+reported and asserted at the Phase 3 gate. The back-to-back cost waits for the
+engine's fatigue (#109). The shape of careers is asserted on development alone
+(ADR-026 amendment), and the backtest on real Players is #108.
+
+**Gate result:** met, confirmed by the author on 2026-11-11, with the targets
+above reported rather than asserted.
+
 ## Phase 3 - Roster movement
 
 Deferred this far deliberately: a transfer economy is the hardest thing in the
