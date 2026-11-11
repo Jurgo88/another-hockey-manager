@@ -14,7 +14,7 @@ import {
   type SkaterPosition,
 } from '../domain/player.js'
 import type { PlayoffState } from '../domain/playoff.js'
-import { expectedLevel } from '../develop/index.js'
+import { develop, expectedLevel } from '../develop/index.js'
 import { ROSTER_SHAPE } from '../domain/roster.js'
 import { sortStandings, type StandingsRow } from '../domain/standings.js'
 import { GOALIE_ATTRIBUTE_SPREAD, SKATER_ATTRIBUTE_SPREAD } from '../develop/index.js'
@@ -272,6 +272,37 @@ export function makePicks(
     }
   }
   return { picks, prospects }
+}
+
+/**
+ * The prospects a league holds as it opens (ADR-028 amendment, #90): the
+ * classes of its last `rightsSeasons` drafts, those before Season 1 and the
+ * Seasons before it, as if the league had been running. Each class is
+ * generated and picked by the assistant in an order drawn at random, then
+ * developed off a Roster for every Season since its draft, as rights held in a
+ * run are. Every class draws from a stream of its own (D-08). Without them, the
+ * cohorts of 18 to 21 at the start are never drafted, and leave a hole in the
+ * league's ages ten Seasons on.
+ */
+export function openingProspects(
+  format: DraftFormat,
+  clubIds: readonly ClubId[],
+  rng: Rng,
+): Prospect[] {
+  const size = Math.round(clubIds.length * format.rounds * format.classSize)
+  return Array.from({ length: format.rightsSeasons }, (_, held) => 1 - held).flatMap((year) => {
+    const stream = rng.fork(`opening:y${year}`)
+    const order = stream.fork('order').shuffle([...clubIds])
+    const { prospects } = makePicks(format, year, order, generateClass(stream.fork('class'), year, size), {})
+    return prospects.map((prospect) => {
+      let player = prospect.player
+      for (let season = year; season < 1; season++) {
+        const grown = develop(player, stream.fork(`develop:y${season}:${player.id}`), { regular: false })
+        player = { ...grown, age: grown.age + 1 }
+      }
+      return { ...prospect, player }
+    })
+  })
 }
 
 // ---------------------------------------------------------------------------

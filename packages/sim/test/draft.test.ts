@@ -22,6 +22,7 @@ import {
   makePicks,
   movesViolations,
   naturalOf,
+  openingProspects,
 } from '../src/draft/index.js'
 import { createRng } from '../src/rng/index.js'
 import {
@@ -188,6 +189,43 @@ describe('the picks', () => {
   })
 })
 
+describe('the prospects a league opens with', () => {
+  const clubs = ['a', 'b', 'c', 'd', 'e']
+  const format = { ...NHL_DRAFT_FORMAT, rounds: 2, rightsSeasons: 4 }
+  const prospects = openingProspects(format, clubs, createRng(5))
+
+  it('are the classes of the last drafts, a full draft each, held by the Clubs that picked', () => {
+    expect([...new Set(prospects.map((p) => p.year))]).toEqual([1, 0, -1, -2])
+    for (const year of [1, 0, -1, -2]) {
+      const picks = prospects.filter((p) => p.year === year)
+      expect(picks.map((p) => p.pick)).toEqual(Array.from({ length: 10 }, (_, i) => i + 1))
+      expect([...new Set(picks.map((p) => p.player.clubId))].sort()).toEqual(clubs)
+    }
+  })
+
+  it('are a year older for every Season since their draft', () => {
+    const classOf = (year: number) => prospects.filter((p) => p.year === year)
+    const ages = (year: number) => classOf(year).map((p) => p.player.age)
+    expect(ages(1).every((age) => age === 18 || age === 19)).toBe(true)
+    expect(ages(-2).every((age) => age === 21 || age === 22)).toBe(true)
+    // Growing off a Roster, the oldest class is ahead of the newest on average.
+    const mean = (year: number) =>
+      classOf(year).reduce((sum, p) => sum + playerLevel(p.player), 0) / classOf(year).length
+    expect(mean(-2)).toBeGreaterThan(mean(1))
+  })
+
+  it('come out the same from the same stream (D-08)', () => {
+    expect(openingProspects(format, clubs, createRng(5))).toEqual(prospects)
+  })
+
+  it('open every Season 1, whoever gives the Rosters', async () => {
+    const state = await startSeason(SEED)
+    expect(state.prospects).toHaveLength(4 * 32 * 4)
+    const onRoster = new Set(state.clubs.flatMap(everyone).map((p) => p.id))
+    expect(state.prospects.some((p) => onRoster.has(p.player.id))).toBe(false)
+  })
+})
+
 describe('the phase between Seasons', () => {
   let ended: SeasonState
   let off: Offseason
@@ -251,7 +289,7 @@ describe('the phase between Seasons', () => {
     expect(drafted.phase).toBe('roster')
     expect(drafted.picks).toHaveLength(128)
     for (const club of drafted.clubs) {
-      const held = drafted.prospects.filter((p) => p.player.clubId === club.id)
+      const held = drafted.prospects.filter((p) => p.player.clubId === club.id && p.year === drafted.year)
       expect(held.map((p) => p.round).sort()).toEqual([1, 2, 3, 4])
       const ids = new Set(everyone(club).map((p) => p.id))
       expect(held.some((p) => ids.has(p.player.id))).toBe(false)

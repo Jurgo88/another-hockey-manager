@@ -117,20 +117,23 @@ describe('nextSeason', () => {
     )
     const after = new Set(next.clubs.flatMap((c) => [...c.skaters, ...c.goalies]).map((p) => p.id))
     const gone = [...before.keys()].filter((id) => !after.has(id))
-    expect(next.departures.map((d) => d.playerId).sort()).toEqual(gone.sort())
+    const fromRosters = next.departures.filter((d) => d.reason !== 'rights-expired')
+    expect(fromRosters.map((d) => d.playerId).sort()).toEqual(gone.sort())
     // About 3 a Club in the NHL (ADR-028).
     expect(gone.length).toBeGreaterThan(next.clubs.length)
     expect(gone.length).toBeLessThan(next.clubs.length * 6)
-    for (const departure of next.departures) {
+    for (const departure of fromRosters) {
       const player = before.get(departure.playerId)!
       expect(departure.clubId).toBe(player.clubId)
       expect(departure.age).toBe(player.age)
       expect(next.absent[departure.playerId]).toBeUndefined()
     }
-    // Prospects called up push the weakest out; no rights have expired yet (ADR-028).
+    // Prospects called up push the weakest out (ADR-028).
     expect(next.departures.some((d) => d.reason === 'released')).toBe(true)
-    for (const { reason } of next.departures) {
-      expect(['retired', 'unsigned', 'released']).toContain(reason)
+    // Rights expire only for the oldest class the league opened with (#90).
+    const opening = new Map(ended.prospects.map((p) => [p.player.id, p]))
+    for (const departure of next.departures.filter((d) => d.reason === 'rights-expired')) {
+      expect(opening.get(departure.playerId)?.year).toBe(-2)
     }
   })
 
@@ -144,7 +147,8 @@ describe('nextSeason', () => {
       for (const player of [...club.skaters, ...club.goalies]) {
         if (before.has(player.id)) continue
         const drafted = next.draft.some((p) => p.playerId === player.id && p.clubId === club.id)
-        expect(drafted || player.id.startsWith(`${club.id}-y2-u`)).toBe(true)
+        const held = ended.prospects.some((p) => p.player.id === player.id)
+        expect(drafted || held || player.id.startsWith(`${club.id}-y2-u`)).toBe(true)
         expect(player.clubId).toBe(club.id)
         expect(Object.values(player.provenance!).every((p) => p.source === 'generated')).toBe(true)
       }
