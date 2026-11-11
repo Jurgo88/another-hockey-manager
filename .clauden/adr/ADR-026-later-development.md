@@ -88,3 +88,17 @@ league, but the author prefers veterans who stay good.
   compared with their estimate for 2025-26 - is built with the calibration in
   item 8. It measures how far this design departs from the league; it is
   direct evidence only for `speed`, `faceoffs` and Goalies, which are measured.
+
+## Amendment, 2026-11-11: the long-run calibration (#90)
+
+- **The spread of top speed** is 1.5 mph, from 0.75. It is an estimate from one
+  pair of seasons, and at 0.75 `speed` and `stamina` grew by eight points from
+  19 to 28: the tenth Season of a run played faster, with more penalties, than
+  the first.
+- **The shape holds on development alone.** On a generated league, aged ten
+  Seasons with no one leaving, a Skater's mean level change from 18 is 4.76 at
+  28-30 and 4.65 at 31-33, and lower from 34. `test/develop.test.ts` asserts it.
+- **The level of the Rosters keeps rising after 30.** It is selection, not
+  growth: Players with a large role stay longer (ADR-027), and the weakest
+  older Players leave. It is reported, not asserted.
+- **The backtest** is its own issue, #108, as evidence rather than a gate target.

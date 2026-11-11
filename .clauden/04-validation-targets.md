@@ -384,6 +384,28 @@ Seasons pooled, as on the eight first, and every table below on the eight runs
 pooled. The roster file is one run, asserted on its own
 (`test/longrun/` in `@ahm/sim` and in `@ahm/estimate`).
 
+Four Tier 1 and Tier 2 targets are reported in the tenth Season, not asserted
+(#90). They stay asserted in the first.
+
+| Target | First Season | Tenth Season | Asserted again |
+| --- | --- | --- | --- |
+| A back-to-back costs 0.20 ±0.15 goals for | 0.063 | 0.016 | when #109 is done |
+| Highest Club penalties per Fixture, 3.24 ±0.15 | in band | 3.41 | at the Phase 3 gate |
+| League scoring leader, 141 ±25 points | in band | 115 | at the Phase 3 gate |
+| Forward tier-1 to tier-4 points-per-minute ratio, 2.71 ±0.50 | in band | 3.33 | at the Phase 3 gate |
+
+- **The back-to-back is weak in every Season.** Over Seasons 1 to 10 the cost
+  averages about 0.044 goals, from 0.002 to 0.083 by Season, and the first
+  Season passes by noise. This is fatigue in the engine, not the long run: a
+  stronger fatigue brings it into band but lowers shots and goals everywhere,
+  so it needs fitting together with them (#109).
+- **The other three come from deeper Rosters.** Over ten Seasons Clubs replace
+  their weakest Players with prospects, so the fourth Line and the extras are
+  better than in the generated league the engine is fitted on. The level of the
+  league's Skaters rises from about 11.0 to 12.6, most of it after 28. Without
+  contracts nothing pushes back. They are asserted with the table targets
+  below, at the Phase 3 gate.
+
 ### The age of the league, in the tenth Season
 
 | Assertion | Measured | Band | Note |
