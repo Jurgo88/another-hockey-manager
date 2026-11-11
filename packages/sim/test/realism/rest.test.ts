@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { simulateSeason } from '../../src/cli/season.js'
+import { cachedSeason } from '../support/simulations.js'
 
 /**
  * The cost of a congested schedule (FR-14, ADR-010, 04-validation-targets.md),
@@ -35,8 +35,8 @@ describe('rest between Fixtures', async () => {
   let wornOut = 0
   let skaterMatches = 0
 
-  for (const seed of SEASON_SEEDS) {
-    const { fixtures, matches } = await simulateSeason(seed)
+  // Asked for together, so Seasons not yet cached are simulated side by side.
+  for (const { fixtures, matches } of await Promise.all(SEASON_SEEDS.map(cachedSeason))) {
     const lastDay = new Map<string, number>()
 
     fixtures.forEach((fixture, i) => {

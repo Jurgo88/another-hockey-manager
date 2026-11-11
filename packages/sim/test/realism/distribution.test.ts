@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { PlayerId, SkaterPosition } from '../../src/domain/player.js'
-import { simulateSeason } from '../../src/cli/season.js'
+import { cachedSeason } from '../support/simulations.js'
 import { points, savePercentage } from '../../src/stats/match.js'
 
 /**
@@ -38,7 +38,7 @@ function percentile(values: readonly number[], share: number): number {
 describe('Tier 2 distribution', async () => {
   const seasons = await Promise.all(
     SEASON_SEEDS.map(async (seed) => {
-      const { clubs, lineups, season } = await simulateSeason(seed)
+      const { clubs, lineups, season } = await cachedSeason(seed)
       const starterIds = new Set<PlayerId>([...lineups.values()].map((lineup) => lineup.starter))
       const poolSavePercentage = (starters: boolean) => {
         const goalies = [...season.goalies].filter(([id]) => starterIds.has(id) === starters)

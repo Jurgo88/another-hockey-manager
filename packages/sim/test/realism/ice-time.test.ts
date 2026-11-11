@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { PlayerId } from '../../src/domain/player.js'
-import { simulateSeason } from '../../src/cli/season.js'
+import { cachedSeason } from '../support/simulations.js'
 
 /**
  * FR-23 and the ice-time rows of Tier 2 (04-validation-targets.md).
@@ -24,7 +24,7 @@ function mean(values: readonly number[]): number {
 }
 
 async function forwardIceTimePerFixture(): Promise<number[]> {
-  const { lineups, season } = await simulateSeason(SEASON_SEED)
+  const { lineups, season } = await cachedSeason(SEASON_SEED)
 
   const forwards = new Set<PlayerId>(
     [...lineups.values()].flatMap((lineup) =>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { simulateSeasons } from '../../src/cli/season.js'
 import { draftOutcomes, type DraftRoundOutcome } from '../../src/stats/history.js'
+import { cachedRun } from '../support/simulations.js'
 
 /**
  * What the draft yields (ADR-024, ADR-028, #89), against the Phase 2 targets in
@@ -11,7 +11,8 @@ import { draftOutcomes, type DraftRoundOutcome } from '../../src/stats/history.j
  *
  * Three ten-Season runs on generated leagues, each with nothing declared, so
  * every pick and move is the assistant's. Shares are pooled over the three, and
- * the median Seasons to debut is the median of the three medians.
+ * the median Seasons to debut is the median of the three medians. The runs are
+ * simulated side by side, once for every test that reads them (#106).
  */
 
 const SEEDS = [1, 2, 3]
@@ -28,7 +29,7 @@ const median = (values: readonly number[]) => [...values].sort((a, b) => a - b)[
 
 describe('the draft over ten Seasons', async () => {
   const tables: DraftRoundOutcome[][] = await Promise.all(
-    SEEDS.map(async (seed) => draftOutcomes((await simulateSeasons(seed, 10)).seasons, CLASSES)),
+    SEEDS.map(async (seed) => draftOutcomes((await cachedRun(seed, 10)).seasons, CLASSES)),
   )
 
   for (const target of TARGETS) {
