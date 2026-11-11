@@ -14,6 +14,7 @@ import {
   type SkaterPosition,
 } from '../domain/player.js'
 import type { PlayoffState } from '../domain/playoff.js'
+import { expectedLevel } from '../develop/index.js'
 import { ROSTER_SHAPE } from '../domain/roster.js'
 import { sortStandings, type StandingsRow } from '../domain/standings.js'
 import { GOALIE_ATTRIBUTE_SPREAD, SKATER_ATTRIBUTE_SPREAD } from '../develop/index.js'
@@ -284,40 +285,49 @@ const SHAPE: Readonly<Record<PositionGroup, number>> = {
 
 const GROUPS: readonly PositionGroup[] = ['forward', 'defence', 'goalie']
 
-const byLevel = (a: Player, b: Player) =>
-  playerLevel(a) - playerLevel(b) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
+/**
+ * The level a Club expects of a Player next Season (ADR-028 amendment): whom
+ * to call up and whom to release is chosen a Season ahead, so a declining
+ * veteran makes room before a young Player still growing.
+ */
+const outlook = (player: Player) => expectedLevel(player)
 
-/** A Club's Roster at a position group, weakest first. */
+const byOutlook = (a: Player, b: Player) =>
+  outlook(a) - outlook(b) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
+
+/** A Club's Roster at a position group, weakest next Season first. */
 function groupOf(club: Club, group: PositionGroup): Player[] {
-  return [...club.skaters, ...club.goalies].filter((p) => positionGroup(p) === group).sort(byLevel)
+  return [...club.skaters, ...club.goalies].filter((p) => positionGroup(p) === group).sort(byOutlook)
 }
 
 /** A Player's natural position, a Goalie's being his own. A Roster keeps its balance of them. */
 export type Natural = NaturalPosition
 export const naturalOf = naturalPosition
 
-/** A Club's Roster at a natural position, weakest first. */
+/** A Club's Roster at a natural position, weakest next Season first. */
 function atNatural(players: readonly Player[], natural: Natural): Player[] {
-  return players.filter((p) => naturalOf(p) === natural).sort(byLevel)
+  return players.filter((p) => naturalOf(p) === natural).sort(byOutlook)
 }
 
 /**
- * Whether a prospect is ready (ADR-024, ADR-028): his level reaches the weakest
- * at his natural position on his Club's Roster, or of his position group when
- * nobody plays it. A group with nobody in it takes anyone.
+ * Whether a prospect is ready (ADR-024, ADR-028): the level expected of him next
+ * Season reaches that of the weakest at his natural position on his Club's
+ * Roster, or of his position group when nobody plays it. A group with nobody in
+ * it takes anyone.
  */
 export function isReady(club: Club, prospect: Player): boolean {
   const roster = [...club.skaters, ...club.goalies]
   const weakest =
     atNatural(roster, naturalOf(prospect))[0] ?? groupOf(club, positionGroup(prospect))[0]
-  return !weakest || playerLevel(prospect) >= playerLevel(weakest)
+  return !weakest || outlook(prospect) >= outlook(weakest)
 }
 
 /**
  * The assistant's call-ups and releases for a Club (ADR-028). A gap, at the
  * natural position of whoever left it, goes to the best ready prospect at that
  * position. Then, position by position, while the best prospect left is ready,
- * he is called up and the weakest at his position released. A Club keeps its
+ * he is called up and the weakest at his position released, each judged by the
+ * level expected of him next Season. A Club keeps its
  * shape and its balance of centres, wings and sides.
  */
 export function assistantMoves(
@@ -331,7 +341,7 @@ export function assistantMoves(
   const waiting = prospects
     .map((prospect) => prospect.player)
     .filter((player) => player.clubId === club.id)
-    .sort(byLevel)
+    .sort(byOutlook)
     .reverse()
   const call = (prospect: Player) => {
     callUps.push(prospect.id)
@@ -347,7 +357,7 @@ export function assistantMoves(
     for (;;) {
       const best = waiting.find((p) => naturalOf(p) === natural)
       const weakest = atNatural(roster, natural)[0]
-      if (!best || !weakest || playerLevel(best) < playerLevel(weakest)) break
+      if (!best || !weakest || outlook(best) < outlook(weakest)) break
       releases.push(weakest.id)
       roster = roster.filter((p) => p.id !== weakest.id)
       call(best)

@@ -1,4 +1,5 @@
 import { beforeAll, describe, expect, it } from 'vitest'
+import { expectedLevel } from '../src/develop/index.js'
 import { NHL_DRAFT_FORMAT } from '../src/data/nhl-2026-27.js'
 import type { Club } from '../src/domain/club.js'
 import type { Prospect } from '../src/domain/draft.js'
@@ -257,7 +258,7 @@ describe('the phase between Seasons', () => {
     }
   })
 
-  it('fills gaps at the leavers’ positions, and releases the weakest at a position for a better prospect', () => {
+  it('fills gaps at the leavers’ positions, and releases the weakest next Season for a better prospect', () => {
     const before = new Map(ended.clubs.flatMap(everyone).map((p) => [p.id, p]))
     let callUps = 0
     let releases = 0
@@ -267,11 +268,11 @@ describe('the phase between Seasons', () => {
       const { joined, released } = applyMoves(club, drafted.prospects, moves)
       callUps += joined.length
       releases += released.length
-      // Every release makes room for a prospect at least as good, at the same natural position.
+      // Every release makes room for a prospect expected to be at least as good, at the same natural position.
       const unmatched = [...joined]
       for (const player of released) {
         const at = unmatched.findIndex(
-          (p) => naturalOf(p) === naturalOf(player) && playerLevel(p) >= playerLevel(player),
+          (p) => naturalOf(p) === naturalOf(player) && expectedLevel(p) >= expectedLevel(player),
         )
         expect(at).toBeGreaterThanOrEqual(0)
         unmatched.splice(at, 1)

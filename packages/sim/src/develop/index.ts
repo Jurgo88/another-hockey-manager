@@ -179,6 +179,35 @@ function developGoalie(goalie: Goalie, rng: Rng, season: SeasonPlayed): Goalie {
 }
 
 /**
+ * A Player's level a Season on, as development expects it: his attributes moved
+ * along their curves at his age, capped by `potential`, without the noise or
+ * the bonus for ice time (ADR-028 amendment). A Club looks a Season ahead with
+ * it when it chooses whom to call up and whom to release.
+ */
+export function expectedLevel(player: Player): number {
+  return isSkater(player)
+    ? expectedOf(player, SKATER_CURVES, SKATER_ATTRIBUTE_SPREAD, SKATER_LEVEL_KEYS)
+    : expectedOf(player, GOALIE_CURVES, GOALIE_ATTRIBUTE_SPREAD, GOALIE_ATTRIBUTE_KEYS)
+}
+
+function expectedOf<K extends string>(
+  player: { age: number; potential: number; attributes: Readonly<Record<K, number>> },
+  curves: Readonly<Record<K, DevelopmentCurve | null>>,
+  spread: number,
+  levelKeys: readonly K[],
+): number {
+  const deltas = {} as Record<K, number>
+  for (const key of Object.keys(curves) as K[]) {
+    const curve = curves[key]
+    deltas[key] = curve ? changeAt(curve, player.age) * DEVELOPMENT_SCALE * spread : 0
+  }
+  const level = levelKeys.reduce((sum, key) => sum + player.attributes[key], 0) / levelKeys.length
+  const capped = withinPotential(deltas, levelKeys, level, player.potential)
+  const moved = levelKeys.map((key) => Math.min(20, Math.max(1, player.attributes[key] + capped[key])))
+  return moved.reduce((sum, value) => sum + value, 0) / moved.length
+}
+
+/**
  * The attributes a Season on. The change is worked out in fractions of a point
  * and rounded at random in proportion, so a change of a third of a point a
  * Season adds up over three Seasons rather than rounding away every time.
