@@ -203,8 +203,9 @@ genre to balance, and an open bidding market inflates without fail.
 inflation and talent distribution inside defined bounds, and the table targets
 deferred from the Phase 2 gate hold: no Club in the top 8 more than 9 of 10
 Seasons, at least 5 Clubs finishing first, and a spread of points of 16.1 ±3 in
-the tenth Season. So do the tenth Season's highest Club penalties, scoring leader
-and forward tier-1 to tier-4 points-per-minute ratio (`04-validation-targets.md`).
+the tenth Season. So do the tenth Season's highest and lowest Club penalties, scoring
+leader, forward tier-1 to tier-4 points-per-minute ratio and standings spread
+(`04-validation-targets.md`).
 
 ## Phase 4 - Other Managers
 
