@@ -237,3 +237,16 @@ generated fill, but ADR-024 made them free to fill any Club's gap.
 - Releases add turnover the leaving rates of ADR-027 do not include, so item 8
   refits them together.
 - The web shows both windows and their notices in item 10.
+
+## Amendment, 2026-11-11: the assistant releases by the Season ahead (#90)
+
+The assistant no longer releases the weakest at a position as he stands. It
+releases the Player it expects to be weakest next Season: his level moved by
+what development (ADR-022, ADR-026) brings at his age, without its noise. A
+prospect is ready, likewise, when his expected level reaches that of the
+weakest. A declining veteran so makes room before a young Player still growing,
+as a Club looking a Season ahead would choose. Over ten Seasons, releasing by
+the present kept veterans and let young Players go: 31-33 became the strongest
+ages and 27-29% of the league was 31 or older, against 18%.
+
+A Manager still releases whom he chooses (D-04).

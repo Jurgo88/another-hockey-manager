@@ -71,3 +71,12 @@ already say.
 A Season's record also holds the draft held before it: each pick's year, round,
 place, Club and prospect. A class is followed through a run from the records,
 with the careers of its prospects, as the draft table of the Phase 2 gate needs.
+
+## Amendment, 2026-11-11: a record holds who was there and who left (#90)
+
+A Season's record also holds who was on each Roster as it ended, with his Club,
+his age, his natural position and his level, and the departures before the
+Season, each with its reason. The age of the league, who leaves it and the
+level of a league by age are then folded from the records of a run, as the
+Phase 2 gate needs, and a career can show a Player's age in each Season. The
+consequence above, that ages are not in a record, no longer holds.

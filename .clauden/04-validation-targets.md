@@ -377,6 +377,13 @@ NHL 2025-26 roster file, and Tier 1 and Tier 2 must hold in the tenth Season as
 well as the first. A red row means calibrating development, departures or the
 draft (ADR-022 to ADR-024), not widening the band.
 
+The generated league is run from eight seeds, 1 to 8, as the Tier 1 and Tier 2
+suites pool eight Seasons: how good one league's Goalies happen to be moves its
+scoring by more than a band. Tier 1 and Tier 2 are asserted on the eight tenth
+Seasons pooled, as on the eight first, and every table below on the eight runs
+pooled. The roster file is one run, asserted on its own
+(`test/longrun/` in `@ahm/sim` and in `@ahm/estimate`).
+
 ### The age of the league, in the tenth Season
 
 | Assertion | Measured | Band | Note |
@@ -446,9 +453,20 @@ league by age keeps the shape the author chose in ADR-026, built on the measured
 curves in `07-league-over-time.md`: physical attributes growing to 29, skill to
 29 and reading the game to 32, a Skater's level holding from about 28 to 30, and
 decline accelerating after 31. This departs from the measured league, whose level
-peaks at 26-27, on purpose (ADR-026). The exact
-assertion is written with the calibration in item 8, because the curves are in
-different units and become one by that calibration.
+peaks at 26-27, on purpose (ADR-026).
+
+The assertion is on the mean level of the Skaters on the Rosters of the tenth
+Season, pooled over the runs, by age:
+
+| Assertion | Band |
+| --- | --- |
+| Rises from 22-24 to 25-27, and from 25-27 to 28-30 | |
+| 31-33 against 28-30 | within ±0.3 |
+| 34 or older below 31-33 | |
+
+The level of those still in the league carries who stayed as well as how they
+developed. Development alone, a generated league aged without anyone leaving,
+holds the same shape (`test/develop.test.ts`).
 
 ## Tier 3 - Tactics are not placebos
 
