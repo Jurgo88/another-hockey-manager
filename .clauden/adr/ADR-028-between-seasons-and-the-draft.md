@@ -308,6 +308,12 @@ generated league shows the figures of its Rosters until scouting (ADR-003
 amendment), but not of its prospects: the future of an 18-year-old is open,
 so a range is the truth about him. `potential` is never shown as a figure.
 
+Levels compare only within a position group: a Goalie's scale is not a
+Skater's, and the class ladder is set in each group's spread. The application
+so shows a class as one table per group, each in the order of what is shown,
+and a range is as wide as its group is spread: about ±4 for a Skater of a
+class and ±2 for a Goalie. A single table in raw levels put Goalies on top.
+
 **Notices between Seasons.** What changes on a Club between Seasons is folded
 into notices by pure functions beside `noticesOf`: who retired or went
 unsigned after the Season, whom the Club drafted, and, as the next Season
