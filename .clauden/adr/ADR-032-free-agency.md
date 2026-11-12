@@ -153,3 +153,37 @@ would be a parameter of the Player's measure, not a separate draw.
   lost, and buyouts.
 - The `Offseason` grows two windows and a market state; ADR-014's plain-JSON
   rule holds.
+
+## Amendment, 2026-11-12: the re-signing window before free agency (#127)
+
+Item 3 of Phase 3 opens the re-signing window; the market of item 5 does not
+exist yet. The author chose on 2026-11-12:
+
+- **The window** is the phase `resign` between the draft and the Roster window.
+  `endSeason` takes a Season off every contract; one at 0 has run out, and its
+  Player stays on the Roster with the place his ask is priced from. A Club
+  declares whom it re-signs and for how long (`setReSignings`); whoever it does
+  not list is let go. `runReSigning` closes the window, the assistant deciding
+  for every Club that declared nothing, by the same function for all (D-04).
+  Violations are data: a Player whose contract has not run out, one named
+  twice, a term outside 1 to the longest with his own Club.
+- **The price is the ask.** A qualifying offer is the ask, and an unrestricted
+  Player accepts the ask. An offer above it matters only against other Clubs,
+  so it comes with the market, as does the draw by which an unrestricted Player
+  tests it.
+- **The assistant re-signs every expiring Player** at his ask and the term he
+  draws. Whom to let go comes with the market and budgets.
+- **A Player let go leaves the league as `unsigned`** until the market exists,
+  and his place is a gap the Roster window and the fill close.
+- **The unsigned draw of ADR-027 stays** until the market replaces it, so the
+  leaving bands of the Phase 2 gate hold. Until then it may still take a Player
+  whose contract runs on.
+- **Notices** `reSigned` (with the term) and `letGo`. The web runs the
+  assistant's re-signing after the draft until item 10 gives it a window.
+
+Reported by `pnpm sim:season --seasons 10`, not asserted: in a generated league
+the assistant keeps 81-96% of expiring restricted regulars and 80-86% of
+unrestricted ones, against the measured 70% and 47% the Phase 3 gate asserts
+once the market exists. Payrolls rise from 87% of the cap in Season 1 to 96% by
+Season 5 as asks follow role, with the highest Club near 113%; the cap of item 4
+bounds that.
