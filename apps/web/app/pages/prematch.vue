@@ -5,7 +5,9 @@ import type { LineupPage } from '~~/shared/types/lineup'
 const { t } = useI18n()
 
 const headers = useRequestHeaders(['cookie'])
-const { data: season } = await useFetch('/api/season', { headers })
+const { data: current } = await useFetch('/api/season', { headers })
+// Between Seasons there is no Fixture to set up for.
+const season = computed(() => (current.value?.phase === 'season' ? current.value : null))
 const { data } = await useFetch<LineupPage>('/api/lineup', { headers })
 
 if (season.value?.following) await navigateTo('/live')

@@ -6,7 +6,7 @@ const GOALIE_MIN_SHARE = 0.25
 
 export default defineEventHandler(async (event) => {
   const manager = await requireManager(event)
-  const { state } = await requireSeason(manager.id)
+  const { state } = await readSeason(manager.id)
   const names = playerNames(state.clubs)
   const code = (clubId: string) => state.clubs.find((club) => club.id === clubId)?.code ?? clubId
 

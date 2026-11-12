@@ -80,3 +80,12 @@ Season, each with its reason. The age of the league, who leaves it and the
 level of a league by age are then folded from the records of a run, as the
 Phase 2 gate needs, and a career can show a Player's age in each Season. The
 consequence above, that ages are not in a record, no longer holds.
+
+## Amendment, 2026-11-11: where the application keeps records (#91, ADR-029)
+
+The application stores a record split, not copied: `seasons.record` holds its
+own parts, and `player_seasons` the counts and the Roster as it ended, one row
+per Player. Reading puts them back into one `SeasonRecord`, so history and
+careers are still read from records alone, and a test holds that the round trip
+changes nothing. Players' names, which a record does not hold, are kept in
+`players`.

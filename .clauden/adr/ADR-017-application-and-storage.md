@@ -67,3 +67,14 @@ built, and simulation would need a paid plan.
 - Before a public release, email confirmation has to go on, which needs a mail
   service, and the service key has to move to a secret store.
 - Each browser request costs one call to Supabase Auth to check the session.
+
+## Amendment, 2026-11-11: a career across Seasons (#91, ADR-029)
+
+A Manager now keeps a career, not one Season. `careers` holds the run and
+carries the one-per-Manager index that `seasons` had. `seasons` holds a row per
+Season of a career, its state only while it is current, and a `phase` that says
+whether that state is a `SeasonState` or the `Offseason` after it.
+`player_seasons` and `players` hold the Players' part of each finished Season's
+record and their names. `fixture_results` and `notices` are unchanged and keep
+each Season's own. Event streams of finished Seasons are kept until hosting is
+decided.

@@ -7,6 +7,7 @@ const { t } = useI18n()
 const { data, refresh } = await useFetch<LineupPage>('/api/lineup', {
   headers: useRequestHeaders(['cookie']),
 })
+if (!data.value) await navigateTo('/')
 
 const draft = ref<Tactics | null>(
   data.value ? structuredClone(toRaw(data.value.lineup.tactics)) : null,

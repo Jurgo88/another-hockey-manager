@@ -3,7 +3,7 @@ import { seriesWinner } from '@ahm/sim'
 
 export default defineEventHandler(async (event) => {
   const manager = await requireManager(event)
-  const { clubId, state } = await requireSeason(manager.id)
+  const { clubId, state } = await readSeason(manager.id)
   const { playoffs } = state
   if (!playoffs) return null
 

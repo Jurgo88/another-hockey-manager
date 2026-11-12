@@ -15,14 +15,23 @@
   },
   "clubs": {
     "title": "Vyber si klub",
-    "intro": "Povedieš jeden klub celou sezónou. Výber nahradí sezónu, ktorú máš rozohranú."
+    "intro": "Povedieš jeden klub sezónu za sezónou. Výber začne novú kariéru a nahradí tú, ktorú máš rozohranú."
   },
   "season": {
     "manager": "Manažér: {name}",
     "record": "Zápasy: {fixtures}, {wins}-{losses}-{otLosses}, body: {points}",
     "nextHome": "Ďalší zápas: {opponent} doma, deň {day}",
     "nextAway": "Ďalší zápas: vonku, {opponent}, deň {day}",
-    "newSeason": "Začať novú sezónu",
+    "newCareer": "Začať novú kariéru",
+    "year": "Sezóna {year}",
+    "close": "Uzavrieť sezónu",
+    "endedTitle": "Sezóna {year} sa skončila",
+    "leagueRank": "V lige skončil na {rank}. mieste.",
+    "playoffs_missed": "Do playoff sa nedostal.",
+    "playoffsLost": "Vypadol v {round}. kole playoff.",
+    "playoffs_champion": "Získal titul.",
+    "assistantDecides": "Draft, povolania a uvoľnenia vyberie tvoj asistent.",
+    "startNext": "Začať sezónu {year}",
     "signOut": "Odhlásiť sa",
     "nextTitle": "Ďalej nasleduje",
     "playoffsTitle": "Playoff",
@@ -52,7 +61,10 @@
     "fixtureFollowed": "Počas sledovaného zápasu je zostava zamknutá.",
     "saveFailed": "Nepodarilo sa to uložiť. Obnov stránku a skús to znova.",
     "notFollowing": "Nesleduješ žiadny zápas.",
-    "fixtureOver": "Tento zápas sa už dohral."
+    "fixtureOver": "Tento zápas sa už dohral.",
+    "offseason": "Sezóna sa skončila. Najprv začni ďalšiu.",
+    "seasonNotOver": "Sezóna ešte nemá šampióna.",
+    "moveOnFailed": "Kariéra sa neposunula. Obnov stránku a skús to znova."
   },
   "nav": {
     "label": "Hlavné menu",

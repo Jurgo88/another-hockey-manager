@@ -22,7 +22,9 @@ export default defineEventHandler(async (event) => {
     .returns<NoticeRow[]>()
   if (error) throw createError({ statusCode: 500, message: error.message })
 
-  const names = playerNames(season.state.clubs)
+  const names = playerNames(
+    season.phase === 'season' ? season.state.clubs : season.state.ended.clubs,
+  )
   return data.map(({ id, day, kind, data: details, read }) => ({
     id,
     day,

@@ -13,7 +13,7 @@ interface BoxRow {
 
 export default defineEventHandler(async (event) => {
   const manager = await requireManager(event)
-  const { id, state } = await requireSeason(manager.id)
+  const { id, state } = await readSeason(manager.id)
 
   const { data, error } = await dataClient()
     .from('fixture_results')

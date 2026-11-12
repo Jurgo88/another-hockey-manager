@@ -8,7 +8,7 @@ interface ResultRow {
 /** The Manager's Club through the Season: played, then still to come. */
 export default defineEventHandler(async (event) => {
   const manager = await requireManager(event)
-  const { id, clubId, state } = await requireSeason(manager.id)
+  const { id, clubId, state } = await readSeason(manager.id)
 
   const { data, error } = await dataClient()
     .from('fixture_results')

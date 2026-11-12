@@ -204,6 +204,13 @@ engine's fatigue (#109). The shape of careers is asserted on development alone
 **Gate result:** met, confirmed by the author on 2026-11-11, with the targets
 above reported rather than asserted.
 
+Item 9 is done in #91: the application keeps a career, a row per Season, and
+each finished Season's record split between the Season's row and a row per
+Player, with the Players' names beside them (ADR-029). A Manager closes a
+Season with its champion and starts the next; until item 10 the assistant makes
+every pick and move between them. A Season stored before becomes the first of a
+career.
+
 ## Phase 3 - Roster movement
 
 Deferred this far deliberately: a transfer economy is the hardest thing in the
