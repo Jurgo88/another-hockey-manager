@@ -23,6 +23,3 @@ out/
 
 # Simulated Seasons the realism and long-run tests share (#106)
 .cache/
-
-# Roster files with real contracts from CapWages: only derived tables are committed (R-10, #125)
-packages/estimate/data/*-contracts.json
