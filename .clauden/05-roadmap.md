@@ -254,3 +254,8 @@ replace the assistant's call-ups and releases, and moves that break the rules
 are refused with the rules named. Notices tell him who retired, went unsigned,
 lost rights, was drafted, called up, released or joined (ADR-028, ADR-029
 amendments).
+
+Item 11 is done in #93: the application shows a Club's history Season by
+Season, any past Season with its final table, leaders and draft, and the career
+of any Player the career has known, read through the folds of item 4 (ADR-025
+amendment). With it, every item of Phase 2 is done.
