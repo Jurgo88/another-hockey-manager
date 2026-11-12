@@ -34,7 +34,7 @@
     "playoffs_missed": "Do playoff sa nedostal.",
     "playoffsLost": "Vypadol v {round}. kole playoff.",
     "playoffs_champion": "Získal titul.",
-    "assistantDecides": "Draft, povolania a uvoľnenia vyberie tvoj asistent.",
+    "assistantDecides": "Vydraftuj si prospektov a urči povolania a uvoľnenia, alebo to nechaj na asistenta.",
     "startNext": "Začať sezónu {year}",
     "signOut": "Odhlásiť sa",
     "nextTitle": "Ďalej nasleduje",
@@ -48,7 +48,10 @@
     "playFixture": "Nasimulovať môj zápas",
     "recent": "Posledné výsledky",
     "follow": "Sledovať môj zápas",
-    "keepFollowing": "Späť na môj zápas"
+    "keepFollowing": "Späť na môj zápas",
+    "toDraft": "Na draft",
+    "draftResults": "Výsledky draftu",
+    "toMoves": "Presuny súpisky"
   },
   "errors": {
     "signedOut": "Prihlás sa, prosím.",
@@ -70,7 +73,13 @@
     "seasonNotOver": "Sezóna ešte nemá šampióna.",
     "moveOnFailed": "Kariéra sa neposunula. Obnov stránku a skús to znova.",
     "unknownRosterSource": "Takéto súpisky neexistujú.",
-    "noRosterFile": "Tento server nemá roster file."
+    "noRosterFile": "Tento server nemá roster file.",
+    "draftFailed": "Draft sa neposunul. Obnov stránku a skús to znova.",
+    "draftMade": "Draft je už hotový.",
+    "notYourPick": "Nie si na rade, alebo ten prospekt už je preč. Obnov stránku.",
+    "notInClass": "Ten prospekt v drafte nie je.",
+    "draftFirst": "Najprv urob draft.",
+    "invalidMoves": "Tieto presuny porušujú pravidlá."
   },
   "nav": {
     "label": "Hlavné menu",
@@ -288,6 +297,65 @@
     "empty": "Zatiaľ nič. Správy o tvojom klube prídu sem.",
     "latest": "Nové správy",
     "all": "Otvoriť správy",
-    "injuryBrief": "sa zranil, ale ďalší zápas nevynechá."
+    "injuryBrief": "sa zranil, ale ďalší zápas nevynechá.",
+    "retired": "ukončil kariéru.",
+    "unsigned": "nedostal novú zmluvu a odišiel z ligy.",
+    "rightsExpired": "už nie je tvoj prospekt: práva vypršali.",
+    "drafted": "vydraftovaný, pick {pick} v {round}. kole.",
+    "released": "bol uvoľnený.",
+    "calledUp": "bol povolaný na súpisku.",
+    "joined": "prišiel do klubu."
+  },
+  "draft": {
+    "title": "Draft pred sezónou {year}",
+    "myPicks": "Tvoje picky: {picks}",
+    "help": "Prospekti sú zobrazení ako rozsahy: budúcnosť 18-ročného je ešte otvorená.",
+    "madeTitle": "Draft je hotový",
+    "toMoves": "Ďalej na presuny súpisky",
+    "yourPick": "Si na rade: pick {pick}, kolo {round}",
+    "onTheClock": "Na rade je {club}, pick {pick}",
+    "toMyPick": "Prejsť na môj pick",
+    "leaveRest": "Zvyšok nechať na asistenta",
+    "mine": "Tvoje picky",
+    "available": "Ešte k dispozícii",
+    "level": "Úroveň",
+    "potential": "Potenciál",
+    "pick": "Vybrať",
+    "picks": "Doterajšie picky",
+    "round": "{round}. kolo",
+    "byGroup": "Úrovne sa dajú porovnať len v rámci jednej skupiny: brankár má inú stupnicu ako korčuliar.",
+    "group": {
+      "forward": "Útočníci ({count})",
+      "defence": "Obrancovia ({count})",
+      "goalie": "Brankári ({count})"
+    }
+  },
+  "moves": {
+    "title": "Presuny súpisky pred sezónou {year}",
+    "useAssistant": "Použiť asistentove",
+    "save": "Uložiť moje presuny",
+    "ownHelp": "Toto sú tvoje vlastné presuny. Asistentove sú na jedno kliknutie.",
+    "assistantHelp": "Toto sú asistentove presuny. Zmeň ich a ulož, aby boli tvoje.",
+    "gaps": "Miesta na doplnenie po hráčoch, ktorí odišli: {positions}. Čo nedoplníš, doplnia nedraftovaní hráči.",
+    "saved": "Uložené. Urobia sa so štartom ďalšej sezóny.",
+    "prospects": "Tvoji prospekti",
+    "callUp": "Povolať",
+    "release": "Uvoľniť",
+    "drafted": "Draftovaný",
+    "draftedIn": "sezóna {year}, {round}. kolo",
+    "ready": "asistent: pripravený",
+    "violation": {
+      "calledUpTwice": "{name} je povolaný dvakrát.",
+      "releasedTwice": "{name} je uvoľnený dvakrát.",
+      "notProspect": "{name} nie je tvoj prospekt.",
+      "notOnRoster": "{name} nie je na tvojej súpiske.",
+      "aboveShape": "{count} – {group}, viac než {shape}, koľko súpiska unesie.",
+      "cannotDress": "S týmito presunmi by klub nezložil zostavu."
+    },
+    "group": {
+      "forward": "útočníci",
+      "defence": "obrancovia",
+      "goalie": "brankári"
+    }
   }
 }

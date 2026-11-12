@@ -77,7 +77,16 @@ const startNext = () => act('/api/season/next', {}, 'errors.moveOnFailed')
       <p style="padding: 0 10px">{{ t('season.champion', { club: season.champion }) }}</p>
       <p style="padding: 0 10px" class="muted">{{ t('season.assistantDecides') }}</p>
       <div class="actions" style="padding: 0 10px">
-        <button type="button" class="button button-go" :disabled="busy" @click="startNext">
+        <NuxtLink v-if="season.step === 'draft'" to="/draft" class="button button-go button-link">
+          {{ t('season.toDraft') }}
+        </NuxtLink>
+        <template v-else>
+          <NuxtLink to="/draft" class="button button-link">{{ t('season.draftResults') }}</NuxtLink>
+          <NuxtLink to="/moves" class="button button-go button-link">
+            {{ t('season.toMoves') }}
+          </NuxtLink>
+        </template>
+        <button type="button" class="button" :disabled="busy" @click="startNext">
           {{ t('season.startNext', { year: season.nextYear }) }}
         </button>
       </div>

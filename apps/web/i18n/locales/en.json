@@ -34,7 +34,7 @@
     "playoffs_missed": "Missed the playoffs.",
     "playoffsLost": "Out of the playoffs in round {round}.",
     "playoffs_champion": "Won the championship.",
-    "assistantDecides": "Your assistant makes the draft picks, call-ups and releases.",
+    "assistantDecides": "Draft your prospects and set your call-ups and releases, or leave them to your assistant.",
     "startNext": "Start Season {year}",
     "signOut": "Sign out",
     "nextTitle": "Next up",
@@ -48,7 +48,10 @@
     "playFixture": "Simulate my Fixture",
     "recent": "Recent results",
     "follow": "Follow my Fixture",
-    "keepFollowing": "Back to my Fixture"
+    "keepFollowing": "Back to my Fixture",
+    "toDraft": "Go to the draft",
+    "draftResults": "Draft results",
+    "toMoves": "Roster moves"
   },
   "errors": {
     "signedOut": "Please sign in.",
@@ -70,7 +73,13 @@
     "seasonNotOver": "The Season has no champion yet.",
     "moveOnFailed": "The career did not move on. Refresh the page and try again.",
     "unknownRosterSource": "Those Rosters do not exist.",
-    "noRosterFile": "This server has no roster file."
+    "noRosterFile": "This server has no roster file.",
+    "draftFailed": "The draft did not move on. Refresh the page and try again.",
+    "draftMade": "The draft has been made.",
+    "notYourPick": "It is not your pick, or that prospect is gone. Refresh the page.",
+    "notInClass": "That prospect is not in the draft.",
+    "draftFirst": "Make the draft first.",
+    "invalidMoves": "Those moves break the rules."
   },
   "nav": {
     "label": "Main menu",
@@ -288,6 +297,65 @@
     "empty": "Nothing yet. News about your Club arrives here.",
     "latest": "New in your inbox",
     "all": "Open the inbox",
-    "injuryBrief": "was hurt, but misses no further Fixture."
+    "injuryBrief": "was hurt, but misses no further Fixture.",
+    "retired": "retired.",
+    "unsigned": "was not signed again and left the league.",
+    "rightsExpired": "is no longer your prospect: his rights expired.",
+    "drafted": "drafted, pick {pick} in round {round}.",
+    "released": "was released.",
+    "calledUp": "was called up to the Roster.",
+    "joined": "joined the Club."
+  },
+  "draft": {
+    "title": "Draft before Season {year}",
+    "myPicks": "Your picks: {picks}",
+    "help": "Prospects are shown as ranges: an 18-year-old’s future is still open.",
+    "madeTitle": "The draft is made",
+    "toMoves": "On to Roster moves",
+    "yourPick": "You are on the clock: pick {pick}, round {round}",
+    "onTheClock": "{club} on the clock, pick {pick}",
+    "toMyPick": "Go to my pick",
+    "leaveRest": "Leave the rest to the assistant",
+    "mine": "Your picks",
+    "available": "Still available",
+    "level": "Level",
+    "potential": "Potential",
+    "pick": "Pick",
+    "picks": "Picks so far",
+    "round": "Round {round}",
+    "byGroup": "Levels compare only within a position group: a Goalie’s scale is not a Skater’s.",
+    "group": {
+      "forward": "Forwards ({count})",
+      "defence": "Defencemen ({count})",
+      "goalie": "Goalies ({count})"
+    }
+  },
+  "moves": {
+    "title": "Roster moves before Season {year}",
+    "useAssistant": "Use the assistant’s",
+    "save": "Save my moves",
+    "ownHelp": "These are your own moves. The assistant’s are a click away.",
+    "assistantHelp": "These are the assistant’s moves. Change them and save to make them yours.",
+    "gaps": "Places to fill, left by Players who went: {positions}. Gaps you leave are filled from undrafted Players.",
+    "saved": "Saved. They are made as the next Season starts.",
+    "prospects": "Your prospects",
+    "callUp": "Call up",
+    "release": "Release",
+    "drafted": "Drafted",
+    "draftedIn": "Season {year}, round {round}",
+    "ready": "assistant: ready",
+    "violation": {
+      "calledUpTwice": "{name} is called up twice.",
+      "releasedTwice": "{name} is released twice.",
+      "notProspect": "{name} is not your prospect.",
+      "notOnRoster": "{name} is not on your Roster.",
+      "aboveShape": "{count} {group} is more than the {shape} a Roster holds.",
+      "cannotDress": "With these moves the Club could not dress a Lineup."
+    },
+    "group": {
+      "forward": "forwards",
+      "defence": "defencemen",
+      "goalie": "Goalies"
+    }
   }
 }
