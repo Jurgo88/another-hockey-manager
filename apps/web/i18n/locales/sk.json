@@ -79,7 +79,9 @@
     "notYourPick": "Nie si na rade, alebo ten prospekt už je preč. Obnov stránku.",
     "notInClass": "Ten prospekt v drafte nie je.",
     "draftFirst": "Najprv urob draft.",
-    "invalidMoves": "Tieto presuny porušujú pravidlá."
+    "invalidMoves": "Tieto presuny porušujú pravidlá.",
+    "noHistory": "Táto sezóna sa v tejto kariére neodohrala.",
+    "noPlayer": "Taký hráč v tejto kariére nie je."
   },
   "nav": {
     "label": "Hlavné menu",
@@ -91,7 +93,8 @@
     "roster": "Roster",
     "lineup": "Zostava",
     "tactics": "Taktika",
-    "notices": "Správy"
+    "notices": "Správy",
+    "history": "História"
   },
   "decided": {
     "regulation": "Základná hracia doba",
@@ -357,5 +360,25 @@
       "defence": "obrancovia",
       "goalie": "brankári"
     }
+  },
+  "history": {
+    "title": "História klubu",
+    "club": "Klub",
+    "none": "Žiadna sezóna kariéry sa ešte neskončila.",
+    "season": "Sezóna",
+    "division": "Divízia",
+    "league": "Liga",
+    "champion": "Šampión",
+    "seasonTitle": "Sezóna {year}",
+    "draft": "Draft pred touto sezónou"
+  },
+  "career": {
+    "title": "Kariéra",
+    "none": "Ešte neodohral žiadny zápas.",
+    "playoffGames": "Z v playoff",
+    "playoffSave": "Úspešnosť v playoff",
+    "playoffPoints": "B v playoff",
+    "underWay": "(prebieha)",
+    "total": "Spolu"
   }
 }

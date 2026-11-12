@@ -11,6 +11,7 @@ const sections = [
   { to: '/standings', key: 'nav.standings' },
   { to: '/leaders', key: 'nav.leaders' },
   { to: '/playoffs', key: 'nav.playoffs' },
+  { to: '/history', key: 'nav.history' },
 ]
 
 const route = useRoute()
@@ -39,7 +40,9 @@ async function signOut() {
         exact-active-class="side-on"
       >
         {{ t(section.key) }}
-        <span v-if="section.to === '/notices' && unread?.count" class="badge">{{ unread.count }}</span>
+        <span v-if="section.to === '/notices' && unread?.count" class="badge">{{
+          unread.count
+        }}</span>
       </NuxtLink>
       <div class="side-foot">
         <button
