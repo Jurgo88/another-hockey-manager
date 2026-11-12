@@ -113,5 +113,14 @@ Season reads the source: every Season after it grows from the one before
 (ADR-014, ADR-028), whatever the source.
 
 A file's Players carry their provenance, and the application shows an attribute
-of low confidence as a range, never as a figure (D-11, FR-18). The exact value
-does not leave the server.
+of low confidence as a range, never as a figure (D-11, FR-18). The range is
+`observedRange`, symmetric about the value and as wide as the confidence is low.
+It says how far an estimate can be trusted; it does not hide the value, whose
+middle it is unless the scale's ends clip it. Hiding it, a window placed
+anywhere about the value and narrowed by looking, is scouting (Phase 3).
+
+A generated league shows its values as figures until then. They have no
+real-world counterpart to misstate, and without scouting a Manager could do
+nothing to narrow a range. Its Players keep their provenance, so when scouting
+arrives, generated leagues show ranges by confidence as well, and scouting
+narrows them in both kinds of league.
