@@ -163,12 +163,12 @@ and the engine reads no contract, so every result of a Match stays as it was.
   level, not yet by the public role this ADR prices on. A prospect called up
   signs an entry-level contract; the fill and a former prospect a Club takes
   sign one year at the minimum.
-- **Real contracts.** `pnpm sim:estimate --contracts` gives each matched
-  Player the contract CapWages shows for the season (894 of 928 Players in
-  2025-26). Its file is written apart and kept out of git: per-Player cap hits
-  are not a derived table (R-10). The committed roster file carries none and
-  opens with generated contracts. Whether it may carry them is the author's
-  question, not an architecture one.
+- **Real contracts.** `pnpm sim:estimate` gives each matched Player the
+  contract CapWages shows for the season, in shares of that season's cap: 894
+  of 928 Players in 2025-26, the rest and the fill getting the opening
+  contract. The author decided on 2026-11-12 that the committed roster file
+  carries them (R-10). They were added to it without estimating it again, so
+  its attributes are as they were.
 - **Stored careers.** A Season or phase between Seasons stored before this
   change gets the NHL's rules and the opening contracts when it is read, the
   same each time.
