@@ -51,6 +51,8 @@ Identifier scheme follows the convention established on HermanTool:
 | FR-33 | A Manager receives notices about their Club in an inbox, folded from the Fixtures played: who was hurt and who is fit again. A new kind of notice is one more member of a type and one more line of wording. |
 | FR-34 | A Manager can let an assistant coach propose the best Lineup from the fit Players, using the builder that sets AI Lineups (D-04). Tactics stay, and it counts only once saved. |
 | FR-35 | A Manager sees Skater fatigue as an energy bar before a Fixture and during it, by Skater and by unit, up to date after each Shift. Energy is 100 less fatigue, so the bar starts full and empties. Fatigue reaches a reader through `fatigue` events, and only `match_end` carries it to the next Fixture (ADR-019). |
+| FR-36 | Between Seasons a Manager drafts in a draft room: the picks before his are made, he chooses one prospect still available, and the draft goes on to his next pick. He may leave the rest to the assistant at any point. Prospects are shown as ranges of level and `potential`, never as figures. See ADR-028. |
+| FR-37 | Between Seasons a Manager sees the assistant's call-ups and releases for his Club and may replace them; moves that break the rules are refused with the rules named. He is told who retired, went unsigned, was drafted, called up, released, whose rights expired and who joined. See ADR-028 and ADR-029. |
 
 ## Non-functional requirements
 

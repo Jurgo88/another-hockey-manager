@@ -1,5 +1,12 @@
 import type { Club } from '../domain/club.js'
-import type { DraftFormat, DraftLottery, DraftPick, Prospect, RosterMoves } from '../domain/draft.js'
+import type {
+  DraftFormat,
+  DraftLottery,
+  DraftPick,
+  MovesViolation,
+  Prospect,
+  RosterMoves,
+} from '../domain/draft.js'
 import {
   isGoalie,
   naturalPosition,
@@ -48,7 +55,9 @@ export function draftOrder(
   playoffs: PlayoffState,
   rng: Rng,
 ): ClubId[] {
-  const worstFirst = sortStandings(standings).reverse().map((row) => row.clubId)
+  const worstFirst = sortStandings(standings)
+    .reverse()
+    .map((row) => row.clubId)
   const qualified = new Set(playoffs.bracket.seeds.map((seed) => seed.clubId))
   const rounds = playoffs.bracket.rounds
   const lastRound = (clubId: ClubId) =>
@@ -207,7 +216,10 @@ export function generateClass(rng: Rng, year: number, size: number): Player[] {
     const z = onLadder(c.level, place) - shift + gaussian(rng) * c.noise
     const age = rng.chance(c.aged19) ? 19 : 18
     const room =
-      onLadder(c.room, place) - shift - (age === 19 ? c.roomLessAt19 : 0) + Math.abs(gaussian(rng)) * c.roomNoise
+      onLadder(c.room, place) -
+      shift -
+      (age === 19 ? c.roomLessAt19 : 0) +
+      Math.abs(gaussian(rng)) * c.roomNoise
     const level = fillLevel(group) + z * spread
     const ability = abilityOfLevel(level)
     const headroom = Math.max(0, abilityOfLevel(level + Math.max(0, room) * spread) - ability)
@@ -264,22 +276,72 @@ export function makePicks(
   draftClass: readonly Player[],
   lists: Readonly<Record<ClubId, readonly PlayerId[]>>,
 ): { picks: DraftPick[]; prospects: Prospect[] } {
-  const available = new Map(draftClass.map((player) => [player.id, player]))
-  const ranked = assistantRanking(draftClass)
-  const picks: DraftPick[] = []
-  const prospects: Prospect[] = []
-  for (let round = 1; round <= format.rounds; round++) {
-    for (const clubId of order) {
-      if (available.size === 0) break
-      const listed = (lists[clubId] ?? []).find((id) => available.has(id))
-      const player = listed ? available.get(listed)! : ranked.find((p) => available.has(p.id))!
-      available.delete(player.id)
-      const pick = picks.length + 1
-      picks.push({ year, round, pick, clubId, playerId: player.id })
-      prospects.push({ player: { ...player, clubId }, year, round, pick })
-    }
-  }
+  const { picks, prospects } = continuePicks(format, year, order, draftClass, lists, [])
   return { picks, prospects }
+}
+
+/** The next pick after `made` picks: its number, round and Club, or null once the draft is over. */
+export function onTheClock(
+  format: DraftFormat,
+  order: readonly ClubId[],
+  made: number,
+): { pick: number; round: number; clubId: ClubId } | null {
+  if (order.length === 0 || made >= format.rounds * order.length) return null
+  return {
+    pick: made + 1,
+    round: Math.floor(made / order.length) + 1,
+    clubId: order[made % order.length]!,
+  }
+}
+
+/** The next pick, made with `player`: it goes to the Club on the clock (ADR-028 amendment, #92). */
+export function takePick(
+  format: DraftFormat,
+  year: number,
+  order: readonly ClubId[],
+  made: number,
+  player: Player,
+): { pick: DraftPick; prospect: Prospect } {
+  const clock = onTheClock(format, order, made)
+  if (!clock) throw new Error('The draft is over')
+  const { pick, round, clubId } = clock
+  return {
+    pick: { year, round, pick, clubId, playerId: player.id },
+    prospect: { player: { ...player, clubId }, year, round, pick },
+  }
+}
+
+/**
+ * The picks of a draft from where it stands (ADR-028 amendment, #92): each
+ * Club's first listed prospect still available, or the assistant's choice,
+ * until the draft is over, the class runs out, or `stop` says the Club on the
+ * clock picks for itself. A draft made in parts is the draft made at once.
+ */
+export function continuePicks(
+  format: DraftFormat,
+  year: number,
+  order: readonly ClubId[],
+  available: readonly Player[],
+  lists: Readonly<Record<ClubId, readonly PlayerId[]>>,
+  made: readonly DraftPick[],
+  stop: (clubId: ClubId) => boolean = () => false,
+): { picks: DraftPick[]; prospects: Prospect[]; available: Player[] } {
+  const left = new Map(available.map((player) => [player.id, player]))
+  // The assistant's order is total, so ranking once equals ranking what is left.
+  const ranked = assistantRanking(available)
+  const picks = [...made]
+  const prospects: Prospect[] = []
+  for (;;) {
+    const clock = onTheClock(format, order, picks.length)
+    if (!clock || left.size === 0 || stop(clock.clubId)) break
+    const listed = (lists[clock.clubId] ?? []).find((id) => left.has(id))
+    const player = listed ? left.get(listed)! : ranked.find((p) => left.has(p.id))!
+    const taken = takePick(format, year, order, picks.length, player)
+    left.delete(player.id)
+    picks.push(taken.pick)
+    prospects.push(taken.prospect)
+  }
+  return { picks, prospects, available: [...left.values()] }
 }
 
 /**
@@ -301,11 +363,19 @@ export function openingProspects(
   return Array.from({ length: format.rightsSeasons }, (_, held) => 1 - held).flatMap((year) => {
     const stream = rng.fork(`opening:y${year}`)
     const order = stream.fork('order').shuffle([...clubIds])
-    const { prospects } = makePicks(format, year, order, generateClass(stream.fork('class'), year, size), {})
+    const { prospects } = makePicks(
+      format,
+      year,
+      order,
+      generateClass(stream.fork('class'), year, size),
+      {},
+    )
     return prospects.map((prospect) => {
       let player = prospect.player
       for (let season = year; season < 1; season++) {
-        const grown = develop(player, stream.fork(`develop:y${season}:${player.id}`), { regular: false })
+        const grown = develop(player, stream.fork(`develop:y${season}:${player.id}`), {
+          regular: false,
+        })
         player = { ...grown, age: grown.age + 1 }
       }
       return { ...prospect, player }
@@ -345,7 +415,9 @@ const byOutlook = (a: Player, b: Player) =>
 
 /** A Club's Roster at a position group, weakest next Season first. */
 function groupOf(club: Club, group: PositionGroup): Player[] {
-  return [...club.skaters, ...club.goalies].filter((p) => positionGroup(p) === group).sort(byOutlook)
+  return [...club.skaters, ...club.goalies]
+    .filter((p) => positionGroup(p) === group)
+    .sort(byOutlook)
 }
 
 /** A Player's natural position, a Goalie's being his own. A Roster keeps its balance of them. */
@@ -427,19 +499,22 @@ export function movesViolations(
   club: Club,
   prospects: readonly Prospect[],
   moves: RosterMoves,
-): string[] {
-  const out: string[] = []
+): MovesViolation[] {
+  const out: MovesViolation[] = []
   const held = new Map(
     prospects.filter((p) => p.player.clubId === club.id).map((p) => [p.player.id, p.player]),
   )
   const onRoster = new Map([...club.skaters, ...club.goalies].map((p) => [p.id, p]))
-  if (new Set(moves.callUps).size !== moves.callUps.length) out.push('a prospect is called up twice')
-  if (new Set(moves.releases).size !== moves.releases.length) out.push('a Player is released twice')
+  const twice = (ids: readonly PlayerId[]) => ids.find((id, i) => ids.indexOf(id) !== i)
+  const calledTwice = twice(moves.callUps)
+  if (calledTwice) out.push({ kind: 'calledUpTwice', playerId: calledTwice })
+  const releasedTwice = twice(moves.releases)
+  if (releasedTwice) out.push({ kind: 'releasedTwice', playerId: releasedTwice })
   for (const id of moves.callUps) {
-    if (!held.has(id)) out.push(`${id} is not a prospect of Club ${club.id}`)
+    if (!held.has(id)) out.push({ kind: 'notProspect', playerId: id })
   }
   for (const id of moves.releases) {
-    if (!onRoster.has(id)) out.push(`${id} is not on the Roster of Club ${club.id}`)
+    if (!onRoster.has(id)) out.push({ kind: 'notOnRoster', playerId: id })
   }
   if (out.length > 0) return out
   for (const group of GROUPS) {
@@ -447,9 +522,27 @@ export function movesViolations(
       groupOf(club, group).length -
       moves.releases.filter((id) => positionGroup(onRoster.get(id)!) === group).length +
       moves.callUps.filter((id) => positionGroup(held.get(id)!) === group).length
-    if (count > SHAPE[group]) out.push(`${count} at ${group}, above the shape of ${SHAPE[group]}`)
+    if (count > SHAPE[group]) out.push({ kind: 'aboveShape', group, count, shape: SHAPE[group] })
   }
   return out
+}
+
+/** A violation in words, for logs and errors; the application words its own (#92). */
+export function describeMovesViolation(violation: MovesViolation): string {
+  switch (violation.kind) {
+    case 'calledUpTwice':
+      return `${violation.playerId} is called up twice`
+    case 'releasedTwice':
+      return `${violation.playerId} is released twice`
+    case 'notProspect':
+      return `${violation.playerId} is not a prospect of the Club`
+    case 'notOnRoster':
+      return `${violation.playerId} is not on the Club's Roster`
+    case 'aboveShape':
+      return `${violation.count} at ${violation.group}, above the shape of ${violation.shape}`
+    case 'cannotDress':
+      return 'the Club could not dress a Lineup'
+  }
 }
 
 /** A Club after its moves, with who joined and who was released. The moves are valid. */

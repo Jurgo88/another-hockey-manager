@@ -1,6 +1,7 @@
 import type {
   Club,
   ClubId,
+  ClubNotice,
   Offseason,
   PlayedDay,
   Player,
@@ -13,6 +14,7 @@ import {
   clubHistory,
   daysOut,
   displayName,
+  endNoticesOf,
   isGoalie,
   isSeasonOver,
   noticesOf,
@@ -199,28 +201,69 @@ export async function saveEnded(
     .select('id')
   if (error) throw createError({ statusCode: 500, message: error.message })
   if (data.length === 0) throw createError({ statusCode: 409, message: 'errors.seasonMoved' })
+  // After the row, as a day's notices are, so a repeat tells nothing twice (ADR-029 amendment).
+  await saveNotices(season.id, endNoticesOf(offseason, season.clubId))
+}
+
+/** A step between Seasons: the draft or the Roster window, guarded by the version (ADR-028). */
+export async function saveOffseason(
+  season: StoredOffseason,
+  offseason: Offseason,
+  notices: readonly ClubNotice[] = [],
+): Promise<void> {
+  const { data, error } = await dataClient()
+    .from('seasons')
+    .update({
+      state: offseason,
+      version: season.version + 1,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', season.id)
+    .eq('version', season.version)
+    .select('id')
+  if (error) throw createError({ statusCode: 500, message: error.message })
+  if (data.length === 0) throw createError({ statusCode: 409, message: 'errors.seasonMoved' })
+  await saveNotices(season.id, notices)
+}
+
+/** What a Manager is told, on the Season current when it is known (ADR-029 amendment). */
+export async function saveNotices(seasonId: string, notices: readonly ClubNotice[]): Promise<void> {
+  if (notices.length === 0) return
+  const rows = notices.map(({ kind, day, ...data }) => ({ season_id: seasonId, day, kind, data }))
+  const { error } = await dataClient().from('notices').insert(rows)
+  if (error) throw createError({ statusCode: 500, message: error.message })
 }
 
 /**
  * Starts the next Season of a career (ADR-029). Its row is inserted once, the
  * unique career and year refusing a second; then the Seasons before it let go
- * of their state, which only the current Season holds.
+ * of their state, which only the current Season holds. The notices of the start
+ * hang from the new row.
  */
-export async function saveNext(season: StoredOffseason, state: SeasonState): Promise<void> {
+export async function saveNext(
+  season: StoredOffseason,
+  state: SeasonState,
+  notices: readonly ClubNotice[],
+): Promise<void> {
   const client = dataClient()
   await savePlayers(season.careerId, playersOf(state))
-  const { error } = await client.from('seasons').insert({
-    career_id: season.careerId,
-    year: state.year,
-    club_id: season.clubId,
-    seed: state.seed,
-    phase: 'season',
-    state,
-    live: state.live,
-  })
+  const { data, error } = await client
+    .from('seasons')
+    .insert({
+      career_id: season.careerId,
+      year: state.year,
+      club_id: season.clubId,
+      seed: state.seed,
+      phase: 'season',
+      state,
+      live: state.live,
+    })
+    .select('id')
+    .single<{ id: string }>()
   // 23505 is a unique key: another request started this Season first.
   if (error?.code === '23505') throw createError({ statusCode: 409, message: 'errors.seasonMoved' })
   if (error) throw createError({ statusCode: 500, message: error.message })
+  await saveNotices(data.id, notices)
 
   const cleared = await client
     .from('seasons')
@@ -321,17 +364,12 @@ export async function saveDays(
   }
 
   const notices = days.flatMap((day, i) =>
-    noticesOf(days[i - 1]?.state ?? season.state, day, season.clubId).map(
-      ({ kind, day: on, ...data }) => ({ season_id: season.id, day: on, kind, data }),
-    ),
+    noticesOf(days[i - 1]?.state ?? season.state, day, season.clubId),
   )
   const state = days.at(-1)?.state ?? season.state
   await saveState(season, state)
   // After the state, since a retry would otherwise tell the same news twice.
-  if (notices.length > 0) {
-    const { error } = await client.from('notices').insert(notices)
-    if (error) throw createError({ statusCode: 500, message: error.message })
-  }
+  await saveNotices(season.id, notices)
   return state
 }
 
@@ -442,6 +480,8 @@ export function offseasonSummary({ clubId, rosterSource, state: off }: StoredOff
     rosterSource,
     year: ended.year,
     nextYear: off.year,
+    // Which window is open between Seasons (ADR-028).
+    step: off.phase,
     clubId,
     clubName: clubName(ended, clubId),
     wins: row?.wins ?? 0,

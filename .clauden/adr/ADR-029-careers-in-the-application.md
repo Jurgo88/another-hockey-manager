@@ -172,3 +172,12 @@ item 10 would rework the storage and the way through to add the windows.
 (`generated`, the default, and every career stored before) or on the server's
 roster file (`file`), ADR-003 amendment. Nothing reads it to play: it tells the
 Manager which league the career is.
+
+## Amendment, 2026-11-12: notices between Seasons (#92)
+
+A notice belongs to the Season that is current when it is known. Departures
+and the draft are known between Seasons, while the ended Season's row holds
+the `Offseason`, so they hang from that row and the Manager reads them before
+he decides. Call-ups, releases, expired rights and the fill are known as the
+next Season starts, and hang from its row. Names come from `players`, which
+keeps those who have left.

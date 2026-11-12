@@ -247,3 +247,10 @@ Rink visualisation, a real-time server, mobile applications, club finances
 beyond wages, stadium management, merchandising, board confidence, press
 conferences. Each is a legitimate feature of the genre and none of them makes
 a bad engine good.
+
+Item 10 is done in #92: between Seasons a Manager drafts in a draft room, a
+pick at a time, and sees his prospects as ranges by position group; he may
+replace the assistant's call-ups and releases, and moves that break the rules
+are refused with the rules named. Notices tell him who retired, went unsigned,
+lost rights, was drafted, called up, released or joined (ADR-028, ADR-029
+amendments).
