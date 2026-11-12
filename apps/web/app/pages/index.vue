@@ -59,6 +59,7 @@ const startNext = () => act('/api/season/next', {}, 'errors.moveOnFailed')
     <p class="muted">
       {{ t('season.year', { year: season.year }) }} ·
       {{ t('season.manager', { name: manager?.name }) }}
+      <template v-if="season.rosterSource === 'file'"> · {{ t('season.rosterFile') }}</template>
     </p>
 
     <section v-if="season.phase === 'offseason'" class="sheet" style="padding-bottom: 10px">

@@ -17,7 +17,9 @@ function placements(lineup: Lineup): ReadonlyMap<PlayerId, string> {
 
 export default defineEventHandler(async (event) => {
   const manager = await requireManager(event)
-  const { clubId, state } = await readSeason(manager.id)
+  const { clubId, rosterSource, state } = await readSeason(manager.id)
+  // Estimates of real Players show as ranges (D-11, ADR-003 amendment).
+  const byConfidence = rosterSource === 'file'
   const club = state.clubs.find((candidate) => candidate.id === clubId)!
   const places = placements(state.lineups[clubId]!)
   const { skaters, goalies } = state.totals.regular
@@ -32,7 +34,7 @@ export default defineEventHandler(async (event) => {
         position: skater.preferredPositions[0],
         age: skater.age,
         place: places.get(skater.id) ?? null,
-        attributes: skater.attributes,
+        attributes: shownAttributes(skater.attributes, skater.provenance, byConfidence),
         gamesPlayed: stats?.gamesPlayed ?? 0,
         goals: stats?.goals ?? 0,
         assists: stats?.assists ?? 0,
@@ -50,7 +52,7 @@ export default defineEventHandler(async (event) => {
         name: `${goalie.firstName} ${goalie.lastName}`,
         age: goalie.age,
         place: places.get(goalie.id) ?? null,
-        attributes: goalie.attributes,
+        attributes: shownAttributes(goalie.attributes, goalie.provenance, byConfidence),
         gamesPlayed: stats?.gamesPlayed ?? 0,
         savePercentage: stats && stats.shotsAgainst > 0 ? savePercentage(stats) : null,
         out: daysOut(state, goalie.id),

@@ -22,6 +22,8 @@ export default defineNuxtConfig({
     supabaseUrl: '',
     supabaseAnonKey: '',
     supabaseServiceKey: '',
+    // A roster file to offer beside generated Rosters (ADR-003). Empty: generated only.
+    rosterFile: '',
   },
 
   i18n: {

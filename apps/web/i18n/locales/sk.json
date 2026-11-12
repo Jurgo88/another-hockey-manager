@@ -15,7 +15,10 @@
   },
   "clubs": {
     "title": "Vyber si klub",
-    "intro": "Povedieš jeden klub sezónu za sezónou. Výber začne novú kariéru a nahradí tú, ktorú máš rozohranú."
+    "intro": "Povedieš jeden klub sezónu za sezónou. Výber začne novú kariéru a nahradí tú, ktorú máš rozohranú.",
+    "source": "Súpisky",
+    "source_generated": "Generovaná liga",
+    "source_file": "Skutoční hráči, odhad (roster file)"
   },
   "season": {
     "manager": "Manažér: {name}",
@@ -23,6 +26,7 @@
     "nextHome": "Ďalší zápas: {opponent} doma, deň {day}",
     "nextAway": "Ďalší zápas: vonku, {opponent}, deň {day}",
     "newCareer": "Začať novú kariéru",
+    "rosterFile": "Skutoční hráči, odhad",
     "year": "Sezóna {year}",
     "close": "Uzavrieť sezónu",
     "endedTitle": "Sezóna {year} sa skončila",
@@ -64,7 +68,9 @@
     "fixtureOver": "Tento zápas sa už dohral.",
     "offseason": "Sezóna sa skončila. Najprv začni ďalšiu.",
     "seasonNotOver": "Sezóna ešte nemá šampióna.",
-    "moveOnFailed": "Kariéra sa neposunula. Obnov stránku a skús to znova."
+    "moveOnFailed": "Kariéra sa neposunula. Obnov stránku a skús to znova.",
+    "unknownRosterSource": "Takéto súpisky neexistujú.",
+    "noRosterFile": "Tento server nemá roster file."
   },
   "nav": {
     "label": "Hlavné menu",

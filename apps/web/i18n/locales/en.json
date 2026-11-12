@@ -15,7 +15,10 @@
   },
   "clubs": {
     "title": "Choose your Club",
-    "intro": "You manage one Club, Season after Season. Choosing starts a new career and replaces the one you have running."
+    "intro": "You manage one Club, Season after Season. Choosing starts a new career and replaces the one you have running.",
+    "source": "Rosters",
+    "source_generated": "Generated league",
+    "source_file": "Real Players, estimated (roster file)"
   },
   "season": {
     "manager": "Manager: {name}",
@@ -23,6 +26,7 @@
     "nextHome": "Next: {opponent} at home, day {day}",
     "nextAway": "Next: away at {opponent}, day {day}",
     "newCareer": "Start a new career",
+    "rosterFile": "Real Players, estimated",
     "year": "Season {year}",
     "close": "Close the Season",
     "endedTitle": "Season {year} is over",
@@ -64,7 +68,9 @@
     "fixtureOver": "That Fixture has been played to its end.",
     "offseason": "The Season is over. Start the next one first.",
     "seasonNotOver": "The Season has no champion yet.",
-    "moveOnFailed": "The career did not move on. Refresh the page and try again."
+    "moveOnFailed": "The career did not move on. Refresh the page and try again.",
+    "unknownRosterSource": "Those Rosters do not exist.",
+    "noRosterFile": "This server has no roster file."
   },
   "nav": {
     "label": "Main menu",
