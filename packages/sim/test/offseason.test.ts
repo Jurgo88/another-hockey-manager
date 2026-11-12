@@ -12,6 +12,7 @@ import {
   makePick,
   proposedMoves,
   runDraft,
+  runReSigning,
   setRosterMoves,
   startNextSeason,
   startNoticesOf,
@@ -85,7 +86,7 @@ describe('the draft room', () => {
 
 describe('moves that break the rules, as data', () => {
   it('names the rule and the Player', () => {
-    const drafted = runDraft(off)
+    const drafted = runReSigning(runDraft(off))
     const club = drafted.clubs[0]!
     const stranger = drafted.prospects.find((p) => p.player.clubId !== club.id)!.player.id
     expect(
@@ -125,7 +126,7 @@ describe('notices between Seasons', () => {
   })
 
   it('tell each Club whom it drafted', () => {
-    const drafted = runDraft(off)
+    const drafted = runReSigning(runDraft(off))
     for (const club of drafted.clubs) {
       const notices = draftNoticesOf(drafted, club.id)
       expect(notices.map((n) => n.playerId)).toEqual(
@@ -135,7 +136,7 @@ describe('notices between Seasons', () => {
   })
 
   it('name everyone who arrives as the next Season starts, and everyone released', () => {
-    const drafted = runDraft(off)
+    const drafted = runReSigning(runDraft(off))
     const next = startNextSeason(drafted)
     let calledUp = 0
     for (const club of next.clubs) {

@@ -307,7 +307,9 @@
     "drafted": "drafted, pick {pick} in round {round}.",
     "released": "was released.",
     "calledUp": "was called up to the Roster.",
-    "joined": "joined the Club."
+    "joined": "joined the Club.",
+    "reSigned": "signed again at his ask, for {years} Seasons.",
+    "letGo": "was not offered a new contract and left the league."
   },
   "draft": {
     "title": "Draft before Season {year}",

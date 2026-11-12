@@ -271,6 +271,43 @@ const termRow = (group: string, terms: readonly number[]) => ({
   fivePlus: terms.filter((t) => t >= 5).length / (terms.length || 1),
 })
 
+/** Standard contracts beginning in the view's season, by regulars of the season before. */
+export function signedContracts(view: CapView, players: readonly SeasonPlayer[]) {
+  const before = view.season - 1
+  const thirds = thirdsOfRole(players, before)
+  const { joined } = joinView({ ...view, season: before }, players)
+  return joined.flatMap(({ cap, nhl }) => {
+    const third = thirds.get(nhl.playerId)
+    if (third === undefined) return []
+    return cap.contracts
+      .filter((c) => !c.entryLevel && c.seasons[0]?.season === view.season)
+      .map((c) => ({ age: ageIn(cap.birthDate, view.season), third, term: c.seasons.length }))
+  })
+}
+
+/** The age bands the term of a new contract is measured in (#127). */
+export const TERM_AGE_BANDS = [24, 30, 99] as const
+/** The longest term counted; a longer one counts as it. */
+export const TERM_MAX = 8
+
+/**
+ * How many new standard contracts ran each term, 1 to TERM_MAX years, by third
+ * of the role the season before and by age band at signing, over the views.
+ */
+export function termCounts(
+  views: readonly CapView[],
+  players: readonly SeasonPlayer[],
+): number[][][] {
+  const counts = [0, 1, 2].map(() => TERM_AGE_BANDS.map(() => new Array<number>(TERM_MAX).fill(0)))
+  for (const view of views) {
+    for (const { age, third, term } of signedContracts(view, players)) {
+      const band = TERM_AGE_BANDS.findIndex((upTo) => age <= upTo)
+      counts[third]![band]![Math.min(TERM_MAX, term) - 1]! += 1
+    }
+  }
+  return counts
+}
+
 /**
  * Standard contracts that begin in the view's season, signed by Players who
  * were regulars the season before: how long they run, by age at their start
@@ -278,16 +315,7 @@ const termRow = (group: string, terms: readonly number[]) => ({
  * are left out.
  */
 export function termsAtSigning(view: CapView, players: readonly SeasonPlayer[]) {
-  const before = view.season - 1
-  const thirds = thirdsOfRole(players, before)
-  const { joined } = joinView({ ...view, season: before }, players)
-  const signed = joined.flatMap(({ cap, nhl }) => {
-    const third = thirds.get(nhl.playerId)
-    if (third === undefined) return []
-    return cap.contracts
-      .filter((c) => !c.entryLevel && c.seasons[0]?.season === view.season)
-      .map((c) => ({ age: ageIn(cap.birthDate, view.season), third, term: c.seasons.length }))
-  })
+  const signed = signedContracts(view, players)
   return {
     byAge: CONTRACT_AGE_BANDS.map((band) =>
       termRow(
@@ -351,10 +379,16 @@ export interface CapShares {
     /** Mean term in years of a standard contract signed after a season in this third. */
     term: number
   }[]
+  /** New standard contracts by third of role, age band (TERM_AGE_BANDS) and term from 1 year. */
+  terms: readonly (readonly (readonly number[])[])[]
 }
 
 /** The cap shares of one view, as the generator reads them. */
-export function capShares(view: CapView, players: readonly SeasonPlayer[]): CapShares {
+export function capShares(
+  view: CapView,
+  players: readonly SeasonPlayer[],
+  termViews: readonly CapView[] = [view],
+): CapShares {
   const regulars = regularsOf(view, joinView(view, players).joined)
   const clubs = view.clubs.length
   const status = shareByStatus(regulars)
@@ -380,5 +414,6 @@ export function capShares(view: CapView, players: readonly SeasonPlayer[]): CapS
         term: terms[third]!.mean,
       }
     }),
+    terms: termCounts(termViews, players),
   }
 }

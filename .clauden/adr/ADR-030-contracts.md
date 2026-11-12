@@ -178,3 +178,23 @@ the cap (SD 10 pp, lowest 70%, highest 100%) against the measured 94-96%; by
 Season 4 the highest is near 120% and the lowest near 67%, which the cap and
 floor of item 4 and the budgets of item 7 bound. The real 2025-26 contracts open
 at 94% (SD 8 pp). `pnpm sim:season --seasons 10` prints payrolls by Season.
+
+## Amendment, 2026-11-12: the ask by role, and the measured term (#127)
+
+- **The ask reads the public role.** When a contract runs out, the Player's
+  place is his rank in his group across the league by the role `roles()` gives
+  him for the Season just played (ADR-027): ice time per Fixture, Goalies by
+  Fixtures, the injured by level, those who did not play last. The place prices
+  him on the curve as at opening. Opening contracts stay priced by level, since
+  nobody has played yet.
+- **Age enters through status only.** The author chose on 2026-11-12 to leave a
+  separate age factor out; the long-run calibration adds one if the bands by
+  age need it.
+- **The term is drawn from the measured terms.** `pnpm sim:measure --contracts
+  --module` writes the count of new standard contracts by term, 1 to 8 years,
+  for each third of role the season before and age band at signing (to 24,
+  25-30, 31 and older), from the 2025-26 and 2026-27 views pooled: about 600
+  contracts. A drawn term past the longest the rules allow counts as the
+  longest. A Club may name its own term; the price follows the status that term
+  leaves. A Player beyond the regulars signs at the minimum for a year unless his
+  Club names more.

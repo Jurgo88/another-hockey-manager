@@ -1,4 +1,11 @@
-import { draftNoticesOf, runDraft, startNextSeason, startNoticesOf } from '@ahm/sim'
+import {
+  draftNoticesOf,
+  reSigningNoticesOf,
+  runDraft,
+  runReSigning,
+  startNextSeason,
+  startNoticesOf,
+} from '@ahm/sim'
 
 /**
  * Starts the next Season of the career (ADR-029). Whatever the Manager left
@@ -13,6 +20,8 @@ export default defineEventHandler(async (event) => {
   const notices = [
     // A draft the Manager never opened is made now, and told now.
     ...(off.phase === 'draft' ? draftNoticesOf(runDraft(off), season.clubId) : []),
+    // So are re-signings nobody made.
+    ...(off.phase !== 'roster' ? reSigningNoticesOf(runReSigning(off), season.clubId) : []),
     ...startNoticesOf(off, state, season.clubId),
   ]
   await saveNext(season, state, notices)

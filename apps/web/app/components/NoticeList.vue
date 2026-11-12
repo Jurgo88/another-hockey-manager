@@ -11,6 +11,7 @@ defineProps<{
     fixtures: number | null
     round?: number | null
     pick?: number | null
+    years?: number | null
   }[]
 }>()
 const { t } = useI18n()
@@ -22,6 +23,7 @@ function noticeText(notice: {
   fixtures: number | null
   round?: number | null
   pick?: number | null
+  years?: number | null
 }) {
   if (notice.kind === 'injury' && notice.days !== null)
     return t('notices.injuryDays', { days: notice.days })
@@ -30,6 +32,7 @@ function noticeText(notice: {
     fixtures: notice.fixtures ?? 0,
     round: notice.round ?? 0,
     pick: notice.pick ?? 0,
+    years: notice.years ?? 0,
   })
 }
 </script>

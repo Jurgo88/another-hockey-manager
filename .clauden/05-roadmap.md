@@ -274,6 +274,11 @@ amendment), priced at opening from the measured curve in
 3. The roster file is at version 2 (ADR-020 amendment), and the 2025-26 file
 carries the real contracts of 894 of its 928 Players.
 
+Item 3 is done in #127: a contract that runs out is priced by the Player's
+role and waits on a re-signing window between the draft and the Roster window,
+with terms drawn from the measured terms by role and age (ADR-030 and ADR-032
+amendments). The assistant re-signs everyone until the market of item 5.
+
 **Gate:** ten simulated Seasons of AI-only roster movement, on eight generated
 leagues and the 2025-26 roster file, leave wage inflation and talent
 distribution inside defined bounds, and the table targets deferred from the

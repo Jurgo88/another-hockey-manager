@@ -1,3 +1,5 @@
+import type { PlayerId } from './player.js'
+
 /**
  * A Player's contract with his Club (ADR-030). Money is held as a share of the
  * cap, so a league whose cap rises keeps its wages, and shown in currency only
@@ -6,12 +8,30 @@
 export interface Contract {
   /** The cap hit of every Season it runs, as a share of the cap. */
   capHit: number
-  /** Seasons left, this one included: 1 in its last Season. */
+  /**
+   * Seasons left, this one included: 1 in its last Season. 0 between Seasons
+   * means it has run out and the Player waits on the re-signing window.
+   */
   years: number
   kind: 'entry-level' | 'standard'
   /** What the Player is when it runs out: restricted under the age `CapRules` sets. */
   onExpiry: 'restricted' | 'unrestricted'
 }
+
+/**
+ * A Club keeping a Player whose contract ran out, at his ask, for `years`
+ * (ADR-032). An expiring Player his Club does not list is let go.
+ */
+export interface ReSigning {
+  playerId: PlayerId
+  years: number
+}
+
+/** A rule a Club's re-signings break: data, so a Manager reads it in his own language. */
+export type ReSigningViolation =
+  | { kind: 'notExpiring'; playerId: PlayerId }
+  | { kind: 'reSignedTwice'; playerId: PlayerId }
+  | { kind: 'termOutOfRange'; playerId: PlayerId; years: number; max: number }
 
 /** An entry-level contract's length by the Player's age when he signs it. */
 export interface EntryLevelTerm {
