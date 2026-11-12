@@ -1,11 +1,12 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import type { RawHistory } from './history.js'
+import { playersWithSeveralClubs, stintsOf, type RawMovement } from './movement.js'
 import type { RawOutcome } from './outcome.js'
 import { GOALIE_REPORTS, SKATER_REPORTS, type RawSeason } from './records.js'
 
 /**
- * The only I/O in the package: public NHL endpoints, each response cached as a
+ * I/O with public NHL endpoints, each response cached as a
  * file so an estimate can be repeated without the network (ADR-021). The cache
  * is not committed.
  */
@@ -167,10 +168,16 @@ export async function fetchHistory(
       options,
     )
 
-  options.log(`Careers ${careerRange.first}-${careerRange.last}, drafts ${draftYears[0]}-${draftYears.at(-1)}`)
+  options.log(
+    `Careers ${careerRange.first}-${careerRange.last}, drafts ${draftYears[0]}-${draftYears.at(-1)}`,
+  )
   const drafts: Record<string, unknown> = {}
   for (const year of draftYears) {
-    drafts[String(year)] = await cached(join(dir, `draft-${year}.json`), `${WEB}/draft/picks/${year}/all`, options)
+    drafts[String(year)] = await cached(
+      join(dir, `draft-${year}.json`),
+      `${WEB}/draft/picks/${year}/all`,
+      options,
+    )
   }
 
   // EDGE has no league-wide report, so one pair of seasons: the last one's
@@ -188,6 +195,80 @@ export async function fetchHistory(
     drafts,
     edge: { [before]: beforeEdge, [last]: lastEdge },
   }
+}
+
+/** The Club codes of a season: every code in its Skaters' `teamAbbrevs`. */
+function clubCodesOf(skaterSummary: unknown): string[] {
+  const data =
+    typeof skaterSummary === 'object' && skaterSummary !== null
+      ? (skaterSummary as { data?: unknown }).data
+      : undefined
+  const codes = new Set<string>()
+  for (const row of Array.isArray(data) ? data : []) {
+    const abbrevs = (row as { teamAbbrevs?: unknown }).teamAbbrevs
+    if (typeof abbrevs === 'string') for (const code of abbrevs.split(',')) codes.add(code.trim())
+  }
+  return [...codes].filter((code) => code !== '').sort()
+}
+
+/**
+ * Everything the Phase 3 measurements of movement read (#122): per season, the
+ * league reports, each Club's stints, one Club's schedule for the calendar, and
+ * the game logs of the Players who played for more than one Club.
+ */
+export async function fetchMovement(
+  seasons: readonly string[],
+  options: FetchOptions,
+): Promise<RawMovement> {
+  const bySeason: Record<string, RawMovement['seasons'][string]> = {}
+  for (const season of seasons) {
+    const dir = join(options.cacheDir, season)
+    const report = (kind: string, name: string) =>
+      cached(
+        join(dir, `${kind}-${name}.json`),
+        `${STATS}/${kind}/${name}?limit=-1&${seasonFilter(season)}`,
+        options,
+      )
+
+    const skaterSummary = await report('skater', 'summary')
+    const codes = clubCodesOf(skaterSummary)
+    options.log(`Season ${season}: ${codes.length} Clubs`)
+    const clubs: Record<string, unknown> = {}
+    for (const code of codes) {
+      clubs[code] = await cached(
+        join(dir, 'clubs', `${code}.json`),
+        `${WEB}/club-stats/${code}/${season}/2`,
+        options,
+      )
+    }
+    const schedule = await cached(
+      join(dir, 'schedule-TOR.json'),
+      `${WEB}/club-schedule-season/TOR/${season}`,
+      options,
+    )
+
+    const several = playersWithSeveralClubs(stintsOf(Number(season.slice(0, 4)), clubs))
+    options.log(`Season ${season}: game logs of ${several.length} Players with more than one Club`)
+    const gameLogs: Record<string, unknown> = {}
+    for (const id of several) {
+      gameLogs[String(id)] = await cached(
+        join(dir, 'game-logs', `${id}.json`),
+        `${WEB}/player/${id}/game-log/${season}/2`,
+        options,
+      )
+    }
+
+    bySeason[season] = {
+      skaterSummary,
+      skaterBios: await report('skater', 'bios'),
+      goalieSummary: await report('goalie', 'summary'),
+      goalieBios: await report('goalie', 'bios'),
+      clubs,
+      schedule,
+      gameLogs,
+    }
+  }
+  return { seasons: bySeason }
 }
 
 /** Player ids with EDGE already cached for a season. */
