@@ -172,7 +172,8 @@ exist yet. The author chose on 2026-11-12:
   so it comes with the market, as does the draw by which an unrestricted Player
   tests it.
 - **The assistant re-signs every expiring Player** at his ask and the term he
-  draws. Whom to let go comes with the market and budgets.
+  draws. Whom to let go comes with the market and budgets. (From #129 it
+  re-signs the best by level while they fit under the cap, ADR-031.)
 - **A Player let go leaves the league as `unsigned`** until the market exists,
   and his place is a gap the Roster window and the fill close.
 - **The unsigned draw of ADR-027 stays** until the market replaces it, so the

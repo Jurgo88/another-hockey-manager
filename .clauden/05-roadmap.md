@@ -279,6 +279,12 @@ role and waits on a re-signing window between the draft and the Roster window,
 with terms drawn from the measured terms by role and age (ADR-030 and ADR-032
 amendments). The assistant re-signs everyone until the market of item 5.
 
+Item 4 is done in #129: the cap binds between Seasons on the payroll for the
+Season ahead, the floor as every Season starts, a release is a buyout, and the
+playoff Lineup must fit under the cap (ADR-031 amendment). The daily charge and
+long-term injury relief move to item 6, where moves during a Season first read
+them.
+
 **Gate:** ten simulated Seasons of AI-only roster movement, on eight generated
 leagues and the 2025-26 roster file, leave wage inflation and talent
 distribution inside defined bounds, and the table targets deferred from the
