@@ -16,8 +16,12 @@ import {
   type AgeCurve,
   type LeavingRow,
 } from './measure.js'
-import { fetchHistory } from './nhl/api.js'
+import { fetchHistory, fetchMovement } from './nhl/api.js'
 import { historyOf } from './nhl/history.js'
+import { movementOf } from './nhl/movement.js'
+import { contractsReport, movementReport } from './report-movement.js'
+import { fetchArchivedPages, fetchLivePages } from './capwages/api.js'
+import { viewOf } from './capwages/pages.js'
 
 /** #83: how the real league changes over time, as markdown for `04-validation-targets.md`. */
 
@@ -26,6 +30,8 @@ const HELP = `Usage: pnpm sim:measure [options]
   --first <year>   First season, by its starting year (default 2015)
   --last <year>    Last season, by its starting year (default 2025)
   --ages           Print the age profile by tier as a data module for @ahm/sim
+  --movement       Print who changes Club, who moves during a season, and continuity (#122)
+  --contracts      Print cap shares, payrolls, terms and re-signing from CapWages (#122)
   --refresh        Fetch again instead of reading the cache
   --help           Show this message`
 
@@ -45,7 +51,8 @@ function curveTable(title: string, unit: string, curve: AgeCurve, digits = 2): s
     `| Age | Pairs | Change (${unit}) | Level at age + 1 |`,
     '| --- | --- | --- | --- |',
     ...curve.steps.map(
-      (s) => `| ${s.age} | ${s.pairs} | ${fixed(s.change, digits)} | ${fixed(level.get(s.age + 1) ?? 0, digits)} |`,
+      (s) =>
+        `| ${s.age} | ${s.pairs} | ${fixed(s.change, digits)} | ${fixed(level.get(s.age + 1) ?? 0, digits)} |`,
     ),
   ].join('\n')
 }
@@ -98,6 +105,8 @@ async function main(): Promise<void> {
       last: { type: 'string', default: '2025' },
       refresh: { type: 'boolean', default: false },
       ages: { type: 'boolean', default: false },
+      movement: { type: 'boolean', default: false },
+      contracts: { type: 'boolean', default: false },
       help: { type: 'boolean', default: false },
     },
   })
@@ -106,14 +115,49 @@ async function main(): Promise<void> {
     return
   }
   const [first, last] = [Number(values.first), Number(values.last)]
-  if (!(first >= 2010 && last > first && last <= 2025)) throw new Error('--first and --last must be years, 2010-2025')
+  if (!(first >= 2010 && last > first && last <= 2025))
+    throw new Error('--first and --last must be years, 2010-2025')
 
   const seasons = Array.from({ length: last - first + 1 }, (_, i) => `${first + i}${first + i + 1}`)
-  const raw = await fetchHistory(seasons, { first: '20102011', last: seasons.at(-1)! }, DRAFT_YEARS, {
+  const options = {
     cacheDir: join(PACKAGE, '.cache'),
     refresh: values.refresh,
     log: (message: string) => console.error(message),
-  })
+  }
+  if (values.movement) {
+    console.log(movementReport(movementOf(await fetchMovement(seasons, options))))
+    return
+  }
+  if (values.contracts) {
+    const nhl = movementOf(await fetchMovement(['20242025', '20252026'], options))
+    const views = [
+      viewOf(
+        2024,
+        await fetchArchivedPages(
+          '2024-25',
+          { from: '20241001', to: '20250630', upperLimit: 88_000_000 },
+          options,
+        ),
+      ),
+      viewOf(
+        2025,
+        await fetchArchivedPages(
+          '2025-26',
+          { from: '20251001', to: '20260630', upperLimit: 95_500_000 },
+          options,
+        ),
+      ),
+      viewOf(2026, await fetchLivePages('2026-27', options)),
+    ]
+    console.log(contractsReport(views, nhl.players))
+    return
+  }
+  const raw = await fetchHistory(
+    seasons,
+    { first: '20102011', last: seasons.at(-1)! },
+    DRAFT_YEARS,
+    options,
+  )
   const history = historyOf(raw)
   if (values.ages) {
     console.log(ageModule(agesByTier(history), first, last))
@@ -125,15 +169,32 @@ async function main(): Promise<void> {
   const out = [
     `## Measured, NHL ${first}-${String(first + 1).slice(2)} to ${last}-${String(last + 1).slice(2)} (pnpm sim:measure)`,
     '',
-    curveTable('Forwards: 5v5 points per 60, share of the mean', 'share', ageCurve(productionChanges(history, false))),
+    curveTable(
+      'Forwards: 5v5 points per 60, share of the mean',
+      'share',
+      ageCurve(productionChanges(history, false)),
+    ),
     '',
-    curveTable('Defencemen: 5v5 points per 60, share of the mean', 'share', ageCurve(productionChanges(history, true))),
+    curveTable(
+      'Defencemen: 5v5 points per 60, share of the mean',
+      'share',
+      ageCurve(productionChanges(history, true)),
+    ),
     '',
     curveTable('Skaters: ice time per Fixture', 'minutes', ageCurve(iceTimeChanges(history))),
     '',
-    curveTable('Goalies: even-strength save percentage', 'thousandths', ageCurve(goalieChanges(history, 500), 10), 1),
+    curveTable(
+      'Goalies: even-strength save percentage',
+      'thousandths',
+      ageCurve(goalieChanges(history, 500), 10),
+      1,
+    ),
     '',
-    curveTable('Skaters: NHL EDGE top speed, one pair of seasons', 'mph', ageCurve(speedChanges(history), 10)),
+    curveTable(
+      'Skaters: NHL EDGE top speed, one pair of seasons',
+      'mph',
+      ageCurve(speedChanges(history), 10),
+    ),
     '',
     leavingTable('Leaving the league, by age (20 or more Fixtures)', leaving(history).byAge),
     '',
@@ -146,7 +207,8 @@ async function main(): Promise<void> {
     '| Round | Picks | Reached the NHL | 200 or more Fixtures | Median seasons to debut |',
     '| --- | --- | --- | --- | --- |',
     ...draftOutcomes(history, DRAFT_YEARS).map(
-      (r) => `| ${r.round} | ${r.picks} | ${pct(r.reached)} | ${pct(r.regulars)} | ${r.yearsToDebut} |`,
+      (r) =>
+        `| ${r.round} | ${r.picks} | ${pct(r.reached)} | ${pct(r.regulars)} | ${r.yearsToDebut} |`,
     ),
     '',
     '### The table from one season to the next',

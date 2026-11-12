@@ -526,9 +526,9 @@ still holds.
 
 Each target is marked by where its figure comes from:
 
-- **measured**: in `07-league-over-time.md` already;
-- **to be measured**: in #122, from public NHL endpoints or one snapshot of
-  contracts; the row is asserted once the figure is in;
+- **measured**: in `07-league-over-time.md`, the Phase 3 rows by #122 from public NHL
+  endpoints and CapWages pages;
+- **rule**: a rule of the CBA or of ADR-031, not a measurement;
 - **estimate**: no public figure exists, so the band is a design bound, set by
   the author, and moves only by his decision.
 
@@ -552,22 +552,37 @@ have to follow from who is offered a contract (ADR-032).
 ### Wages do not inflate
 
 Money is a share of the cap (ADR-030), so inflation is a rise in the share paid
-to the same role.
+to the same role. Measured in `07-league-over-time.md` (#122), 2025-26, as the
+mean share of each third of role, the mean of its tenths:
+
+| Group | Top third | Middle third | Bottom third |
+| --- | --- | --- | --- |
+| Forwards | 6.73% | 3.17% | 1.61% |
+| Defencemen | 6.82% | 3.61% | 1.63% |
+| Goalies | 6.52% | 3.16% | 2.50% |
 
 | Target | Band | Source |
 | --- | --- | --- |
-| Cap share by rank of ice time, each position group, by tenth of the rank, Season 1 | each tenth within its band of the real league | to be measured |
-| The same, Season 10 against Season 1 | each tenth within ±15% of its Season 1 share | estimate |
-| League payroll as a share of the cap, Seasons 1 and 10 | the real league's, ±3 pp | to be measured |
-| Players at the league minimum | the real league's share, ±5 pp | to be measured |
+| Mean cap share of each third of role, each group, Season 1 | the real share above, ±20% | measured |
+| The same, Season 10 against Season 1 | ±15% | estimate |
+| League payroll as a share of the cap, Seasons 1 and 10 | 95% ±3 pp | measured: 93.9% in 2024-25, 96.0% in 2025-26 |
+| Regulars at the league minimum | 9% ±5 pp | measured: 9.9% and 8.4% |
 | Highest cap hit in the league | at most the maximum share, 20% | rule |
+
+The rows are thirds, not tenths. A tenth of a group is 25 to 50 Players, seven
+for Goalies, and the real league's own tenths moved by up to 35% from 2024-25
+to 2025-26, its thirds by up to 13%, while the cap rose by 8.5% and contracts
+fixed in dollars lost share. In a run the cap is constant, so the Season 10
+band of ±15% is a design bound; it is about the real league's change in a
+year.
 
 ### Talent stays spread between Clubs
 
 | Target | Band | Source |
 | --- | --- | --- |
-| Standard deviation of Club payrolls against the cap | the real league's, ±30% | to be measured |
-| Highest and lowest Club payroll | the real league's, ±5 pp of the cap | to be measured |
+| Standard deviation of Club payrolls against the cap | 8 pp ±3 pp | measured: 9.6 pp and 6.8 pp |
+| Highest Club payroll | 109% ±5 pp of the cap | measured: 111.8% and 105.8%, above the cap through injury relief |
+| Lowest Club payroll | at or above the floor, 73.9% | rule; measured 63.7% and 79.3% in copies taken before the season's end |
 | Standard deviation of Club strength, the mean level of each Club's dressed Lineup, Season 10 against Season 1 | within ±20% | estimate |
 
 The standard deviation of points (16.1 ±3, above) is the measured guard on the
@@ -578,12 +593,17 @@ converges first.
 
 | Target | Band | Source |
 | --- | --- | --- |
-| Players with 20 or more Fixtures who play for another Club the next Season | the real share, ±5 pp | to be measured |
-| Players who play for more than one Club in a Season | the real share, ±3 pp | to be measured |
-| Of those, the share who moved in the last fifth of the regular Season before the deadline | the real share, ±15 pp | to be measured |
-| A Club's ice time that returns the next Season | the real share, ±8 pp | to be measured |
-| Term at signing, by age | the real median by age band, ±1 year | to be measured |
-| Restricted Players re-signed by their Club | at least 80% | estimate |
+| Players with 20 or more Fixtures who play for another Club the next Season | 19.9% ±5 pp | measured |
+| Players with 20 or more Fixtures who play for more than one Club in a Season | 9.6% ±3 pp | measured |
+| Moves during a Season in the 14 days before the deadline | 48.5% ±15 pp | measured |
+| A Club's Skater ice time played by Skaters who played for it the Season before | 77.1% ±8 pp | measured |
+| Mean term of standard contracts at signing, by third of the role the Season before | 4.8, 2.7 and 1.8 years, ±1 year | measured |
+| Restricted regulars re-signed by their Club | 70% ±10 pp | measured: 74.6% and 66.0% |
+| Unrestricted regulars re-signed by their Club | 47% ±10 pp | measured: 50.0% and 43.1% |
+
+Re-signing is read from the next season's pages: a Player traded between the
+copy of his Club and his new contract counts as another Club, and 9-17% of
+regulars had no contract yet when the next pages were copied.
 
 ### Scouting is honest
 
