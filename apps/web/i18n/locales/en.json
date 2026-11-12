@@ -79,7 +79,9 @@
     "notYourPick": "It is not your pick, or that prospect is gone. Refresh the page.",
     "notInClass": "That prospect is not in the draft.",
     "draftFirst": "Make the draft first.",
-    "invalidMoves": "Those moves break the rules."
+    "invalidMoves": "Those moves break the rules.",
+    "noHistory": "That Season has not been played in this career.",
+    "noPlayer": "This career has no such Player."
   },
   "nav": {
     "label": "Main menu",
@@ -91,7 +93,8 @@
     "roster": "Roster",
     "lineup": "Lineup",
     "tactics": "Tactics",
-    "notices": "Inbox"
+    "notices": "Inbox",
+    "history": "History"
   },
   "decided": {
     "regulation": "Regulation",
@@ -357,5 +360,25 @@
       "defence": "defencemen",
       "goalie": "Goalies"
     }
+  },
+  "history": {
+    "title": "Club history",
+    "club": "Club",
+    "none": "No Season of the career has ended yet.",
+    "season": "Season",
+    "division": "Division",
+    "league": "League",
+    "champion": "Champion",
+    "seasonTitle": "Season {year}",
+    "draft": "Draft before this Season"
+  },
+  "career": {
+    "title": "Career",
+    "none": "He has not played a Fixture yet.",
+    "playoffGames": "Playoff GP",
+    "playoffSave": "Playoff SV%",
+    "playoffPoints": "Playoff P",
+    "underWay": "(under way)",
+    "total": "Total"
   }
 }

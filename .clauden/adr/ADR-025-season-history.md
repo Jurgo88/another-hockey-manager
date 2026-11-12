@@ -89,3 +89,13 @@ per Player. Reading puts them back into one `SeasonRecord`, so history and
 careers are still read from records alone, and a test holds that the round trip
 changes nothing. Players' names, which a record does not hold, are kept in
 `players`.
+
+## Amendment, 2026-11-12: the application shows history and careers (#93)
+
+The application reads history and careers through the same folds as the CLI.
+A Club's history needs only the records' own parts, so `seasons.record` is read
+alone. A Player's career joins each Season's own part with his
+`player_seasons` rows only, then folds them with `skaterCareer` or
+`goalieCareer`, which gives the lines the full records would give, and a test
+holds that it does. A past Season's leaders read its whole record. Any Player
+the career has known has a career page, gone or not, named from `players`.
