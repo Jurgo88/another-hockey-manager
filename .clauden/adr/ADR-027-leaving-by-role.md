@@ -1,6 +1,6 @@
 # ADR-027 - Players leave by age, or unsigned for want of a role
 
-- **Status:** Accepted
+- **Status:** Accepted; its unsigned draw replaced by contracts and free agency in ADR-032, its retirement unchanged
 - **Date:** 2026-11-09
 - **Supersedes:** the retirement rule of ADR-023, and moves its release to #89
 - **Relates to:** D-04, D-08, ADR-012, ADR-020, ADR-023, ADR-024, issue #88, issue #89

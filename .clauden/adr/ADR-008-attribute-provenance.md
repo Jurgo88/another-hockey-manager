@@ -1,6 +1,6 @@
 # ADR-008 - Attributes carry provenance and confidence
 
-- **Status:** Accepted
+- **Status:** Accepted; ranges centred on each Club's estimate by ADR-035
 - **Date:** 2026-09-18
 - **Relates to:** D-06, D-11, ADR-003, R-07
 - **Extends:** ADR-003

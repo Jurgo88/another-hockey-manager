@@ -216,18 +216,60 @@ career.
 Deferred this far deliberately: a transfer economy is the hardest thing in the
 genre to balance, and an open bidding market inflates without fail.
 
-- Contracts, wages, a salary cap
-- Transfers and free agency
-- Club budget
-- Scouting, which is where `potential` finally becomes visible and uncertain
+The simulation comes first, up to the gate, and the web application after it:
 
-**Gate:** ten simulated Seasons of AI-only transfer activity leave wage
-inflation and talent distribution inside defined bounds, and the table targets
-deferred from the Phase 2 gate hold: no Club in the top 8 more than 9 of 10
-Seasons, at least 5 Clubs finishing first, and a spread of points of 16.1 ±3 in
-the tenth Season. So do the tenth Season's highest and lowest Club penalties, scoring
-leader, forward tier-1 to tier-4 points-per-minute ratio and standings spread
-(`04-validation-targets.md`).
+1. Measured targets and ADRs for the choices below
+2. Contracts in the domain and the roster file
+3. Asking price, term and re-signing
+4. The cap, its floor, injury relief and buyouts
+5. Free agency
+6. Trades, during the Season up to the deadline and between Seasons
+7. Club budgets
+8. Scouting, and every Club deciding on its own view
+9. Long-run realism suite and calibration
+10. Web: contracts, the cap and re-signing
+11. Web: the market and trades
+12. Web: scouting, and ranges in a generated league
+
+Choices made by the author on 2026-11-12, each recorded in an ADR under item 1
+(#121):
+
+- **A contract's price** follows the Player's public role, his rank by ice time
+  as ADR-027 ranks it, with his age and status, as a share of the cap. Money is
+  held as a share and shown in the league's currency; a share does not drift.
+  Term follows the measured distribution by age. ADR-030.
+- **The cap** is hard, with a floor, charged by the day through the regular
+  Season. A Player on long-term injury does not count while he is out. In the
+  playoffs the dressed Lineup plus dead money must fit under the full cap, as
+  in the NHL from 2026. A release is a buyout. The rules are data. ADR-031.
+- **Free agency** replaces the unsigned draw of ADR-027. A Player under 27 is
+  restricted, kept by a qualifying offer. Free agents take one sealed offer per
+  Club a round, within a band about the ask, choosing by money, role and Club.
+  A free agent nobody signs leaves the league. ADR-032.
+- **Trades** happen any day up to the deadline and in every window between
+  Seasons, with draft picks of the next three drafts and retained salary. The
+  assistant buys and sells by its place in the race and its cap, for every
+  Club alike. ADR-033.
+- **A Club's budget** is its wage limit, between the floor and the cap, as data,
+  with no revenue. Scouting capacity is equal for every Club. ADR-034.
+- **Scouting** gives each Club its own estimate of every Player, narrowing with
+  Fixtures seen and assignments. Every decision a Club makes, AI or human,
+  reads its own view; the engine reads the truth. ADR-035.
+
+Item 1 is split: the ADRs and the gate in #121, the measurements of player
+movement and contracts in #122 (`pnpm sim:measure --movement --contracts`).
+Contracts are measured from one snapshot of CapWages Club pages, cached outside
+git, with only the derived tables committed.
+
+**Gate:** ten simulated Seasons of AI-only roster movement, on eight generated
+leagues and the 2025-26 roster file, leave wage inflation and talent
+distribution inside defined bounds, and the table targets deferred from the
+Phase 2 gate hold: no Club in the top 8 more than 9 of 10 Seasons, at least 5
+Clubs finishing first, and a spread of points of 16.1 ±3 in the tenth Season.
+So do the tenth Season's highest and lowest Club penalties, scoring leader,
+forward tier-1 to tier-4 points-per-minute ratio and standings spread, and the
+leaving targets by age and by ice-time third, now a consequence of contracts.
+The bounds are in `04-validation-targets.md`.
 
 ## Phase 4 - Other Managers
 

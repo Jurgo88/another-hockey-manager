@@ -409,7 +409,7 @@ Six Tier 1 and Tier 2 targets are reported in the tenth Season, not asserted
 - **The standings spread is the convergence** of the table targets below: the
   same Seasons whose spread of points falls from about 18 to about 13.
 
-All five are asserted with the table targets, at the Phase 3 gate.
+All five are asserted with the table targets, at the Phase 3 gate (below).
 
 ### The age of the league, in the tenth Season
 
@@ -513,6 +513,90 @@ by their role (ADR-027), so those still playing at 31 and beyond are the good
 ones, and the Rosters' level keeps rising with age even where every career
 declines. The 2025-26 roster file, estimated from real Players, falls slightly after
 28.
+
+## Phase 3 gate - ten Seasons of roster movement
+
+Ten Seasons in which every Club is run by the assistant must leave wage
+inflation and talent distribution inside defined bounds, and hold what Phase 2
+could not: without contracts a run converged (see the Phase 2 gate). The runs
+are those of the Phase 2 gate, eight generated leagues from seeds 1 to 8 and the
+NHL 2025-26 roster file, now with contracts, the cap, free agency, trades,
+budgets and scouting (ADR-030 to ADR-035). Every target of the Phase 2 gate
+still holds.
+
+Each target is marked by where its figure comes from:
+
+- **measured**: in `07-league-over-time.md` already;
+- **to be measured**: in #122, from public NHL endpoints or one snapshot of
+  contracts; the row is asserted once the figure is in;
+- **estimate**: no public figure exists, so the band is a design bound, set by
+  the author, and moves only by his decision.
+
+### Deferred from the Phase 2 gate
+
+| Target | Band | Source |
+| --- | --- | --- |
+| Longest run of any Club in the top 8 | at most 9 of 10 | measured: 7 in 11 seasons |
+| Clubs that finished first | at least 5 of 10 | measured: 9 in 11 seasons |
+| Standard deviation of points over 84 Fixtures, tenth Season | 16.1 ±3 | measured |
+| Highest Club penalties per Fixture, tenth Season | 3.24 ±0.15 | measured |
+| Lowest Club penalties per Fixture, tenth Season | 2.40 ±0.15 | measured |
+| League scoring leader, tenth Season | 141 ±25 | measured |
+| Forward tier-1 to tier-4 points-per-minute ratio, tenth Season | 2.71 ±0.50 | measured |
+| Standings spread, best minus worst, tenth Season | 65 ±18 | measured |
+
+The leaving tables of the Phase 2 gate, by age and by ice-time third, stay as
+they are. They were met by a fitted chance of going unsigned (ADR-027); now they
+have to follow from who is offered a contract (ADR-032).
+
+### Wages do not inflate
+
+Money is a share of the cap (ADR-030), so inflation is a rise in the share paid
+to the same role.
+
+| Target | Band | Source |
+| --- | --- | --- |
+| Cap share by rank of ice time, each position group, by tenth of the rank, Season 1 | each tenth within its band of the real league | to be measured |
+| The same, Season 10 against Season 1 | each tenth within ±15% of its Season 1 share | estimate |
+| League payroll as a share of the cap, Seasons 1 and 10 | the real league's, ±3 pp | to be measured |
+| Players at the league minimum | the real league's share, ±5 pp | to be measured |
+| Highest cap hit in the league | at most the maximum share, 20% | rule |
+
+### Talent stays spread between Clubs
+
+| Target | Band | Source |
+| --- | --- | --- |
+| Standard deviation of Club payrolls against the cap | the real league's, ±30% | to be measured |
+| Highest and lowest Club payroll | the real league's, ±5 pp of the cap | to be measured |
+| Standard deviation of Club strength, the mean level of each Club's dressed Lineup, Season 10 against Season 1 | within ±20% | estimate |
+
+The standard deviation of points (16.1 ±3, above) is the measured guard on the
+same thing in results; Club strength guards it in the Rosters, where a run
+converges first.
+
+### Players move as in the real league
+
+| Target | Band | Source |
+| --- | --- | --- |
+| Players with 20 or more Fixtures who play for another Club the next Season | the real share, ±5 pp | to be measured |
+| Players who play for more than one Club in a Season | the real share, ±3 pp | to be measured |
+| Of those, the share who moved in the last fifth of the regular Season before the deadline | the real share, ±15 pp | to be measured |
+| A Club's ice time that returns the next Season | the real share, ±8 pp | to be measured |
+| Term at signing, by age | the real median by age band, ±1 year | to be measured |
+| Restricted Players re-signed by their Club | at least 80% | estimate |
+
+### Scouting is honest
+
+Internal consistency, as Tier 4: these are properties of the mechanism, not
+measurements of the league.
+
+| Assertion |
+| --- |
+| The truth lies inside a Club's range for at least 80% of the attributes it shows, whatever the Player's confidence. |
+| The range of a Player who plays in the league narrows Season by Season for every Club. |
+| The range of `potential` for a Player under 23 is never narrower than development can still move it (ADR-028). |
+| Two Clubs that have scouted a Player differently see different estimates. |
+| No assistant decision changes when the true attributes of a Player change and every Club's estimate is held fixed (ADR-035). |
 
 ## Tier 3 - Tactics are not placebos
 
