@@ -124,3 +124,57 @@ reads them, against D-06. Movement clauses may return if trades need them.
   holds the shape and the targets are marked to be measured.
 - The Phase 3 gate asserts that the shares paid by rank stay inside their bands
   over ten Seasons (`04-validation-targets.md`).
+
+## Amendment, 2026-11-12: contracts in the domain (#125)
+
+Item 2 of Phase 3 puts contracts on the Rosters. Nothing enforces the cap yet,
+and the engine reads no contract, so every result of a Match stays as it was.
+
+- **Where a contract lives.** `contract` is an optional field of a Player,
+  as `provenance` is: it moves with him, a prospect holds none, and the engine
+  never reads it. Every Player on a Roster holds one once a Season starts.
+- **The rules as data.** `CapRules` joins `SeasonFormat` (D-10) with what is
+  read today: the cap in currency (104,000,000), the minimum (850,000), the
+  maximum (20%), the entry-level cap hit (its maximum, 1,025,000) and length by
+  age at signing, restricted until 27, and the longest term (7 with the
+  Player's own Club, 6 elsewhere). Injury relief, retention and buyouts join it
+  in item 4, where they are read. A contract leaves its Player restricted when
+  his age in its last Season is under 27.
+- **The curve as data.** `pnpm sim:measure --contracts --module` writes
+  `generate/nhl-cap-shares.ts` from the 2025-26 view: regulars per Club in each
+  group (14.6 forwards, 7.4 defencemen, 2.1 Goalies), the mean cap share by
+  tenth of role in each group, and by third of role the shares on entry-level
+  and restricted contracts, the restricted-to-unrestricted ratio and the mean
+  term of a new standard contract.
+- **How a league opens.** Players are ranked by level in their group across the
+  league. As many as real Clubs have regulars are priced on the curve by tenth;
+  the rest of a 16-10-3 Roster is paid the minimum for a year. The curve is a
+  mean over the real mix of contracts, so the unrestricted price is solved from
+  it with the measured entry-level and restricted shares, and a contract that
+  leaves its Player restricted pays the measured ratio of that. A Player aged
+  21 or younger holds an entry-level contract part way through. A term is drawn
+  evenly from 1 to twice the measured mean less one, at most the longest, and a
+  running contract has a share of it already gone. Cap hits are whole currency.
+  A Club over the cap has every contract above the minimum brought down in
+  proportion. Each Player draws from a stream of his own (D-08). A contract a
+  roster file gives is kept.
+- **Until re-signing (item 3).** Between Seasons every contract loses a Season,
+  and one that ran out is renewed at the ask: the curve by the Player's place in
+  level, not yet by the public role this ADR prices on. A prospect called up
+  signs an entry-level contract; the fill and a former prospect a Club takes
+  sign one year at the minimum.
+- **Real contracts.** `pnpm sim:estimate --contracts` gives each matched
+  Player the contract CapWages shows for the season (894 of 928 Players in
+  2025-26). Its file is written apart and kept out of git: per-Player cap hits
+  are not a derived table (R-10). The committed roster file carries none and
+  opens with generated contracts. Whether it may carry them is the author's
+  question, not an architecture one.
+- **Stored careers.** A Season or phase between Seasons stored before this
+  change gets the NHL's rules and the opening contracts when it is read, the
+  same each time.
+
+Reported, not asserted: a generated league opens at a mean payroll of 86% of
+the cap (SD 10 pp, lowest 70%, highest 100%) against the measured 94-96%; by
+Season 4 the highest is near 120% and the lowest near 67%, which the cap and
+floor of item 4 and the budgets of item 7 bound. The real 2025-26 contracts open
+at 94% (SD 8 pp). `pnpm sim:season --seasons 10` prints payrolls by Season.
