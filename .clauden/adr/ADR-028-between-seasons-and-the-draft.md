@@ -281,3 +281,39 @@ eight generated leagues and the roster file:
 
 The age, leaving, draft and table targets of the Phase 2 gate hold. What does
 not, and why, is in `04-validation-targets.md`.
+
+## Amendment, 2026-11-12: a draft room, notices and violations a Manager can read (#92)
+
+The author chose on 2026-11-12 how the application shows the phase between
+Seasons.
+
+**A draft room, pick by pick.** The draft can be made a pick at a time, as
+this ADR foresaw for item 10. Two pure steps join `runDraft`:
+
+- `draftUntil(off, clubId)` makes the picks in order, from each Club's list or
+  by the assistant, until the next pick is that Club's or the draft is over.
+- `makePick(off, clubId, playerId)` makes the next pick, which must be that
+  Club's, with a prospect still available.
+
+`runDraft` makes whatever picks are left, so a draft made partly a pick at a
+time and partly by `runDraft` is one draft. The picks are kept as they are made,
+the drafted join the prospects at once, and the class holds those still
+available. With the same choices, a draft made pick by pick and one made at
+once are the same draft. Any Club may pick this way (D-04): nothing in it reads
+who is human.
+
+**Prospects are seen as ranges in every league.** A prospect's level and
+`potential` are shown as ranges by his confidence, about ±4 for a class. A
+generated league shows the figures of its Rosters until scouting (ADR-003
+amendment), but not of its prospects: the future of an 18-year-old is open,
+so a range is the truth about him. `potential` is never shown as a figure.
+
+**Notices between Seasons.** What changes on a Club between Seasons is folded
+into notices by pure functions beside `noticesOf`: who retired or went
+unsigned after the Season, whom the Club drafted, and, as the next Season
+starts, whom it called up or released, whose rights expired, and who joined to
+fill a gap. A new kind is one more member of `ClubNotice` (FR-33).
+
+**Violations as data.** `movesViolations` returns `MovesViolation` values, as
+a Lineup's checks return `LineupViolation`, so a Manager reads them in his own
+language. `InvalidMovesError` carries them.
