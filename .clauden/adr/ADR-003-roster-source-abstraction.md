@@ -98,3 +98,29 @@ separate from this and stays out of deployed builds.
   into a deployed build.
 - This is a risk-management decision, not legal advice. If the product goal
   activates, the licensing position needs an actual lawyer.
+
+## Amendment, 2026-11-12: the application may start a career on a roster file (#115)
+
+The author decided on 2026-11-12 that a Manager may start a career on the
+Rosters of a roster file (ADR-020), as well as on generated ones, as a choice
+on the Club page. The server offers it only when it is given a roster file
+(`NUXT_ROSTER_FILE`). The file is read from disk when the server runs and is
+never part of a build, so a deployed build without the variable has the
+generator alone, as this ADR requires.
+
+A career keeps which source it started on (ADR-029 amendment). Only its first
+Season reads the source: every Season after it grows from the one before
+(ADR-014, ADR-028), whatever the source.
+
+A file's Players carry their provenance, and the application shows an attribute
+of low confidence as a range, never as a figure (D-11, FR-18). The range is
+`observedRange`, symmetric about the value and as wide as the confidence is low.
+It says how far an estimate can be trusted; it does not hide the value, whose
+middle it is unless the scale's ends clip it. Hiding it, a window placed
+anywhere about the value and narrowed by looking, is scouting (Phase 3).
+
+A generated league shows its values as figures until then. They have no
+real-world counterpart to misstate, and without scouting a Manager could do
+nothing to narrow a range. Its Players keep their provenance, so when scouting
+arrives, generated leagues show ranges by confidence as well, and scouting
+narrows them in both kinds of league.

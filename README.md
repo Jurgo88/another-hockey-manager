@@ -51,6 +51,8 @@ To run the application, with Docker running:
 ```bash
 pnpm db:start
 cp apps/web/.env.example apps/web/.env    # fill in the keys from `supabase status`
+# optional: NUXT_ROSTER_FILE in apps/web/.env offers the real 2025-26 Rosters
+# (packages/estimate/data/nhl-20252026.json) beside generated ones, locally (ADR-003)
 pnpm web:dev
 ```
 

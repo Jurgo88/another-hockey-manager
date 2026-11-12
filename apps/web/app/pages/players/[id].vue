@@ -24,7 +24,7 @@ const attributes = computed(() => Object.entries(player.value?.attributes ?? {})
       <div class="attrs">
         <div v-for="[key, value] in attributes" :key="key" class="attr">
           <span>{{ t(`attributes.${key}`) }}</span>
-          <strong>{{ value }}</strong>
+          <strong>{{ shown(value) }}</strong>
         </div>
       </div>
     </section>

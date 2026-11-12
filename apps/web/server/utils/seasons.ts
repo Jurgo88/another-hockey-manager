@@ -8,6 +8,7 @@ import type {
   SeasonRecord,
   SeasonState,
 } from '@ahm/sim'
+import type { RosterSource } from './rosters'
 import {
   clubHistory,
   daysOut,
@@ -29,6 +30,8 @@ interface StoredBase {
   careerId: string
   clubId: ClubId
   version: number
+  /** Which Rosters the career began on (ADR-029 amendment). */
+  rosterSource: RosterSource
 }
 
 /** The current Season while it is played. */
@@ -56,13 +59,16 @@ interface SeasonRow {
   phase: 'season' | 'offseason'
   state: StoredState | Offseason
   live: SeasonState['live']
+  careers: { roster_source: RosterSource }
 }
 
 /** The current Season of a Manager's career: its row with the highest `year` (ADR-029). */
 export async function loadSeason(managerId: string): Promise<CurrentSeason | null> {
   const { data, error } = await dataClient()
     .from('seasons')
-    .select('id, career_id, club_id, version, phase, state, live, careers!inner(manager_id)')
+    .select(
+      'id, career_id, club_id, version, phase, state, live, careers!inner(manager_id, roster_source)',
+    )
     .eq('careers.manager_id', managerId)
     .order('year', { ascending: false })
     .limit(1)
@@ -75,6 +81,7 @@ export async function loadSeason(managerId: string): Promise<CurrentSeason | nul
     careerId: data.career_id,
     clubId: data.club_id,
     version: data.version,
+    rosterSource: data.careers.roster_source,
   }
   if (data.phase === 'offseason') {
     return { ...base, phase: 'offseason', state: data.state as Offseason }
@@ -111,11 +118,12 @@ export async function requireOffseason(managerId: string): Promise<StoredOffseas
  */
 export async function readSeason(
   managerId: string,
-): Promise<{ id: string; clubId: ClubId; state: SeasonState }> {
+): Promise<{ id: string; clubId: ClubId; rosterSource: RosterSource; state: SeasonState }> {
   const season = await requireCurrent(managerId)
   return {
     id: season.id,
     clubId: season.clubId,
+    rosterSource: season.rosterSource,
     state: season.phase === 'season' ? season.state : season.state.ended,
   }
 }
@@ -125,6 +133,7 @@ export async function startCareer(
   managerId: string,
   clubId: ClubId,
   state: SeasonState,
+  rosterSource: RosterSource,
 ): Promise<void> {
   const client = dataClient()
   const removed = await client.from('careers').delete().eq('manager_id', managerId)
@@ -132,7 +141,7 @@ export async function startCareer(
 
   const { data, error } = await client
     .from('careers')
-    .insert({ manager_id: managerId, seed: state.seed })
+    .insert({ manager_id: managerId, seed: state.seed, roster_source: rosterSource })
     .select('id')
     .single<{ id: string }>()
   if (error) throw createError({ statusCode: 500, message: error.message })
@@ -385,7 +394,7 @@ function injuredInLineup(state: SeasonState, clubId: ClubId): string[] {
 }
 
 /** What the home screen needs. The state itself never leaves the server (ADR-016). */
-export function seasonSummary({ clubId, state }: StoredSeason) {
+export function seasonSummary({ clubId, rosterSource, state }: StoredSeason) {
   const next = state.fixtures
     .slice(state.nextFixture)
     .find((fixture) => fixture.homeClubId === clubId || fixture.awayClubId === clubId)
@@ -394,6 +403,7 @@ export function seasonSummary({ clubId, state }: StoredSeason) {
 
   return {
     phase: 'season' as const,
+    rosterSource,
     year: state.year,
     clubId,
     clubName: clubName(state, clubId),
@@ -423,12 +433,13 @@ export function seasonSummary({ clubId, state }: StoredSeason) {
 }
 
 /** What the home screen needs between Seasons: how the Season just ended. */
-export function offseasonSummary({ clubId, state: off }: StoredOffseason) {
+export function offseasonSummary({ clubId, rosterSource, state: off }: StoredOffseason) {
   const ended = off.ended
   const row = ended.standings.find((candidate) => candidate.clubId === clubId)
   const [past] = clubHistory([recordOf(ended)], clubId)
   return {
     phase: 'offseason' as const,
+    rosterSource,
     year: ended.year,
     nextYear: off.year,
     clubId,

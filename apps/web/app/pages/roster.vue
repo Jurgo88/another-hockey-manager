@@ -10,7 +10,11 @@ const skaters = computed(() =>
 )
 const iceTime = (seconds: number) =>
   `${Math.floor(seconds / 60)}:${String(Math.round(seconds % 60)).padStart(2, '0')}`
-const strong = (value: number) => (value >= 17 ? 'strong' : value <= 10 ? 'muted' : '')
+// An attribute is a point, or a range when it is an estimate (D-11).
+const strong = ({ low, high }: { low: number; high: number }) => {
+  const middle = (low + high) / 2
+  return middle >= 17 ? 'strong' : middle <= 10 ? 'muted' : ''
+}
 </script>
 
 <template>
@@ -49,11 +53,11 @@ const strong = (value: number) => (value >= 17 ? 'strong' : value <= 10 ? 'muted
           <td>{{ skater.position }}</td>
           <td>{{ skater.place ?? '-' }}</td>
           <td>{{ skater.age }}</td>
-          <td :class="strong(skater.attributes.shooting)">{{ skater.attributes.shooting }}</td>
-          <td :class="strong(skater.attributes.passing)">{{ skater.attributes.passing }}</td>
-          <td :class="strong(skater.attributes.speed)">{{ skater.attributes.speed }}</td>
-          <td :class="strong(skater.attributes.defPositioning)">{{ skater.attributes.defPositioning }}</td>
-          <td :class="strong(skater.attributes.stamina)">{{ skater.attributes.stamina }}</td>
+          <td :class="strong(skater.attributes.shooting)">{{ shown(skater.attributes.shooting) }}</td>
+          <td :class="strong(skater.attributes.passing)">{{ shown(skater.attributes.passing) }}</td>
+          <td :class="strong(skater.attributes.speed)">{{ shown(skater.attributes.speed) }}</td>
+          <td :class="strong(skater.attributes.defPositioning)">{{ shown(skater.attributes.defPositioning) }}</td>
+          <td :class="strong(skater.attributes.stamina)">{{ shown(skater.attributes.stamina) }}</td>
           <td>{{ skater.gamesPlayed }}</td>
           <td>{{ skater.goals }}</td>
           <td>{{ skater.assists }}</td>
@@ -88,9 +92,9 @@ const strong = (value: number) => (value >= 17 ? 'strong' : value <= 10 ? 'muted
           </td>
           <td>{{ goalie.place ?? '-' }}</td>
           <td>{{ goalie.age }}</td>
-          <td>{{ goalie.attributes.reflexes }}</td>
-          <td>{{ goalie.attributes.positioning }}</td>
-          <td>{{ goalie.attributes.reboundControl }}</td>
+          <td>{{ shown(goalie.attributes.reflexes) }}</td>
+          <td>{{ shown(goalie.attributes.positioning) }}</td>
+          <td>{{ shown(goalie.attributes.reboundControl) }}</td>
           <td>{{ goalie.gamesPlayed }}</td>
           <td>{{ goalie.savePercentage?.toFixed(3) ?? '-' }}</td>
         </tr>
