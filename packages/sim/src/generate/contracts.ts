@@ -34,15 +34,22 @@ export interface Place {
   regulars: number
 }
 
-/** Each rostered Player's place in his group across the league, by level. */
-export function placesOf(clubs: readonly Club[]): Map<PlayerId, Place> {
+/**
+ * Each rostered Player's place in his group across the league, by a score, the
+ * highest first: his level when a league opens, his public role after a Season
+ * (ADR-030). Equal scores go by id.
+ */
+export function placesOf(
+  clubs: readonly Club[],
+  score: (player: Player) => number = playerLevel,
+): Map<PlayerId, Place> {
   const places = new Map<PlayerId, Place>()
   const players = clubs.flatMap((club) => [...club.skaters, ...club.goalies])
   for (const group of ['forward', 'defence', 'goalie'] as const) {
     const regulars = Math.round(NHL_CAP_SHARES.regularsPerClub[group] * clubs.length)
     players
       .filter((player) => positionGroup(player) === group)
-      .sort((a, b) => playerLevel(b) - playerLevel(a) || (a.id < b.id ? -1 : 1))
+      .sort((a, b) => score(b) - score(a) || (a.id < b.id ? -1 : 1))
       .forEach((player, rank) => places.set(player.id, { rank, regulars }))
   }
   return places
@@ -55,10 +62,24 @@ const inCurrency = (rules: CapRules, share: number) =>
 const tenthOf = (place: Place) => Math.min(9, Math.floor((place.rank / place.regulars) * 10))
 const thirdOf = (tenth: number) => Math.min(2, Math.floor((tenth * 3) / 10))
 
-/** A new standard contract's length for a regular of this third, by the measured mean (ADR-030). */
-function drawTerm(rules: CapRules, third: number, rng: Rng): number {
-  const mean = NHL_CAP_SHARES.byThird[third]!.term
-  return Math.min(rules.maxTerm.ownClub, rng.int(1, Math.max(1, Math.round(2 * mean - 1))))
+/** The age bands of the measured terms, by the oldest age each holds. */
+const TERM_AGE_BANDS = [24, 30] as const
+
+/**
+ * A new standard contract's length for a regular of this third and age, drawn
+ * from the measured terms (ADR-030, #127). A term longer than the rules allow
+ * counts as the longest.
+ */
+function drawTerm(rules: CapRules, third: number, age: number, rng: Rng): number {
+  const band = TERM_AGE_BANDS.findIndex((upTo) => age <= upTo)
+  const counts: readonly number[] =
+    NHL_CAP_SHARES.terms[third]![band < 0 ? TERM_AGE_BANDS.length : band]!
+  let pick = rng.next() * counts.reduce((sum, n) => sum + n, 0)
+  for (const [i, n] of counts.entries()) {
+    pick -= n
+    if (pick < 0) return Math.min(rules.maxTerm.ownClub, i + 1)
+  }
+  return 1
 }
 
 /** What a regular of this group, tenth and status is paid, as a share of the cap. */
@@ -110,19 +131,33 @@ function standardContract(rules: CapRules, player: Player, tenth: number, years:
 }
 
 /**
- * A new standard contract at what a Player of his place asks: the measured
- * curve for a regular, the minimum otherwise. Until item 3 every expiring
- * contract is renewed at it.
+ * A new standard contract at what a Player of his place asks (ADR-030): the
+ * measured curve for a regular, the minimum otherwise. The term is `years`
+ * when a Club names it, and otherwise drawn as the measured terms run; a
+ * Player beyond the regulars signs for one year unless a Club names more.
  */
 export function askingContract(
   rules: CapRules,
   player: Player,
   place: Place | undefined,
   rng: Rng,
+  years?: number,
 ): Contract {
-  if (!place || place.rank >= place.regulars) return minimumContract(rules, player)
+  if (!place || place.rank >= place.regulars) {
+    const term = years ?? 1
+    return {
+      ...minimumContract(rules, player),
+      years: term,
+      onExpiry: statusOnExpiry(rules, player.age, term),
+    }
+  }
   const tenth = tenthOf(place)
-  return standardContract(rules, player, tenth, drawTerm(rules, thirdOf(tenth), rng))
+  return standardContract(
+    rules,
+    player,
+    tenth,
+    years ?? drawTerm(rules, thirdOf(tenth), player.age, rng),
+  )
 }
 
 /**
@@ -142,7 +177,12 @@ function openingContract(rules: CapRules, player: Player, place: Place, rng: Rng
   }
   if (place.rank >= place.regulars) return minimumContract(rules, player)
   const tenth = tenthOf(place)
-  return standardContract(rules, player, tenth, rng.int(1, drawTerm(rules, thirdOf(tenth), rng)))
+  return standardContract(
+    rules,
+    player,
+    tenth,
+    rng.int(1, drawTerm(rules, thirdOf(tenth), player.age, rng)),
+  )
 }
 
 /** A Club's cap hits in all, as a share of the cap. */
@@ -210,20 +250,16 @@ export function openingContracts(rules: CapRules, clubs: readonly Club[], rng: R
 }
 
 /**
- * The Clubs a Season on (#125): every contract has one Season fewer, and one that
- * ran out is renewed at the Player's ask, which item 3 replaces with re-signing.
- * A Player without a contract gets his ask too.
+ * The Clubs a Season on: every contract has one Season fewer. One at 0 has run
+ * out, and its Player waits on his Club's decision in the re-signing window
+ * (ADR-032, #127).
  */
-export function renewedContracts(rules: CapRules, clubs: readonly Club[], rng: Rng): Club[] {
-  const places = placesOf(clubs)
+export function tickedContracts(clubs: readonly Club[]): Club[] {
   return clubs.map((club) =>
-    mapPlayers(club, (player) => {
-      const left = (player.contract?.years ?? 0) - 1
-      const contract =
-        player.contract && left > 0
-          ? { ...player.contract, years: left }
-          : askingContract(rules, player, places.get(player.id), rng.fork(player.id))
-      return { ...player, contract }
-    }),
+    mapPlayers(club, (player) =>
+      player.contract
+        ? { ...player, contract: { ...player.contract, years: player.contract.years - 1 } }
+        : player,
+    ),
   )
 }

@@ -307,7 +307,9 @@
     "drafted": "vydraftovaný, pick {pick} v {round}. kole.",
     "released": "bol uvoľnený.",
     "calledUp": "bol povolaný na súpisku.",
-    "joined": "prišiel do klubu."
+    "joined": "prišiel do klubu.",
+    "reSigned": "podpísal novú zmluvu za svoju požiadavku, počet sezón: {years}.",
+    "letGo": "nedostal ponuku novej zmluvy a odišiel z ligy."
   },
   "draft": {
     "title": "Draft pred sezónou {year}",

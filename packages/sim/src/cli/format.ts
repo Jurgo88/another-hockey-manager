@@ -26,6 +26,7 @@ import {
 import {
   ageProfile,
   payrolls,
+  reSigningRates,
   leavingRate,
   leavingRows,
   levelByAge,
@@ -242,7 +243,11 @@ function renderPayrolls(run: SimulatedRun): string[] {
   const rows = run.contracts.map((contracts, i) => ({
     year: run.seasons[i]!.year,
     ...payrolls(contracts),
+    // Who kept his Club is read in the Season after; the last has none.
+    reSigned: run.contracts[i + 1] && reSigningRates(run.seasons[i]!, contracts, run.contracts[i + 1]!),
   }))
+  const rate = ({ expiring, kept }: { expiring: number; kept: number }) =>
+    expiring === 0 ? '-' : `${percent(kept / expiring)} of ${expiring}`
   const table = renderTable<(typeof rows)[number]>(
     [
       { header: 'Season', value: (row) => row.year },
@@ -250,10 +255,12 @@ function renderPayrolls(run: SimulatedRun): string[] {
       { header: 'SD', value: (row) => percent(row.sd) },
       { header: 'Lowest', value: (row) => percent(row.lowest) },
       { header: 'Highest', value: (row) => percent(row.highest) },
+      { header: 'RFA re-signed', value: (row) => (row.reSigned ? rate(row.reSigned.restricted) : '') },
+      { header: 'UFA re-signed', value: (row) => (row.reSigned ? rate(row.reSigned.unrestricted) : '') },
     ],
     rows,
   )
-  return [section('Payrolls, share of the cap', table)]
+  return [section('Payrolls, share of the cap, and regulars re-signed by their Club', table)]
 }
 
 /**

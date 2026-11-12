@@ -1,6 +1,6 @@
 import type { Club, Lineup, Tactics } from '../domain/club.js'
 import type { CompetitionStructure, SeasonFormat } from '../domain/competition.js'
-import type { CapRules } from '../domain/contract.js'
+import type { CapRules, Contract, ReSigning, ReSigningViolation } from '../domain/contract.js'
 import type { MatchEvent } from '../domain/event.js'
 import type { Fixture, FixtureChange, FixtureId, FixtureInput } from '../domain/fixture.js'
 import type {
@@ -63,8 +63,11 @@ import { fixtureSeed, simulateFixture } from '../engine/simulate.js'
 import {
   entryLevelContract,
   minimumContract,
+  askingContract,
   openingContracts,
-  renewedContracts,
+  placesOf,
+  tickedContracts,
+  type Place,
 } from '../generate/contracts.js'
 import { createGeneratedRosterProvider } from '../generate/roster.js'
 import {
@@ -143,10 +146,11 @@ export interface SeasonState {
 /**
  * Between one Season and the next, while Managers decide (ADR-028). Plain JSON,
  * like a Season, and every step is pure. The draft window comes first, then the
- * Roster window; where a Club declared nothing, the assistant decides.
+ * re-signing window (ADR-032), then the Roster window; where a Club declared
+ * nothing, the assistant decides.
  */
 export interface Offseason {
-  phase: 'draft' | 'roster'
+  phase: 'draft' | 'resign' | 'roster'
   /** The Season just played, with its champion. */
   ended: SeasonState
   /** The Season to come. */
@@ -169,9 +173,27 @@ export interface Offseason {
   picks: readonly DraftPick[]
   /** Each Club's declared moves. */
   moves: Readonly<Record<ClubId, RosterMoves>>
+  /**
+   * Players whose contract ran out, by id, with the place in the league their
+   * ask is priced from: their public role in the Season just played (ADR-030).
+   */
+  expiring: Readonly<Record<PlayerId, Place>>
+  /** Each Club's declared re-signings; once the window closes, those made. */
+  reSignings: Readonly<Record<ClubId, readonly ReSigning[]>>
 }
 
 /** Roster moves that break the rules: the Manager has to change them. */
+/** Re-signings that break the rules: the Manager has to change them. */
+export class InvalidReSigningsError extends Error {
+  constructor(
+    readonly clubId: ClubId,
+    readonly violations: readonly ReSigningViolation[],
+  ) {
+    super(`Re-signings of Club ${clubId} break ${violations.length} rule(s)`)
+    this.name = 'InvalidReSigningsError'
+  }
+}
+
 export class InvalidMovesError extends Error {
   constructor(
     readonly clubId: ClubId,
@@ -235,6 +257,8 @@ export type ClubNotice =
   | { kind: 'released'; day: number; playerId: PlayerId }
   | { kind: 'calledUp'; day: number; playerId: PlayerId }
   | { kind: 'joined'; day: number; playerId: PlayerId }
+  | { kind: 'reSigned'; day: number; playerId: PlayerId; years: number }
+  | { kind: 'letGo'; day: number; playerId: PlayerId }
 
 /** A Lineup that breaks the rules of the game: the Manager has to change it. */
 export class InvalidLineupError extends Error {
@@ -297,7 +321,8 @@ export type UncontractedSeason = Omit<SeasonState, 'capRules'> &
   Partial<Pick<SeasonState, 'capRules'>>
 
 /** A phase between Seasons as stored before contracts (#125). */
-export type UncontractedOffseason = Omit<Offseason, 'ended'> & { ended: UncontractedSeason }
+export type UncontractedOffseason = Omit<Offseason, 'ended' | 'expiring' | 'reSignings'> &
+  Partial<Pick<Offseason, 'expiring' | 'reSignings'>> & { ended: UncontractedSeason }
 
 const unsigned = (clubs: readonly Club[]) =>
   clubs.some((club) => [...club.skaters, ...club.goalies].some((player) => !player.contract))
@@ -319,10 +344,12 @@ export function contractedSeason(state: UncontractedSeason): SeasonState {
 
 /** A phase between Seasons stored before contracts brought up to them (#125). */
 export function contractedOffseason(off: UncontractedOffseason): Offseason {
+  // Stored before the re-signing window (#127): nothing waits on it.
+  const window = { expiring: off.expiring ?? {}, reSignings: off.reSignings ?? {} }
   const ended = contractedSeason(off.ended)
-  if (!unsigned(off.clubs)) return { ...off, ended }
+  if (!unsigned(off.clubs)) return { ...off, ...window, ended }
   const rng = createRng(ended.seed).fork(`contracts:y${off.year}`)
-  return { ...off, ended, clubs: openingContracts(ended.capRules, off.clubs, rng) }
+  return { ...off, ...window, ended, clubs: openingContracts(ended.capRules, off.clubs, rng) }
 }
 
 /**
@@ -339,20 +366,19 @@ export function nextSeason(state: SeasonState): SeasonState {
  * (ADR-028). Every Player develops by the age he played at (ADR-022), prospects
  * too, off the Roster and without the bonus for ice time; some retire or are not
  * signed again (ADR-027); everyone who stays is a year older and rested.
- * Rights older than the format allows expire. Every contract has a Season fewer,
- * and one that ran out is renewed at the Player's ask until re-signing exists
- * (#125). The draft order is drawn and the class generated, each from a stream
- * of its own (D-08).
+ * Rights older than the format allows expire. Every contract has a Season fewer;
+ * one that ran out waits on the re-signing window, its ask priced from the
+ * Player's role in the Season (ADR-030, #127). The draft order is drawn and the
+ * class generated, each from a stream of its own (D-08).
  */
 export function endSeason(state: SeasonState): Offseason {
   if (!isSeasonOver(state)) throw new Error(`Season s${state.seed} has no champion yet`)
 
   const year = state.year + 1
   const format = state.draftFormat
-  const departures = leaving(
-    state.clubs,
-    roles(state.clubs, (player) => usageOf(state, player)),
-    (player) => createRng(state.seed).fork(`leave:y${state.year}:${player.id}`),
+  const roleOf = roles(state.clubs, (player) => usageOf(state, player))
+  const departures = leaving(state.clubs, roleOf, (player) =>
+    createRng(state.seed).fork(`leave:y${state.year}:${player.id}`),
   )
   const gone = new Set(departures.map((departure) => departure.playerId))
   const grownClubs = state.clubs.map((club) => {
@@ -364,10 +390,13 @@ export function endSeason(state: SeasonState): Offseason {
       goalies: club.goalies.filter(stays).map(grown),
     }
   })
-  const clubs = renewedContracts(
-    state.capRules,
-    grownClubs,
-    createRng(state.seed).fork(`contracts:y${year}`),
+  const clubs = tickedContracts(grownClubs)
+  const places = placesOf(state.clubs, (player) => roleOf.get(player.id) ?? 0)
+  const expiring = Object.fromEntries(
+    clubs
+      .flatMap((club) => [...club.skaters, ...club.goalies])
+      .filter((player) => player.contract?.years === 0)
+      .map((player) => [player.id, places.get(player.id)!] as const),
   )
   const grownProspects = state.prospects.map((prospect) => ({
     ...prospect,
@@ -394,6 +423,8 @@ export function endSeason(state: SeasonState): Offseason {
     lists: {},
     picks: [],
     moves: {},
+    expiring,
+    reSignings: {},
   }
 }
 
@@ -415,10 +446,10 @@ export function setDraftList(
   return { ...off, lists: { ...off.lists, [clubId]: [...prospectIds] } }
 }
 
-/** Makes every pick left in the draft, and opens the Roster window (ADR-028). */
+/** Makes every pick left in the draft, and opens the re-signing window (ADR-032). */
 export function runDraft(off: Offseason): Offseason {
   if (off.phase !== 'draft') return off
-  return { ...picksUntil(off, () => false), phase: 'roster', draftClass: [] }
+  return { ...picksUntil(off, () => false), phase: 'resign', draftClass: [] }
 }
 
 /**
@@ -513,7 +544,7 @@ export function setRosterMoves(off: Offseason, clubId: ClubId, moves: RosterMove
  * with the same Tactics.
  */
 export function startNextSeason(offseason: Offseason): SeasonState {
-  const off = runDraft(offseason)
+  const off = runReSigning(offseason)
   const state = off.ended
   const year = off.year
   const fresh = freshSeason(state.seed, state.structure, year)
@@ -614,6 +645,114 @@ function signed(rules: CapRules, club: Club, calledUp: ReadonlySet<PlayerId>): C
             : minimumContract(rules, player),
         }
   return { ...club, skaters: club.skaters.map(sign), goalies: club.goalies.map(sign) }
+}
+
+/** The Players of a Club in a Season whose contracts ran out with it, in Roster order. */
+function expiringIn(state: SeasonState, off: Offseason, clubId: ClubId): PlayerId[] {
+  const club = state.clubs.find((candidate) => candidate.id === clubId)
+  return club ? rosterIds(club).filter((id) => id in off.expiring) : []
+}
+
+/** A Club's Players whose contracts ran out, still on its Roster until the window closes. */
+export function expiringPlayers(off: Offseason, clubId: ClubId): Player[] {
+  const club = offseasonClub(off, clubId)
+  return [...club.skaters, ...club.goalies].filter((player) => player.id in off.expiring)
+}
+
+/**
+ * What a Player whose contract ran out asks to sign again (ADR-030): the curve
+ * at his role, for `years` when his Club names them, and otherwise the term he
+ * draws from his stream for the Season (D-08).
+ */
+export function askOf(off: Offseason, playerId: PlayerId, years?: number): Contract {
+  const place = off.expiring[playerId]
+  if (!place) throw new Error(`Player ${playerId}'s contract has not run out`)
+  const player = off.clubs
+    .flatMap((club) => [...club.skaters, ...club.goalies])
+    .find((candidate) => candidate.id === playerId)
+  if (!player) throw new Error(`Player ${playerId} is on no Roster`)
+  const rng = createRng(off.ended.seed).fork(`resign:y${off.year}:${playerId}`)
+  return askingContract(off.ended.capRules, player, place, rng, years)
+}
+
+/**
+ * The assistant's re-signings for a Club: every Player whose contract ran out,
+ * at his ask and the term he draws (ADR-032, #127). The same for every Club (D-04).
+ */
+export function proposedReSignings(off: Offseason, clubId: ClubId): ReSigning[] {
+  return expiringPlayers(off, clubId).map((player) => ({
+    playerId: player.id,
+    years: askOf(off, player.id).years,
+  }))
+}
+
+/** The rules a Club's re-signings break. */
+export function reSigningViolations(
+  off: Offseason,
+  clubId: ClubId,
+  reSignings: readonly ReSigning[],
+): ReSigningViolation[] {
+  const expiring = new Set(expiringPlayers(off, clubId).map((player) => player.id))
+  const max = off.ended.capRules.maxTerm.ownClub
+  const seen = new Set<PlayerId>()
+  const violations: ReSigningViolation[] = []
+  for (const { playerId, years } of reSignings) {
+    if (!expiring.has(playerId)) violations.push({ kind: 'notExpiring', playerId })
+    else if (seen.has(playerId)) violations.push({ kind: 'reSignedTwice', playerId })
+    if (!Number.isInteger(years) || years < 1 || years > max) {
+      violations.push({ kind: 'termOutOfRange', playerId, years, max })
+    }
+    seen.add(playerId)
+  }
+  return violations
+}
+
+/**
+ * Declares whom a Club re-signs, each at his ask for the term named; every other
+ * Player whose contract ran out is let go. For any Manager (D-04).
+ */
+export function setReSignings(
+  off: Offseason,
+  clubId: ClubId,
+  reSignings: readonly ReSigning[],
+): Offseason {
+  if (off.phase !== 'resign') throw new Error('The re-signing window is not open')
+  const violations = reSigningViolations(off, clubId, reSignings)
+  if (violations.length > 0) throw new InvalidReSigningsError(clubId, violations)
+  return { ...off, reSignings: { ...off.reSignings, [clubId]: [...reSignings] } }
+}
+
+/**
+ * Closes the re-signing window and opens the Roster window (ADR-032). Each Club's
+ * re-signings are made, its own or the assistant's; a Player let go leaves the
+ * league as unsigned until free agency exists (#127), and his place is a gap.
+ * The draft is made first if it has not been.
+ */
+export function runReSigning(offseason: Offseason): Offseason {
+  const off = offseason.phase === 'draft' ? runDraft(offseason) : offseason
+  if (off.phase !== 'resign') return off
+  const departures = [...off.departures]
+  const made: Record<ClubId, readonly ReSigning[]> = {}
+  const clubs = off.clubs.map((club) => {
+    const decided = off.reSignings[club.id] ?? proposedReSignings(off, club.id)
+    made[club.id] = decided
+    const years = new Map(decided.map((r) => [r.playerId, r.years]))
+    const settle = <P extends Player>(players: readonly P[]): P[] =>
+      players.flatMap((player) => {
+        if (!(player.id in off.expiring)) return [player]
+        const term = years.get(player.id)
+        if (term !== undefined) return [{ ...player, contract: askOf(off, player.id, term) }]
+        departures.push({
+          playerId: player.id,
+          clubId: club.id,
+          age: player.age - 1,
+          reason: 'unsigned',
+        })
+        return []
+      })
+    return { ...club, skaters: settle(club.skaters), goalies: settle(club.goalies) }
+  })
+  return { ...off, phase: 'roster', clubs, departures, reSignings: made }
 }
 
 function offseasonClub(off: Offseason, clubId: ClubId): Club {
@@ -1001,8 +1140,9 @@ export function noticesOf(before: SeasonState, played: PlayedDay, clubId: ClubId
  */
 export function endNoticesOf(off: Offseason, clubId: ClubId): ClubNotice[] {
   const day = off.ended.fixtures.at(-1)!.day
+  // Those let go in the re-signing window have notices of their own.
   const left = off.departures
-    .filter((departure) => departure.clubId === clubId)
+    .filter((departure) => departure.clubId === clubId && !(departure.playerId in off.expiring))
     .flatMap((departure): ClubNotice[] =>
       departure.reason === 'retired' || departure.reason === 'unsigned'
         ? [{ kind: departure.reason, day, playerId: departure.playerId }]
@@ -1012,6 +1152,22 @@ export function endNoticesOf(off: Offseason, clubId: ClubId): ClubNotice[] {
     .filter((player) => player.clubId === clubId)
     .map((player): ClubNotice => ({ kind: 'rightsExpired', day, playerId: player.id }))
   return [...left, ...expired]
+}
+
+/**
+ * Whom a Club re-signed and whom it let go, once the re-signing window has
+ * closed (ADR-032). Dated on the ended Season's last day.
+ */
+export function reSigningNoticesOf(off: Offseason, clubId: ClubId): ClubNotice[] {
+  if (off.phase !== 'roster') return []
+  const day = off.ended.fixtures.at(-1)!.day
+  const kept = new Map((off.reSignings[clubId] ?? []).map((r) => [r.playerId, r.years]))
+  return expiringIn(off.ended, off, clubId).map((playerId): ClubNotice => {
+    const years = kept.get(playerId)
+    return years === undefined
+      ? { kind: 'letGo', day, playerId }
+      : { kind: 'reSigned', day, playerId, years }
+  })
 }
 
 /** Whom a Club drafted, in the order of its picks. Dated on the ended Season's last day. */
@@ -1037,8 +1193,8 @@ export function startNoticesOf(
   next: SeasonState,
   clubId: ClubId,
 ): ClubNotice[] {
-  // The next Season makes the draft if nobody did, so its class may be called up already.
-  const off = runDraft(offseason)
+  // The next Season makes the draft and the re-signings if nobody did.
+  const off = runReSigning(offseason)
   const day = next.fixtures[0]!.day
   const before = new Set(rosterIds(offseasonClub(off, clubId)))
   const held = new Set(

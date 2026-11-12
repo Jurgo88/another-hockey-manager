@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
 
   return {
     year: off.year,
-    made: off.phase === 'roster',
+    made: off.phase !== 'draft',
     clock: clock && { ...clock, club: code(clock.clubId), mine: clock.clubId === clubId },
     myPicks: myPicks(off, clubId),
     picks: off.picks.map((pick) => ({

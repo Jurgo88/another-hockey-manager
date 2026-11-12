@@ -126,6 +126,12 @@ function capSharesModule(shares: CapShares): string {
         `    { entryLevel: ${n(t.entryLevel)}, restricted: ${n(t.restricted)}, restrictedRatio: ${n(t.restrictedRatio)}, term: ${n(t.term)} },`,
     ),
     '  ],',
+    '  // New standard contracts by third of role, then age band (to 24, 25-30, 31+), then term from 1 year',
+    '  terms: [',
+    ...shares.terms.map(
+      (bands) => `    [${bands.map((counts) => `[${counts.join(', ')}]`).join(', ')}],`,
+    ),
+    '  ],',
     '} as const',
     '',
   ].join('\n')
@@ -172,7 +178,7 @@ async function main(): Promise<void> {
     ]
     console.log(
       values.module
-        ? capSharesModule(capShares(views[1]!, nhl.players))
+        ? capSharesModule(capShares(views[1]!, nhl.players, [views[1]!, views[2]!]))
         : contractsReport(views, nhl.players),
     )
     return

@@ -19,4 +19,22 @@ export const NHL_CAP_SHARES = {
     { entryLevel: 0.2038, restricted: 0.1754, restrictedRatio: 0.5949, term: 2.5357 },
     { entryLevel: 0.1943, restricted: 0.1754, restrictedRatio: 0.6065, term: 1.619 },
   ],
+  // New standard contracts by third of role, then age band (to 24, 25-30, 31+), then term from 1 year
+  terms: [
+    [
+      [1, 3, 1, 1, 4, 5, 4, 3],
+      [5, 6, 4, 6, 8, 9, 7, 24],
+      [8, 8, 7, 7, 5, 2, 0, 1],
+    ],
+    [
+      [5, 10, 6, 1, 5, 1, 2, 2],
+      [24, 23, 9, 9, 7, 6, 2, 2],
+      [28, 14, 12, 3, 4, 2, 0, 0],
+    ],
+    [
+      [16, 30, 5, 2, 0, 0, 0, 1],
+      [69, 52, 7, 5, 2, 1, 0, 0],
+      [28, 24, 3, 1, 1, 1, 0, 0],
+    ],
+  ],
 } as const

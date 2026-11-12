@@ -33,6 +33,7 @@ import {
   nextSeason,
   proposedMoves,
   runDraft,
+  runReSigning,
   setDraftList,
   setRosterMoves,
   startNextSeason,
@@ -234,7 +235,7 @@ describe('the phase between Seasons', () => {
   beforeAll(async () => {
     ended = playToChampion(await startSeason(SEED))
     off = endSeason(ended)
-    drafted = runDraft(off)
+    drafted = runReSigning(runDraft(off))
   })
 
   it('refuses a Season without a champion', async () => {

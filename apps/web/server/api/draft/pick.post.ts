@@ -1,9 +1,18 @@
-import { draftClock, draftNoticesOf, draftUntil, makePick, runDraft } from '@ahm/sim'
+import {
+  draftClock,
+  draftNoticesOf,
+  draftUntil,
+  makePick,
+  reSigningNoticesOf,
+  runDraft,
+  runReSigning,
+} from '@ahm/sim'
 
 /**
  * A pick in the draft room (ADR-028 amendment, FR-36). With a prospect, the
  * Manager's pick is made; then the draft runs on to his next pick. Once he has
- * no pick left, the rest is made and the Roster window opens.
+ * no pick left, the rest is made, the assistant re-signs (until the web has a
+ * window for it, #127), and the Roster window opens.
  */
 export default defineEventHandler(async (event) => {
   const manager = await requireManager(event)
@@ -24,7 +33,11 @@ export default defineEventHandler(async (event) => {
   }
   off = draftUntil(off, season.clubId)
   const done = draftClock(off) === null
-  if (done) off = runDraft(off)
-  await saveOffseason(season, off, done ? draftNoticesOf(off, season.clubId) : [])
+  if (done) off = runReSigning(runDraft(off))
+  await saveOffseason(
+    season,
+    off,
+    done ? [...draftNoticesOf(off, season.clubId), ...reSigningNoticesOf(off, season.clubId)] : [],
+  )
   return { ok: true }
 })

@@ -74,6 +74,33 @@ export function payrolls(contracts: readonly RosterContract[]): Payrolls {
   }
 }
 
+export interface ReSigningRate {
+  /** Regulars whose contract ran out with the Season. */
+  expiring: number
+  /** Of them, those on the same Club's Roster the next Season. */
+  kept: number
+}
+
+/**
+ * Who of a Season's regulars, 20 or more Fixtures, kept his Club when his
+ * contract ran out, by what he was on expiry, as #122 measured the NHL (ADR-032).
+ */
+export function reSigningRates(
+  record: SeasonRecord,
+  contracts: readonly RosterContract[],
+  next: readonly RosterContract[],
+): { restricted: ReSigningRate; unrestricted: ReSigningRate } {
+  const clubNext = new Map(next.map((entry) => [entry.playerId, entry.clubId]))
+  const rates = { restricted: { expiring: 0, kept: 0 }, unrestricted: { expiring: 0, kept: 0 } }
+  for (const { playerId, clubId, contract } of contracts) {
+    if (contract?.years !== 1 || fixturesOf(record, playerId) < LEAVING_MIN_FIXTURES) continue
+    const rate = rates[contract.onExpiry]
+    rate.expiring++
+    if (clubNext.get(playerId) === clubId) rate.kept++
+  }
+  return rates
+}
+
 /** Measured over Players with this many regular-Season Fixtures. */
 export const LEAVING_MIN_FIXTURES = 20
 
