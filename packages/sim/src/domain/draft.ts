@@ -1,4 +1,4 @@
-import type { ClubId, Player, PlayerId } from './player.js'
+import type { ClubId, Player, PlayerId, PositionGroup } from './player.js'
 
 /**
  * The entry draft as data (D-10, ADR-024, ADR-028). A league with another
@@ -68,3 +68,15 @@ export interface RosterMoves {
   callUps: readonly PlayerId[]
   releases: readonly PlayerId[]
 }
+
+/**
+ * A rule a Club's moves break (ADR-028 amendment, #92). Data, as a Lineup's
+ * violations are, so that a Manager reads it in his own language.
+ */
+export type MovesViolation =
+  | { kind: 'calledUpTwice'; playerId: PlayerId }
+  | { kind: 'releasedTwice'; playerId: PlayerId }
+  | { kind: 'notProspect'; playerId: PlayerId }
+  | { kind: 'notOnRoster'; playerId: PlayerId }
+  | { kind: 'aboveShape'; group: PositionGroup; count: number; shape: number }
+  | { kind: 'cannotDress' }

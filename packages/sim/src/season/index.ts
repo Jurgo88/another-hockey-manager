@@ -2,7 +2,13 @@ import type { Club, Lineup, Tactics } from '../domain/club.js'
 import type { CompetitionStructure, SeasonFormat } from '../domain/competition.js'
 import type { MatchEvent } from '../domain/event.js'
 import type { Fixture, FixtureChange, FixtureId, FixtureInput } from '../domain/fixture.js'
-import type { DraftFormat, DraftPick, Prospect, RosterMoves } from '../domain/draft.js'
+import type {
+  DraftFormat,
+  DraftPick,
+  MovesViolation,
+  Prospect,
+  RosterMoves,
+} from '../domain/draft.js'
 import {
   isGoalie,
   naturalPosition,
@@ -25,7 +31,10 @@ import {
   draftOrder,
   fillLevel,
   generateClass,
-  makePicks,
+  continuePicks,
+  describeMovesViolation,
+  onTheClock,
+  takePick,
   naturalOf,
   type Natural,
   movesViolations,
@@ -142,10 +151,11 @@ export interface Offseason {
   undrafted: readonly Player[]
   /** The first round's order, which every round follows. */
   order: readonly ClubId[]
-  /** The class, until the draft is made. */
+  /** The class still to be picked from: all of it before the draft, empty once it is made. */
   draftClass: readonly Player[]
   /** Each Club's declared order of prospects. */
   lists: Readonly<Record<ClubId, readonly PlayerId[]>>
+  /** The picks made so far, in order (ADR-028 amendment, #92). */
   picks: readonly DraftPick[]
   /** Each Club's declared moves. */
   moves: Readonly<Record<ClubId, RosterMoves>>
@@ -155,9 +165,11 @@ export interface Offseason {
 export class InvalidMovesError extends Error {
   constructor(
     readonly clubId: ClubId,
-    readonly violations: readonly string[],
+    readonly violations: readonly MovesViolation[],
   ) {
-    super(`Moves of Club ${clubId} break ${violations.length} rule(s): ${violations.join('; ')}`)
+    super(
+      `Moves of Club ${clubId} break ${violations.length} rule(s): ${violations.map(describeMovesViolation).join('; ')}`,
+    )
     this.name = 'InvalidMovesError'
   }
 }
@@ -205,6 +217,14 @@ export interface PlayedDay {
 export type ClubNotice =
   | { kind: 'injury'; day: number; playerId: PlayerId; days: number }
   | { kind: 'recovered'; day: number; playerId: PlayerId }
+  // Between Seasons (ADR-028 amendment, #92).
+  | { kind: 'retired'; day: number; playerId: PlayerId }
+  | { kind: 'unsigned'; day: number; playerId: PlayerId }
+  | { kind: 'rightsExpired'; day: number; playerId: PlayerId }
+  | { kind: 'drafted'; day: number; playerId: PlayerId; round: number; pick: number }
+  | { kind: 'released'; day: number; playerId: PlayerId }
+  | { kind: 'calledUp'; day: number; playerId: PlayerId }
+  | { kind: 'joined'; day: number; playerId: PlayerId }
 
 /** A Lineup that breaks the rules of the game: the Manager has to change it. */
 export class InvalidLineupError extends Error {
@@ -329,7 +349,11 @@ export function endSeason(state: SeasonState): Offseason {
  * Manager (D-04). A pick takes the first still available; with none left, the
  * assistant chooses.
  */
-export function setDraftList(off: Offseason, clubId: ClubId, prospectIds: readonly PlayerId[]): Offseason {
+export function setDraftList(
+  off: Offseason,
+  clubId: ClubId,
+  prospectIds: readonly PlayerId[],
+): Offseason {
   if (off.phase !== 'draft') throw new Error('The draft has been made')
   if (!off.order.includes(clubId)) throw new Error(`No Club ${clubId} in the draft`)
   const inClass = new Set(off.draftClass.map((player) => player.id))
@@ -338,23 +362,60 @@ export function setDraftList(off: Offseason, clubId: ClubId, prospectIds: readon
   return { ...off, lists: { ...off.lists, [clubId]: [...prospectIds] } }
 }
 
-/** Makes every pick of the draft, and opens the Roster window (ADR-028). */
+/** Makes every pick left in the draft, and opens the Roster window (ADR-028). */
 export function runDraft(off: Offseason): Offseason {
   if (off.phase !== 'draft') return off
-  const { picks, prospects } = makePicks(
+  return { ...picksUntil(off, () => false), phase: 'roster', draftClass: [] }
+}
+
+/**
+ * Makes the picks in order, from each Club's list or by the assistant, until the
+ * next pick is `clubId`'s or the draft is over (ADR-028 amendment, #92). A draft
+ * room stops here for a Manager to choose, any Manager alike (D-04).
+ */
+export function draftUntil(off: Offseason, clubId: ClubId): Offseason {
+  if (off.phase !== 'draft') return off
+  return picksUntil(off, (onClock) => onClock === clubId)
+}
+
+/** The next pick of the draft, or null when no pick is left. */
+export function draftClock(off: Offseason): { pick: number; round: number; clubId: ClubId } | null {
+  if (off.phase !== 'draft' || off.draftClass.length === 0) return null
+  return onTheClock(off.ended.draftFormat, off.order, off.picks.length)
+}
+
+/** Makes the next pick, which must be `clubId`'s, with a prospect still in the class. */
+export function makePick(off: Offseason, clubId: ClubId, playerId: PlayerId): Offseason {
+  const clock = draftClock(off)
+  if (!clock || clock.clubId !== clubId) throw new Error(`The next pick is not Club ${clubId}'s`)
+  const player = off.draftClass.find((candidate) => candidate.id === playerId)
+  if (!player) throw new Error(`Not in the class: ${playerId}`)
+  const { pick, prospect } = takePick(
+    off.ended.draftFormat,
+    off.year,
+    off.order,
+    off.picks.length,
+    player,
+  )
+  return {
+    ...off,
+    picks: [...off.picks, pick],
+    prospects: [...off.prospects, prospect],
+    draftClass: off.draftClass.filter((candidate) => candidate.id !== playerId),
+  }
+}
+
+function picksUntil(off: Offseason, stop: (clubId: ClubId) => boolean): Offseason {
+  const { picks, prospects, available } = continuePicks(
     off.ended.draftFormat,
     off.year,
     off.order,
     off.draftClass,
     off.lists,
+    off.picks,
+    stop,
   )
-  return {
-    ...off,
-    phase: 'roster',
-    prospects: [...off.prospects, ...prospects],
-    draftClass: [],
-    picks,
-  }
+  return { ...off, picks, prospects: [...off.prospects, ...prospects], draftClass: available }
 }
 
 /** The assistant's call-ups and releases for a Club, once the draft is made (ADR-028). */
@@ -378,7 +439,7 @@ export function setRosterMoves(off: Offseason, clubId: ClubId, moves: RosterMove
     try {
       buildNaiveLineup(filled)
     } catch {
-      violations.push('the Club could not dress a Lineup')
+      violations.push({ kind: 'cannotDress' })
     }
   }
   if (violations.length > 0) throw new InvalidMovesError(clubId, violations)
@@ -426,13 +487,19 @@ export function startNextSeason(offseason: Offseason): SeasonState {
   }
 
   let undrafted = [...off.undrafted]
-  const clubOrder = [...off.order, ...off.clubs.map((c) => c.id).filter((id) => !off.order.includes(id))]
+  const clubOrder = [
+    ...off.order,
+    ...off.clubs.map((c) => c.id).filter((id) => !off.order.includes(id)),
+  ]
   for (const clubId of clubOrder) {
     const entry = moved.get(clubId)
     if (!entry) continue
     const taken = takeUndrafted(entry.club, entry.missing, undrafted)
     undrafted = undrafted.filter((player) => !taken.some((t) => t.id === player.id))
-    entry.club = withPlayers(entry.club, taken.map((player) => ({ ...player, clubId })))
+    entry.club = withPlayers(
+      entry.club,
+      taken.map((player) => ({ ...player, clubId })),
+    )
     entry.missing = stillMissing(entry.missing, taken)
   }
   for (const player of undrafted) {
@@ -503,6 +570,11 @@ function leaversOf(off: Offseason, clubId: ClubId): Player[] {
 }
 
 /** A Club's gaps, at the natural positions of those who left them. */
+/** The natural positions a Club must fill between Seasons, one for each who left it (ADR-028). */
+export function rosterGaps(off: Offseason, clubId: ClubId): Natural[] {
+  return gapsOf(off, clubId)
+}
+
 function gapsOf(off: Offseason, clubId: ClubId): Natural[] {
   return leaversOf(off, clubId).map(naturalOf)
 }
@@ -536,7 +608,11 @@ function stillMissing(missing: readonly Player[], joined: readonly Player[]): Pl
  * Player it is missing, the best at his natural position no weaker than a
  * generated fill, while the group has room.
  */
-function takeUndrafted(club: Club, missing: readonly Player[], undrafted: readonly Player[]): Player[] {
+function takeUndrafted(
+  club: Club,
+  missing: readonly Player[],
+  undrafted: readonly Player[],
+): Player[] {
   const taken: Player[] = []
   const room = (group: PositionGroup) =>
     GROUP_SHAPE[group] -
@@ -842,6 +918,64 @@ export function noticesOf(before: SeasonState, played: PlayedDay, clubId: ClubId
     .filter((injury) => injury.clubId === clubId)
     .map(({ playerId, days }): ClubNotice => ({ kind: 'injury', day, playerId, days }))
   return [...recovered, ...injured]
+}
+
+/**
+ * What a Season's end means for one Club (ADR-028 amendment, #92): who retired
+ * or went unsigned, and whose rights it lost. Dated on the Season's last day.
+ */
+export function endNoticesOf(off: Offseason, clubId: ClubId): ClubNotice[] {
+  const day = off.ended.fixtures.at(-1)!.day
+  const left = off.departures
+    .filter((departure) => departure.clubId === clubId)
+    .flatMap((departure): ClubNotice[] =>
+      departure.reason === 'retired' || departure.reason === 'unsigned'
+        ? [{ kind: departure.reason, day, playerId: departure.playerId }]
+        : [],
+    )
+  const expired = off.undrafted
+    .filter((player) => player.clubId === clubId)
+    .map((player): ClubNotice => ({ kind: 'rightsExpired', day, playerId: player.id }))
+  return [...left, ...expired]
+}
+
+/** Whom a Club drafted, in the order of its picks. Dated on the ended Season's last day. */
+export function draftNoticesOf(off: Offseason, clubId: ClubId): ClubNotice[] {
+  const day = off.ended.fixtures.at(-1)!.day
+  return off.picks
+    .filter((pick) => pick.clubId === clubId)
+    .map(({ playerId, round, pick }): ClubNotice => ({
+      kind: 'drafted',
+      day,
+      playerId,
+      round,
+      pick,
+    }))
+}
+
+/**
+ * What the start of the next Season means for one Club: whom it released and
+ * called up, and who joined to fill a gap. Dated on the new Season's first day.
+ */
+export function startNoticesOf(
+  offseason: Offseason,
+  next: SeasonState,
+  clubId: ClubId,
+): ClubNotice[] {
+  // The next Season makes the draft if nobody did, so its class may be called up already.
+  const off = runDraft(offseason)
+  const day = next.fixtures[0]!.day
+  const before = new Set(rosterIds(offseasonClub(off, clubId)))
+  const held = new Set(
+    off.prospects.filter((p) => p.player.clubId === clubId).map((p) => p.player.id),
+  )
+  const released = next.departures
+    .filter((departure) => departure.clubId === clubId && departure.reason === 'released')
+    .map((departure): ClubNotice => ({ kind: 'released', day, playerId: departure.playerId }))
+  const arrived = rosterIds(clubOf(next, clubId))
+    .filter((id) => !before.has(id))
+    .map((id): ClubNotice => ({ kind: held.has(id) ? 'calledUp' : 'joined', day, playerId: id }))
+  return [...released, ...arrived]
 }
 
 /** Whether a Club plays on the next day that has Fixtures. */
