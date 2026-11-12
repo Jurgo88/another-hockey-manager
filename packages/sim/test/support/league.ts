@@ -1,4 +1,5 @@
 import type { CompetitionStructure, SeasonFormat } from '../../src/domain/competition.js'
+import { NHL_CAP_RULES } from '../../src/data/nhl-2026-27.js'
 
 /**
  * A small Competition for tests that need a Season only as an input (ADR-014
@@ -56,4 +57,5 @@ export const SMALL_SEASON: SeasonFormat = {
     lottery: { odds: [50, 30, 15, 5], draws: 1, maxJump: 3 },
     deepRunsLast: 1,
   },
+  cap: NHL_CAP_RULES,
 }

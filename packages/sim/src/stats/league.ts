@@ -1,3 +1,4 @@
+import type { Contract } from '../domain/contract.js'
 import type { ClubId, Departure, PlayerId } from '../domain/player.js'
 import { sortStandings } from '../domain/standings.js'
 import type { RosterEntry, SeasonRecord } from './history.js'
@@ -36,6 +37,40 @@ export function ageProfile(record: SeasonRecord): AgeProfile {
     youngShare: share((age) => age <= 23),
     oldest: Math.max(...played.map((p) => p.age)),
     players: played.length,
+  }
+}
+
+export interface Payrolls {
+  /** Each Club's cap hits in all, as a share of the cap, by Club. */
+  byClub: ReadonlyMap<ClubId, number>
+  mean: number
+  /** Standard deviation across Clubs. */
+  sd: number
+  lowest: number
+  highest: number
+}
+
+/** A Player's contract as a Season ended. */
+export interface RosterContract {
+  playerId: PlayerId
+  clubId: ClubId
+  contract?: Contract
+}
+
+/** What each Club paid its Roster in a Season, as shares of the cap (ADR-030, #125). */
+export function payrolls(contracts: readonly RosterContract[]): Payrolls {
+  const byClub = new Map<ClubId, number>()
+  for (const entry of contracts) {
+    byClub.set(entry.clubId, (byClub.get(entry.clubId) ?? 0) + (entry.contract?.capHit ?? 0))
+  }
+  const shares = [...byClub.values()]
+  const mean = shares.reduce((sum, s) => sum + s, 0) / shares.length
+  return {
+    byClub,
+    mean,
+    sd: Math.sqrt(shares.reduce((sum, s) => sum + (s - mean) ** 2, 0) / shares.length),
+    lowest: Math.min(...shares),
+    highest: Math.max(...shares),
   }
 }
 

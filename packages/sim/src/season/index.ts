@@ -1,5 +1,6 @@
 import type { Club, Lineup, Tactics } from '../domain/club.js'
 import type { CompetitionStructure, SeasonFormat } from '../domain/competition.js'
+import type { CapRules } from '../domain/contract.js'
 import type { MatchEvent } from '../domain/event.js'
 import type { Fixture, FixtureChange, FixtureId, FixtureInput } from '../domain/fixture.js'
 import type {
@@ -59,6 +60,12 @@ import {
 } from '../engine/playoff.js'
 import { generateSchedule } from '../engine/schedule.js'
 import { fixtureSeed, simulateFixture } from '../engine/simulate.js'
+import {
+  entryLevelContract,
+  minimumContract,
+  openingContracts,
+  renewedContracts,
+} from '../generate/contracts.js'
 import { createGeneratedRosterProvider } from '../generate/roster.js'
 import {
   departures as leaving,
@@ -92,6 +99,9 @@ export interface SeasonState {
   structure: CompetitionStructure
   playoffFormat: PlayoffFormat
   draftFormat: DraftFormat
+  /** What contracts are made to (ADR-030). */
+  capRules: CapRules
+  /** Every rostered Player holds a contract (#125). */
   clubs: readonly Club[]
   /** Each Club's declared Lineup. What a Fixture gets is this, less injuries and rotation. */
   lineups: Readonly<Record<ClubId, Lineup>>
@@ -241,7 +251,8 @@ export class InvalidLineupError extends Error {
  * One full Season before its first day, of the NHL 2026-27 unless another
  * format is given (D-10, ADR-014), on the Rosters a provider gives (D-05), or on
  * Clubs generated for its structure. Its Clubs hold the prospects of the drafts
- * before it (ADR-028 amendment, #90).
+ * before it (ADR-028 amendment, #90), and every Player on a Roster holds the
+ * contract the league opens with, or the one a roster file gives him (ADR-030).
  */
 export async function startSeason(
   seed: number,
@@ -258,12 +269,14 @@ export async function startSeason(
         NHL_2026_27_CLUB_SEEDS.map((club) => [club.id, { code: club.code, name: club.name }]),
       ),
     })
-  const { clubs } = await rosters.loadCompetition(structure.id)
+  const loaded = await rosters.loadCompetition(structure.id)
+  const clubs = openingContracts(format.cap, loaded.clubs, createRng(seed).fork('contracts'))
   const unset: SeasonState = {
     ...freshSeason(seed, structure, 1),
     seed,
     playoffFormat: format.playoffs,
     draftFormat: format.draft,
+    capRules: format.cap,
     clubs,
     lineups: {},
     absent: {},
@@ -277,6 +290,39 @@ export async function startSeason(
   }
   // Every Club opens as an AI Manager would, through the call any Manager uses (D-04).
   return clubs.reduce((state, club) => setLineup(state, club.id, buildNaiveLineup(club)), unset)
+}
+
+/** A Season as stored before contracts (#125): without cap rules, its Players without contracts. */
+export type UncontractedSeason = Omit<SeasonState, 'capRules'> &
+  Partial<Pick<SeasonState, 'capRules'>>
+
+/** A phase between Seasons as stored before contracts (#125). */
+export type UncontractedOffseason = Omit<Offseason, 'ended'> & { ended: UncontractedSeason }
+
+const unsigned = (clubs: readonly Club[]) =>
+  clubs.some((club) => [...club.skaters, ...club.goalies].some((player) => !player.contract))
+
+/**
+ * A Season stored before contracts brought up to them (#125): the NHL's cap
+ * rules, and every Player on a Roster under the contract the league would have
+ * opened with. The same Season gives the same contracts each time it is read.
+ */
+export function contractedSeason(state: UncontractedSeason): SeasonState {
+  const capRules = state.capRules ?? NHL_2026_27_SEASON.cap
+  if (state.capRules && !unsigned(state.clubs)) return state as SeasonState
+  return {
+    ...state,
+    capRules,
+    clubs: openingContracts(capRules, state.clubs, createRng(state.seed).fork('contracts')),
+  }
+}
+
+/** A phase between Seasons stored before contracts brought up to them (#125). */
+export function contractedOffseason(off: UncontractedOffseason): Offseason {
+  const ended = contractedSeason(off.ended)
+  if (!unsigned(off.clubs)) return { ...off, ended }
+  const rng = createRng(ended.seed).fork(`contracts:y${off.year}`)
+  return { ...off, ended, clubs: openingContracts(ended.capRules, off.clubs, rng) }
 }
 
 /**
@@ -293,8 +339,10 @@ export function nextSeason(state: SeasonState): SeasonState {
  * (ADR-028). Every Player develops by the age he played at (ADR-022), prospects
  * too, off the Roster and without the bonus for ice time; some retire or are not
  * signed again (ADR-027); everyone who stays is a year older and rested.
- * Rights older than the format allows expire. The draft order is drawn and the
- * class generated, each from a stream of its own (D-08).
+ * Rights older than the format allows expire. Every contract has a Season fewer,
+ * and one that ran out is renewed at the Player's ask until re-signing exists
+ * (#125). The draft order is drawn and the class generated, each from a stream
+ * of its own (D-08).
  */
 export function endSeason(state: SeasonState): Offseason {
   if (!isSeasonOver(state)) throw new Error(`Season s${state.seed} has no champion yet`)
@@ -307,7 +355,7 @@ export function endSeason(state: SeasonState): Offseason {
     (player) => createRng(state.seed).fork(`leave:y${state.year}:${player.id}`),
   )
   const gone = new Set(departures.map((departure) => departure.playerId))
-  const clubs = state.clubs.map((club) => {
+  const grownClubs = state.clubs.map((club) => {
     const grown = <P extends Player>(player: P) => olderAndRested(developed(state, club.id, player))
     const stays = (player: Player) => !gone.has(player.id)
     return {
@@ -316,6 +364,11 @@ export function endSeason(state: SeasonState): Offseason {
       goalies: club.goalies.filter(stays).map(grown),
     }
   })
+  const clubs = renewedContracts(
+    state.capRules,
+    grownClubs,
+    createRng(state.seed).fork(`contracts:y${year}`),
+  )
   const grownProspects = state.prospects.map((prospect) => ({
     ...prospect,
     player: olderAndRested(developed(state, prospect.player.clubId, prospect.player)),
@@ -513,7 +566,11 @@ export function startNextSeason(offseason: Offseason): SeasonState {
 
   const clubs = off.clubs.map((club) => {
     const { club: after, missing } = moved.get(club.id)!
-    return filledRoster(after, missing, fillStream(off, club.id), year)
+    return signed(
+      state.capRules,
+      filledRoster(after, missing, fillStream(off, club.id), year),
+      joined,
+    )
   })
   const gone = new Set(departures.map((departure) => departure.playerId))
   const absent = Object.fromEntries(
@@ -539,6 +596,24 @@ export function startNextSeason(offseason: Offseason): SeasonState {
     prospects: off.prospects.filter((prospect) => !joined.has(prospect.player.id)),
     draft: off.picks,
   }
+}
+
+/**
+ * A Club with a contract for everyone who joined it without one (ADR-030): a
+ * prospect it called up signs an entry-level contract, the fill and a former
+ * prospect it took one year at the minimum.
+ */
+function signed(rules: CapRules, club: Club, calledUp: ReadonlySet<PlayerId>): Club {
+  const sign = <P extends Player>(player: P): P =>
+    player.contract
+      ? player
+      : {
+          ...player,
+          contract: calledUp.has(player.id)
+            ? entryLevelContract(rules, player)
+            : minimumContract(rules, player),
+        }
+  return { ...club, skaters: club.skaters.map(sign), goalies: club.goalies.map(sign) }
 }
 
 function offseasonClub(off: Offseason, clubId: ClubId): Club {

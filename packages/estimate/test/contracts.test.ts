@@ -18,6 +18,8 @@ import {
   termsAtSigning,
 } from '../src/contracts.js'
 import type { SeasonPlayer } from '../src/nhl/movement.js'
+import { withContracts } from '../src/roster-contracts.js'
+import type { CompetitionRosters } from '@ahm/sim'
 
 /** CapWages' field for the Club that signed a contract: its word, not this domain's (D-07). */
 const SIGNED_WITH = 'signingTeam'
@@ -178,5 +180,53 @@ describe('contracts joined with NHL seasons', () => {
       { status: 'restricted', players: 1, sameClub: 1, otherClub: 0, none: 0 },
       { status: 'unrestricted', players: 1, sameClub: 0, otherClub: 1, none: 0 },
     ])
+  })
+})
+
+describe('real contracts on estimated Rosters (#125)', () => {
+  const view = viewOf(2025, [
+    page([
+      capPlayer('one', 'One, First', 'Jan. 1, 1995', [
+        contract([
+          ['2024-25', '$5,000,000'],
+          ['2025-26', '$6,000,000'],
+          ['2026-27', '$6,000,000'],
+        ]),
+      ]),
+      capPlayer('kid', 'Kid, Young', 'Mar. 3, 2005', [
+        contract([['2025-26', '$950,000']], {
+          type: 'Entry-Level Contract',
+          expiryStatus: 'RFA',
+        }),
+      ]),
+    ]),
+  ])
+  const players = [nhl(1, 'One', '1995-01-01', 1000), nhl(2, 'Kid', '2005-03-03', 700)]
+  const skater = (id: string) => ({ id, kind: 'skater' })
+  const rosters = {
+    structure: {},
+    clubs: [
+      { id: 'tor', skaters: [skater('nhl-1'), skater('nhl-2'), skater('tor-fill-1')], goalies: [] },
+    ],
+  } as unknown as CompetitionRosters
+
+  it('gives each matched Player the contract covering the season, as a share of its cap', () => {
+    const signed = withContracts(rosters, view, players)
+    expect(signed.upperLimit).toBe(100_000_000)
+    expect(signed).toMatchObject({ contracted: 2, players: 3 })
+    const [one, kid, fill] = signed.rosters.clubs[0]!.skaters
+    expect(one!.contract).toEqual({
+      capHit: 0.06,
+      years: 2,
+      kind: 'standard',
+      onExpiry: 'unrestricted',
+    })
+    expect(kid!.contract).toEqual({
+      capHit: 0.0095,
+      years: 1,
+      kind: 'entry-level',
+      onExpiry: 'restricted',
+    })
+    expect(fill!.contract).toBeUndefined()
   })
 })

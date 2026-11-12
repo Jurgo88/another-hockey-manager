@@ -4,17 +4,27 @@ import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
 import { NHL_2026_27, NHL_2026_27_CLUB_SEEDS, writeRosterFile, type CompetitionRosters } from '@ahm/sim'
 import { chooseRosters, estimateRosters } from './estimate.js'
-import { fetchEdge, fetchOutcome, fetchSeason } from './nhl/api.js'
+import { ARCHIVED_VIEWS, fetchView } from './capwages/api.js'
+import { fetchEdge, fetchMovement, fetchOutcome, fetchSeason } from './nhl/api.js'
+import { movementOf } from './nhl/movement.js'
 import { outcomeOf } from './nhl/outcome.js'
 import { recordsOf } from './nhl/records.js'
+import { withContracts } from './roster-contracts.js'
 
-/** ADR-021: estimate real NHL Rosters for a season and write them as a roster file. */
+/**
+ * ADR-021: estimate real NHL Rosters for a season and write them as a roster
+ * file. With `--contracts`, each Player carries the contract CapWages shows for
+ * the season (#125); that file is written apart and kept out of git, since only
+ * derived tables of CapWages are committed (R-10).
+ */
 
 const HELP = `Usage: pnpm sim:estimate [options]
 
   --season <id>    NHL season, such as 20252026 (default)
   --out <path>     Where to write the roster file
                    (default packages/estimate/data/nhl-<season>.json)
+  --contracts      Give each Player his real contract from CapWages, and write
+                   the file to data/nhl-<season>-contracts.json, outside git (#125)
   --refresh        Fetch again instead of reading the cache
   --help           Show this message`
 
@@ -46,6 +56,7 @@ async function main(): Promise<void> {
     options: {
       season: { type: 'string', default: '20252026' },
       out: { type: 'string' },
+      contracts: { type: 'boolean', default: false },
       refresh: { type: 'boolean', default: false },
       help: { type: 'boolean', default: false },
     },
@@ -81,10 +92,20 @@ async function main(): Promise<void> {
 
   const path = values.out
     ? resolve(process.env.INIT_CWD ?? process.cwd(), values.out)
-    : join(PACKAGE, 'data', `nhl-${season}.json`)
+    : join(PACKAGE, 'data', `nhl-${season}${values.contracts ? '-contracts' : ''}.json`)
   mkdirSync(dirname(path), { recursive: true })
-  writeFileSync(path, writeRosterFile(rosters))
-  console.log(summary(rosters))
+  const year = Number(season.slice(0, 4))
+  if (values.contracts) {
+    if (!ARCHIVED_VIEWS[year] && year !== 2026) throw new Error(`No CapWages view of ${season}`)
+    const { players } = movementOf(await fetchMovement([season], fetchOptions))
+    const signed = withContracts(rosters, await fetchView(year, fetchOptions), players)
+    writeFileSync(path, writeRosterFile(signed.rosters, signed.upperLimit))
+    console.log(summary(signed.rosters))
+    console.log(`${signed.contracted} of ${signed.players} Players hold their real contract`)
+  } else {
+    writeFileSync(path, writeRosterFile(rosters))
+    console.log(summary(rosters))
+  }
   console.log(`Wrote ${path}`)
 
   // What really happened, for pnpm sim:validate to compare with (#18).

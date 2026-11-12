@@ -1,6 +1,7 @@
 export * from './attributes.js'
 export * from './club.js'
 export * from './competition.js'
+export * from './contract.js'
 export * from './draft.js'
 export * from './event.js'
 export * from './fixture.js'

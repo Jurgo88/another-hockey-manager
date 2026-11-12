@@ -334,3 +334,51 @@ export function reSigning(before: CapView, after: CapView, regulars: readonly Re
     return { status, players, sameClub: same, otherClub: other, none }
   })
 }
+
+/** What the generator of `@ahm/sim` prices opening contracts from (#125). */
+export interface CapShares {
+  season: number
+  /** Regulars per Club in each group: the Players a real Club pays as such. */
+  regularsPerClub: Readonly<Record<Group, number>>
+  /** Mean cap share by tenth of role, top tenth first, for each group. */
+  byTenth: Readonly<Record<Group, readonly number[]>>
+  /** By third of role, top first: who holds which kind of contract, and how long new ones run. */
+  byThird: readonly {
+    entryLevel: number
+    restricted: number
+    /** Mean share of a restricted Skater against an unrestricted one of the same third. */
+    restrictedRatio: number
+    /** Mean term in years of a standard contract signed after a season in this third. */
+    term: number
+  }[]
+}
+
+/** The cap shares of one view, as the generator reads them. */
+export function capShares(view: CapView, players: readonly SeasonPlayer[]): CapShares {
+  const regulars = regularsOf(view, joinView(view, players).joined)
+  const clubs = view.clubs.length
+  const status = shareByStatus(regulars)
+  const terms = termsAtSigning(view, players).byRole
+  const byGroup = <T>(f: (group: Group) => T) =>
+    Object.fromEntries(GROUPS.map((g) => [g, f(g)])) as Record<Group, T>
+  return {
+    season: view.season,
+    regularsPerClub: byGroup((g) => regulars.filter((r) => r.group === g).length / clubs),
+    byTenth: byGroup((g) => shareByTenth(regulars, g).map((row) => row.mean)),
+    byThird: [0, 1, 2].map((third) => {
+      const row = (s: Status) => status.find((r) => r.third === third && r.status === s)!
+      const [entry, restricted, unrestricted] = [
+        row('entry-level'),
+        row('restricted'),
+        row('unrestricted'),
+      ]
+      const all = entry.players + restricted.players + unrestricted.players || 1
+      return {
+        entryLevel: entry.players / all,
+        restricted: restricted.players / all,
+        restrictedRatio: restricted.mean / (unrestricted.mean || 1),
+        term: terms[third]!.mean,
+      }
+    }),
+  }
+}

@@ -4,6 +4,7 @@ import {
   type GoalieAttributes,
   type SkaterAttributes,
 } from './attributes.js'
+import type { Contract } from './contract.js'
 import type { GoalieProvenance, SkaterProvenance } from './provenance.js'
 
 export type PlayerId = string
@@ -32,6 +33,11 @@ interface PlayerBase {
   form: number
   /** 0-100. Accumulated within a Match and across a congested schedule. */
   fatigue: number
+  /**
+   * His contract with `clubId` (ADR-030). Every rostered Player holds one once a
+   * Season starts; a prospect never does. The engine does not read it.
+   */
+  contract?: Contract
 }
 
 export interface Skater extends PlayerBase {

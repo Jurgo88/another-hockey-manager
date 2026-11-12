@@ -1,3 +1,4 @@
+import type { CapRules } from './contract.js'
 import type { ClubId } from './player.js'
 import type { DraftFormat } from './draft.js'
 import type { OvertimeRegime, PlayoffFormat } from './playoff.js'
@@ -75,4 +76,5 @@ export interface SeasonFormat {
   structure: CompetitionStructure
   playoffs: PlayoffFormat
   draft: DraftFormat
+  cap: CapRules
 }
