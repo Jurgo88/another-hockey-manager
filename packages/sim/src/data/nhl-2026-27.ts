@@ -11,6 +11,7 @@
  * structure with generated names. Club marks and logos are not used anywhere.
  */
 
+import type { CapRules } from '../domain/contract.js'
 import type { DraftFormat } from '../domain/draft.js'
 import type {
   Conference,
@@ -178,9 +179,35 @@ export const NHL_2026_27: CompetitionStructure = {
   overtime: 'regular-3on3-then-shootout',
 }
 
-/** A Season of the NHL 2026-27: its alignment, bracket and draft. */
+const NHL_CAP_2026_27 = 104_000_000
+
+/**
+ * The NHL's contract rules for 2026-27 (ADR-030): the cap, the minimum salary of
+ * $850,000, the maximum of 20% of the cap, and an entry-level contract at its
+ * maximum, the minimum plus $175,000. Entry-level length by age at signing as
+ * the CBA sets it, restricted free agency until 27, and the longest contract
+ * since September 2026: 7 Seasons with the Player's own Club, 6 with another.
+ */
+export const NHL_CAP_RULES: CapRules = {
+  upperLimit: NHL_CAP_2026_27,
+  minimum: 850_000 / NHL_CAP_2026_27,
+  maximum: 0.2,
+  entryLevel: {
+    capHit: 1_025_000 / NHL_CAP_2026_27,
+    terms: [
+      { upToAge: 21, years: 3 },
+      { upToAge: 23, years: 2 },
+      { upToAge: 99, years: 1 },
+    ],
+  },
+  restrictedUntil: 27,
+  maxTerm: { ownClub: 7, otherClub: 6 },
+}
+
+/** A Season of the NHL 2026-27: its alignment, bracket, draft and contracts. */
 export const NHL_2026_27_SEASON: SeasonFormat = {
   structure: NHL_2026_27,
   playoffs: NHL_PLAYOFF_FORMAT,
   draft: NHL_DRAFT_FORMAT,
+  cap: NHL_CAP_RULES,
 }

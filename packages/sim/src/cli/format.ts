@@ -25,6 +25,7 @@ import {
 } from '../stats/history.js'
 import {
   ageProfile,
+  payrolls,
   leavingRate,
   leavingRows,
   levelByAge,
@@ -224,6 +225,7 @@ export function renderRun(run: SimulatedRun, structure: CompetitionStructure): s
     section(`${structure.name} - ${run.seasons.length} Seasons`, history),
     ...renderDraft(run.seasons),
     ...renderLeague(run.seasons),
+    ...renderPayrolls(run),
     ...run.seasons.map((season) =>
       section(
         `Season ${season.year} (${season.seasonId}), champion ${code(season.champion)}`,
@@ -231,6 +233,27 @@ export function renderRun(run: SimulatedRun, structure: CompetitionStructure): s
       ),
     ),
   ].join('\n\n\n')
+}
+
+/** What Clubs paid their Rosters each Season, as shares of the cap (#125). */
+function renderPayrolls(run: SimulatedRun): string[] {
+  if (run.contracts.length === 0) return []
+  const percent = (share: number) => `${(share * 100).toFixed(1)}%`
+  const rows = run.contracts.map((contracts, i) => ({
+    year: run.seasons[i]!.year,
+    ...payrolls(contracts),
+  }))
+  const table = renderTable<(typeof rows)[number]>(
+    [
+      { header: 'Season', value: (row) => row.year },
+      { header: 'Mean', value: (row) => percent(row.mean) },
+      { header: 'SD', value: (row) => percent(row.sd) },
+      { header: 'Lowest', value: (row) => percent(row.lowest) },
+      { header: 'Highest', value: (row) => percent(row.highest) },
+    ],
+    rows,
+  )
+  return [section('Payrolls, share of the cap', table)]
 }
 
 /**

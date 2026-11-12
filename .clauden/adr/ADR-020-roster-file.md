@@ -83,3 +83,12 @@ second is about generating.
 - `startSeason` takes a `RosterProvider` and falls back to the generator.
 - A hand-edited value under an unchanged provenance passes as what the file says.
 - Importing a file in the web application is a separate task.
+
+## Amendment, 2026-11-12: format version 2 carries contracts (#125)
+
+A Player may carry `contract`: `capHit` in whole currency, `years` left,
+`kind` and `onExpiry` (ADR-030). The file names the cap those amounts are in,
+`capUpperLimit`, which any contract needs, so a file of one season keeps its
+shares of the cap in a league with another. A Player without a contract gets
+the one the league opens with. Version 1 is still read, and holds neither field.
+Export writes version 2, with contracts when the Rosters hold them.

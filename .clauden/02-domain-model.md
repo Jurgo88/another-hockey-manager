@@ -105,6 +105,12 @@ standing in for call-ups (ADR-012).
 Skaters only in effect: rises within a Match and falls between Fixtures,
 ADR-010).
 
+`contract` (ADR-030): its cap hit as a share of the cap, Seasons left with this
+one counted, `entry-level` or `standard`, and `restricted` or `unrestricted`
+when it runs out. Every Player on a Roster holds one; a prospect holds only his
+rights. The engine does not read it, so it is no attribute (D-06). The rules a
+contract is made to are `CapRules`, data in a `SeasonFormat` (D-10).
+
 ### Attribute provenance (ADR-008)
 
 Each attribute value is accompanied by a record saying where it came from and

@@ -7,13 +7,15 @@ the application. Decisions are in ADR-020.
 
 ## Shape
 
-JSON, UTF-8. Version 1:
+JSON, UTF-8. Version 2 (version 1 is the same without `capUpperLimit` and
+`contract`, and is still read):
 
 ```json
 {
   "format": "ahm-roster",
-  "formatVersion": 1,
+  "formatVersion": 2,
   "competitionId": "nhl",
+  "capUpperLimit": 104000000,
   "clubs": [
     {
       "id": "bos",
@@ -35,7 +37,8 @@ JSON, UTF-8. Version 1:
           },
           "provenance": {
             "speed": { "source": "measured", "confidence": 0.95, "note": "NHL EDGE max speed 23.9 mph" }
-          }
+          },
+          "contract": { "capHit": 7250000, "years": 3, "kind": "standard", "onExpiry": "unrestricted" }
         }
       ],
       "goalies": [
@@ -61,8 +64,9 @@ JSON, UTF-8. Version 1:
 | Field | Rule |
 | --- | --- |
 | `format` | Exactly `"ahm-roster"`. |
-| `formatVersion` | `1`. A newer version is refused. |
+| `formatVersion` | `2`, or `1` without contracts. A newer version is refused. |
 | `competitionId` | The id of the Competition structure the Rosters are for, `"nhl"` for NHL 2026-27. |
+| `capUpperLimit` | Version 2, optional: the cap in whole currency the contracts' amounts are in. Required when any Player has a contract. |
 | `clubs` | Every Club of that structure, each once, in any order. |
 | Club `id` | A Club id of the structure. |
 | Club `code`, `name` | Non-empty text. A public build does not use real Club marks (ADR-003). |
@@ -75,6 +79,7 @@ JSON, UTF-8. Version 1:
 | `handedness` | `"left"` or `"right"`. |
 | `positions` | Skaters only. One to five distinct of `LW`, `C`, `RW`, `LD`, `RD`, the natural one first. |
 | `attributes` | Every attribute of the Player's kind, each a whole number from 1 to 20. Skaters have 11, Goalies 5, as in `02-domain-model.md`. |
+| `contract` | Version 2, optional (ADR-030): `capHit` in whole currency from 0, `years` left from 1 to 10 with this Season counted, `kind` `entry-level` or `standard`, `onExpiry` `restricted` or `unrestricted`. Held as a share of `capUpperLimit`, so it keeps its weight in a league with another cap. A Player without one gets the contract the league opens with. |
 | `provenance` | Optional, and may name only some attributes. Each entry has `source` (`measured`, `derived`, `rated` or `generated`), `confidence` from 0 to 1, optionally `note`, and optionally `seasonsAged`, the whole number of Seasons of modelled development since the value was set (ADR-022). |
 
 A field that is not in this table is an error, so a misspelt attribute name is

@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it } from 'vitest'
-import { NHL_2026_27 } from '../src/data/nhl-2026-27.js'
+import { NHL_2026_27, NHL_CAP_RULES } from '../src/data/nhl-2026-27.js'
 import type { CompetitionRosters } from '../src/domain/roster.js'
 import {
   createFileRosterProvider,
@@ -13,6 +13,7 @@ import {
 import { advanceDay, startSeason, type SeasonState } from '../src/season/index.js'
 
 const SEED = 16
+const CAP = NHL_CAP_RULES.upperLimit
 
 let generated: SeasonState
 let rosters: CompetitionRosters
@@ -24,7 +25,7 @@ beforeAll(async () => {
 
 /** A plain, editable copy of the exported file. */
 function exported(): Record<string, unknown> & { clubs: Record<string, unknown>[] } {
-  return JSON.parse(writeRosterFile(rosters)) as Record<string, unknown> & {
+  return JSON.parse(writeRosterFile(rosters, CAP)) as Record<string, unknown> & {
     clubs: Record<string, unknown>[]
   }
 }
@@ -44,11 +45,11 @@ const skaterOf = (file: ReturnType<typeof exported>, club: number, skater: numbe
 
 describe('roster file round trip', () => {
   it('reads back exactly the Rosters it wrote', () => {
-    expect(readRosterFile(writeRosterFile(rosters), NHL_2026_27)).toEqual(rosters)
+    expect(readRosterFile(writeRosterFile(rosters, CAP), NHL_2026_27)).toEqual(rosters)
   })
 
   it('starts the same Season as the generator it came from (ADR-020)', async () => {
-    const provider = createFileRosterProvider(writeRosterFile(rosters), NHL_2026_27)
+    const provider = createFileRosterProvider(writeRosterFile(rosters, CAP), NHL_2026_27)
     const imported = await startSeason(SEED, provider)
     expect(imported).toEqual(generated)
 
@@ -58,7 +59,7 @@ describe('roster file round trip', () => {
   })
 
   it('writes the provenance of every attribute', () => {
-    const file = rosterFileOf(rosters)
+    const file = rosterFileOf(rosters, CAP)
     const skater = file.clubs[0]!.skaters[0]!
     expect(Object.keys(skater.provenance!)).toHaveLength(11)
     expect(skater.provenance!.speed).toEqual({ source: 'generated', confidence: 0.25 })
@@ -97,7 +98,7 @@ describe('provenance on import', () => {
       confidence: 0.75,
       seasonsAged: 2,
     })
-    expect(readRosterFile(writeRosterFile(imported), NHL_2026_27)).toEqual(imported)
+    expect(readRosterFile(writeRosterFile(imported, CAP), NHL_2026_27)).toEqual(imported)
   })
 
   it('refuses Seasons of ageing that are not a whole number from 0', () => {
@@ -146,8 +147,8 @@ describe('roster file validation', () => {
   })
 
   it('refuses a newer version', () => {
-    expect(problemsOf({ ...exported(), formatVersion: 2 })).toEqual([
-      'formatVersion: 2 is newer than this version of the game reads (1)',
+    expect(problemsOf({ ...exported(), formatVersion: 3 })).toEqual([
+      'formatVersion: 3 is newer than this version of the game reads (2)',
     ])
   })
 
@@ -193,13 +194,83 @@ describe('roster file validation', () => {
   })
 
   it('serves only the Competition it holds', async () => {
-    const provider = createFileRosterProvider(writeRosterFile(rosters), NHL_2026_27)
+    const provider = createFileRosterProvider(writeRosterFile(rosters, CAP), NHL_2026_27)
     await expect(provider.loadCompetition('shl')).rejects.toThrow(/asked for "shl"/)
   })
 
   it('types an exported file as the format', () => {
-    const file: RosterFile = rosterFileOf(rosters)
+    const file: RosterFile = rosterFileOf(rosters, CAP)
     expect(file.format).toBe('ahm-roster')
     expect(file.clubs).toHaveLength(32)
+  })
+})
+
+describe('contracts in the file (ADR-030, #125)', () => {
+  it('writes each cap hit in whole currency against the cap it names', () => {
+    const file = exported()
+    expect(file.formatVersion).toBe(2)
+    expect(file.capUpperLimit).toBe(CAP)
+    const contract = skaterOf(file, 0, 0).contract as { capHit: number }
+    expect(Number.isInteger(contract.capHit)).toBe(true)
+    expect(contract.capHit / CAP).toBe(rosters.clubs[0]!.skaters[0]!.contract!.capHit)
+  })
+
+  it('keeps the share of the cap when the file names another cap', () => {
+    const file = exported()
+    file.capUpperLimit = 95_500_000
+    skaterOf(file, 0, 0).contract = {
+      capHit: 9_550_000,
+      years: 3,
+      kind: 'standard',
+      onExpiry: 'unrestricted',
+    }
+    const imported = rostersFromFile(file, NHL_2026_27).clubs[0]!.skaters[0]!
+    expect(imported.contract).toEqual({
+      capHit: 0.1,
+      years: 3,
+      kind: 'standard',
+      onExpiry: 'unrestricted',
+    })
+  })
+
+  it('reads version 1, and the league opens every Player under contract', async () => {
+    const file = exported()
+    file.formatVersion = 1
+    delete file.capUpperLimit
+    for (const club of file.clubs)
+      for (const player of [
+        ...(club.skaters as Record<string, unknown>[]),
+        ...(club.goalies as Record<string, unknown>[]),
+      ])
+        delete player.contract
+    const provider = createFileRosterProvider(JSON.stringify(file), NHL_2026_27)
+    const opened = await startSeason(SEED, provider)
+    expect(opened.clubs).toEqual(generated.clubs)
+  })
+
+  it('wants the cap a contract is in, and no contract in version 1', () => {
+    const file = exported()
+    delete file.capUpperLimit
+    expect(problemsOf(file)).toContain(
+      'clubs[0].skaters[0].contract: needs the file to name its capUpperLimit',
+    )
+    expect(problemsOf({ ...exported(), formatVersion: 1 })).toContain(
+      'capUpperLimit: is not a field of format version 1',
+    )
+  })
+
+  it('names what is wrong with a contract', () => {
+    const file = exported()
+    skaterOf(file, 0, 0).contract = { capHit: 1.5, years: 0, kind: 'two-way', onExpiry: 'free' }
+    expect(problemsOf(file)).toEqual([
+      'clubs[0].skaters[0].contract.capHit: must be a whole number, got 1.5',
+      'clubs[0].skaters[0].contract.years: 0 is outside 1-10',
+      'clubs[0].skaters[0].contract.kind: must be one of entry-level, standard',
+      'clubs[0].skaters[0].contract.onExpiry: must be one of restricted, unrestricted',
+    ])
+  })
+
+  it('will not write contracts without the cap they are shares of', () => {
+    expect(() => writeRosterFile(rosters)).toThrow(/need the cap/)
   })
 })

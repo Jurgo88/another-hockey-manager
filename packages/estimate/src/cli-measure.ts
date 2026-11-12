@@ -20,8 +20,8 @@ import { fetchHistory, fetchMovement } from './nhl/api.js'
 import { historyOf } from './nhl/history.js'
 import { movementOf } from './nhl/movement.js'
 import { contractsReport, movementReport } from './report-movement.js'
-import { fetchArchivedPages, fetchLivePages } from './capwages/api.js'
-import { viewOf } from './capwages/pages.js'
+import { fetchView } from './capwages/api.js'
+import { capShares, type CapShares } from './contracts.js'
 
 /** #83: how the real league changes over time, as markdown for `04-validation-targets.md`. */
 
@@ -32,6 +32,7 @@ const HELP = `Usage: pnpm sim:measure [options]
   --ages           Print the age profile by tier as a data module for @ahm/sim
   --movement       Print who changes Club, who moves during a season, and continuity (#122)
   --contracts      Print cap shares, payrolls, terms and re-signing from CapWages (#122)
+  --module         With --contracts, print the cap shares as a data module for @ahm/sim (#125)
   --refresh        Fetch again instead of reading the cache
   --help           Show this message`
 
@@ -97,6 +98,39 @@ function ageModule(tiers: readonly Map<number, number>[], first: number, last: n
   ].join('\n')
 }
 
+/** The cap shares as `packages/sim/src/generate/nhl-cap-shares.ts`. */
+function capSharesModule(shares: CapShares): string {
+  const n = (value: number) => String(Math.round(value * 10_000) / 10_000)
+  const list = (values: readonly number[]) => `[${values.map(n).join(', ')}]`
+  const span = `${shares.season}-${String(shares.season + 1).slice(2)}`
+  return [
+    '/**',
+    ` * Cap hits of NHL regulars (20 or more Fixtures), ${span}, from CapWages (#122,`,
+    ' * #125): shares of the cap by tenth of role in each group, top first, and by',
+    ' * third of role who holds an entry-level or restricted contract, what a',
+    ' * restricted Skater is paid against an unrestricted one, and how long a new',
+    " * standard contract runs. The generator prices a league's opening contracts",
+    ' * from it (ADR-030). Written by `pnpm sim:measure --contracts --module`.',
+    ' */',
+    'export const NHL_CAP_SHARES = {',
+    `  season: ${shares.season},`,
+    `  regularsPerClub: { forward: ${n(shares.regularsPerClub.forward)}, defence: ${n(shares.regularsPerClub.defence)}, goalie: ${n(shares.regularsPerClub.goalie)} },`,
+    '  byTenth: {',
+    `    forward: ${list(shares.byTenth.forward)},`,
+    `    defence: ${list(shares.byTenth.defence)},`,
+    `    goalie: ${list(shares.byTenth.goalie)},`,
+    '  },',
+    '  byThird: [',
+    ...shares.byThird.map(
+      (t) =>
+        `    { entryLevel: ${n(t.entryLevel)}, restricted: ${n(t.restricted)}, restrictedRatio: ${n(t.restrictedRatio)}, term: ${n(t.term)} },`,
+    ),
+    '  ],',
+    '} as const',
+    '',
+  ].join('\n')
+}
+
 async function main(): Promise<void> {
   const { values } = parseArgs({
     args: process.argv.slice(2).filter((arg) => arg !== '--'),
@@ -107,6 +141,7 @@ async function main(): Promise<void> {
       ages: { type: 'boolean', default: false },
       movement: { type: 'boolean', default: false },
       contracts: { type: 'boolean', default: false },
+      module: { type: 'boolean', default: false },
       help: { type: 'boolean', default: false },
     },
   })
@@ -131,25 +166,15 @@ async function main(): Promise<void> {
   if (values.contracts) {
     const nhl = movementOf(await fetchMovement(['20242025', '20252026'], options))
     const views = [
-      viewOf(
-        2024,
-        await fetchArchivedPages(
-          '2024-25',
-          { from: '20241001', to: '20250630', upperLimit: 88_000_000 },
-          options,
-        ),
-      ),
-      viewOf(
-        2025,
-        await fetchArchivedPages(
-          '2025-26',
-          { from: '20251001', to: '20260630', upperLimit: 95_500_000 },
-          options,
-        ),
-      ),
-      viewOf(2026, await fetchLivePages('2026-27', options)),
+      await fetchView(2024, options),
+      await fetchView(2025, options),
+      await fetchView(2026, options),
     ]
-    console.log(contractsReport(views, nhl.players))
+    console.log(
+      values.module
+        ? capSharesModule(capShares(views[1]!, nhl.players))
+        : contractsReport(views, nhl.players),
+    )
     return
   }
   const raw = await fetchHistory(

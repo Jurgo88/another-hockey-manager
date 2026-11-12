@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
-import { pagePropsOf } from './pages.js'
+import { pagePropsOf, viewOf, type CapView } from './pages.js'
 
 /**
  * Club pages from CapWages (#122): live for the season to come, and from the
@@ -161,4 +161,23 @@ export async function fetchArchivedPages(
       )
   }
   return pages
+}
+
+/**
+ * The archived views read, by the season they show: the latest copy within the
+ * season whose upper limit is still that season's (#122).
+ */
+export const ARCHIVED_VIEWS: Readonly<
+  Record<number, { label: string; from: string; to: string; upperLimit: number }>
+> = {
+  2024: { label: '2024-25', from: '20241001', to: '20250630', upperLimit: 88_000_000 },
+  2025: { label: '2025-26', from: '20251001', to: '20260630', upperLimit: 95_500_000 },
+}
+
+/** The league as a season saw it: archived for an earlier season, live for the one to come. */
+export async function fetchView(season: number, options: CapFetchOptions): Promise<CapView> {
+  const archived = ARCHIVED_VIEWS[season]
+  if (archived) return viewOf(season, await fetchArchivedPages(archived.label, archived, options))
+  if (season === 2026) return viewOf(season, await fetchLivePages('2026-27', options))
+  throw new Error(`no CapWages view of season ${season}`)
 }

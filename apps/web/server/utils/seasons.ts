@@ -8,10 +8,14 @@ import type {
   PlayerId,
   SeasonRecord,
   SeasonState,
+  UncontractedOffseason,
+  UncontractedSeason,
 } from '@ahm/sim'
 import type { RosterSource } from './rosters'
 import {
   clubHistory,
+  contractedOffseason,
+  contractedSeason,
   daysOut,
   displayName,
   endNoticesOf,
@@ -50,8 +54,11 @@ export interface StoredOffseason extends StoredBase {
 
 export type CurrentSeason = StoredSeason | StoredOffseason
 
-/** Seasons stored before #85 have no `year`: they are the first of their run. */
-type StoredState = Omit<SeasonState, 'year'> & Partial<Pick<SeasonState, 'year'>>
+/**
+ * Seasons stored before #85 have no `year`: they are the first of their run.
+ * Those stored before #125 have no contracts, which they get on reading.
+ */
+type StoredState = Omit<UncontractedSeason, 'year'> & Partial<Pick<SeasonState, 'year'>>
 
 interface SeasonRow {
   id: string
@@ -59,7 +66,7 @@ interface SeasonRow {
   club_id: string
   version: number
   phase: 'season' | 'offseason'
-  state: StoredState | Offseason
+  state: StoredState | UncontractedOffseason
   live: SeasonState['live']
   careers: { roster_source: RosterSource }
 }
@@ -86,10 +93,18 @@ export async function loadSeason(managerId: string): Promise<CurrentSeason | nul
     rosterSource: data.careers.roster_source,
   }
   if (data.phase === 'offseason') {
-    return { ...base, phase: 'offseason', state: data.state as Offseason }
+    return {
+      ...base,
+      phase: 'offseason',
+      state: contractedOffseason(data.state as UncontractedOffseason),
+    }
   }
   const state = data.state as StoredState
-  return { ...base, phase: 'season', state: { ...state, year: state.year ?? 1, live: data.live } }
+  return {
+    ...base,
+    phase: 'season',
+    state: contractedSeason({ ...state, year: state.year ?? 1, live: data.live }),
+  }
 }
 
 async function requireCurrent(managerId: string): Promise<CurrentSeason> {

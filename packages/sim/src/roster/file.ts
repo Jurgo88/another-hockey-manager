@@ -8,6 +8,7 @@ import {
 } from '../domain/attributes.js'
 import type { Club } from '../domain/club.js'
 import type { CompetitionId, CompetitionStructure } from '../domain/competition.js'
+import type { Contract } from '../domain/contract.js'
 import type { ClubId, Goalie, Handedness, PlayerId, Skater, SkaterPosition } from '../domain/player.js'
 import {
   DEFAULT_CONFIDENCE,
@@ -24,16 +25,32 @@ import { ROSTER_SHAPE, type CompetitionRosters, type RosterProvider } from '../d
  * An attribute keeps the provenance the file gives it, and one with none arrives
  * as `rated`. Export writes every provenance, so a file exported and imported
  * again is unchanged.
+ *
+ * Version 2 adds contracts (ADR-030, #125): a Player may carry one, in whole
+ * currency against the `capUpperLimit` the file names, so a file of one season
+ * keeps its shares of the cap in a league with another. A Player without one gets
+ * the contract a league opens with. Version 1 is still read.
  */
 
 export const ROSTER_FILE_FORMAT = 'ahm-roster'
-export const ROSTER_FILE_VERSION = 1
+export const ROSTER_FILE_VERSION = 2
+const VERSIONS_READ = [1, 2] as const
 
 export interface RosterFile {
   format: typeof ROSTER_FILE_FORMAT
-  formatVersion: typeof ROSTER_FILE_VERSION
+  formatVersion: (typeof VERSIONS_READ)[number]
   competitionId: CompetitionId
+  /** The cap the contracts' cap hits are in, in currency; required when any Player has one. */
+  capUpperLimit?: number
   clubs: readonly RosterFileClub[]
+}
+
+/** A contract as the file holds it: the cap hit in whole currency. */
+export interface RosterFileContract {
+  capHit: number
+  years: number
+  kind: Contract['kind']
+  onExpiry: Contract['onExpiry']
 }
 
 export interface RosterFileClub {
@@ -51,6 +68,7 @@ interface RosterFilePlayer {
   age: number
   potential: number
   handedness: Handedness
+  contract?: RosterFileContract
 }
 
 export interface RosterFileSkater extends RosterFilePlayer {
@@ -80,7 +98,7 @@ const FORWARD_POSITIONS: readonly SkaterPosition[] = ['LW', 'C', 'RW']
 const HANDEDNESS: readonly Handedness[] = ['left', 'right']
 const SOURCES: readonly AttributeSource[] = ['measured', 'derived', 'rated', 'generated']
 
-const FILE_FIELDS = ['format', 'formatVersion', 'competitionId', 'clubs'] as const
+const FILE_FIELDS = ['format', 'formatVersion', 'competitionId', 'capUpperLimit', 'clubs'] as const
 const CLUB_FIELDS = ['id', 'code', 'name', 'skaters', 'goalies'] as const
 const PLAYER_FIELDS = [
   'id',
@@ -91,9 +109,15 @@ const PLAYER_FIELDS = [
   'handedness',
   'attributes',
   'provenance',
+  'contract',
 ] as const
 const SKATER_FIELDS = [...PLAYER_FIELDS, 'positions'] as const
 const PROVENANCE_FIELDS = ['source', 'confidence', 'note', 'seasonsAged'] as const
+const CONTRACT_FIELDS = ['capHit', 'years', 'kind', 'onExpiry'] as const
+const CONTRACT_KINDS: readonly Contract['kind'][] = ['entry-level', 'standard']
+const EXPIRY_STATUSES: readonly Contract['onExpiry'][] = ['restricted', 'unrestricted']
+/** No contract runs longer: a check on a typing slip, not a rule of any league. */
+const CONTRACT_YEARS_MAX = 10
 
 // --- Export ---
 
@@ -117,7 +141,8 @@ function fullProvenance<K extends string>(
   ) as Record<K, AttributeProvenance>
 }
 
-function filePlayer(player: Skater | Goalie): RosterFilePlayer {
+function filePlayer(player: Skater | Goalie, capUpperLimit: number | undefined): RosterFilePlayer {
+  const { contract } = player
   return {
     id: player.id,
     firstName: player.firstName,
@@ -125,27 +150,47 @@ function filePlayer(player: Skater | Goalie): RosterFilePlayer {
     age: player.age,
     potential: player.potential,
     handedness: player.handedness,
+    ...(contract && capUpperLimit !== undefined
+      ? {
+          contract: {
+            capHit: Math.round(contract.capHit * capUpperLimit),
+            years: contract.years,
+            kind: contract.kind,
+            onExpiry: contract.onExpiry,
+          },
+        }
+      : {}),
   }
 }
 
-/** The file for a Competition's Rosters. */
-export function rosterFileOf(rosters: CompetitionRosters): RosterFile {
+/**
+ * The file for a Competition's Rosters. Contracts are written in whole currency
+ * against `capUpperLimit`, which Rosters with any contract need.
+ */
+export function rosterFileOf(rosters: CompetitionRosters, capUpperLimit?: number): RosterFile {
+  const contracted = rosters.clubs.some((club) =>
+    [...club.skaters, ...club.goalies].some((player) => player.contract),
+  )
+  if (contracted && capUpperLimit === undefined) {
+    throw new Error('Rosters with contracts need the cap their cap hits are shares of')
+  }
   return {
     format: ROSTER_FILE_FORMAT,
     formatVersion: ROSTER_FILE_VERSION,
     competitionId: rosters.structure.id,
+    ...(contracted && capUpperLimit !== undefined ? { capUpperLimit } : {}),
     clubs: rosters.clubs.map((club) => ({
       id: club.id,
       code: club.code,
       name: club.name,
       skaters: club.skaters.map((skater) => ({
-        ...filePlayer(skater),
+        ...filePlayer(skater, capUpperLimit),
         positions: [...skater.preferredPositions],
         attributes: { ...skater.attributes },
         provenance: fullProvenance(SKATER_ATTRIBUTE_KEYS, skater.provenance),
       })),
       goalies: club.goalies.map((goalie) => ({
-        ...filePlayer(goalie),
+        ...filePlayer(goalie, capUpperLimit),
         attributes: { ...goalie.attributes },
         provenance: fullProvenance(GOALIE_ATTRIBUTE_KEYS, goalie.provenance),
       })),
@@ -153,8 +198,8 @@ export function rosterFileOf(rosters: CompetitionRosters): RosterFile {
   }
 }
 
-export function writeRosterFile(rosters: CompetitionRosters): string {
-  return `${JSON.stringify(rosterFileOf(rosters), null, 2)}\n`
+export function writeRosterFile(rosters: CompetitionRosters, capUpperLimit?: number): string {
+  return `${JSON.stringify(rosterFileOf(rosters, capUpperLimit), null, 2)}\n`
 }
 
 // --- Validation ---
@@ -258,7 +303,32 @@ function checkProvenance(
   }
 }
 
-function checkPlayer(check: Checker, fields: Fields, path: string, ids: Set<string>): void {
+/** What the whole file decides for each Player in it. */
+interface FileContext {
+  version: number
+  ids: Set<string>
+  /** Whether the file names the cap its contracts are in. */
+  capUpperLimit: boolean
+}
+
+function checkContract(check: Checker, fields: Fields, path: string, file: FileContext): void {
+  if (fields.contract === undefined) return
+  const at = `${path}.contract`
+  if (file.version < 2) {
+    check.add(at, `is not a field of format version ${file.version}`)
+    return
+  }
+  if (!file.capUpperLimit) check.add(at, 'needs the file to name its capUpperLimit')
+  const contract = check.object(fields.contract, at, CONTRACT_FIELDS)
+  if (!contract) return
+  check.wholeNumber(contract, 'capHit', at, 0, Number.MAX_SAFE_INTEGER)
+  check.wholeNumber(contract, 'years', at, 1, CONTRACT_YEARS_MAX)
+  check.oneOf(contract, 'kind', at, CONTRACT_KINDS)
+  check.oneOf(contract, 'onExpiry', at, EXPIRY_STATUSES)
+}
+
+function checkPlayer(check: Checker, fields: Fields, path: string, file: FileContext): void {
+  const { ids } = file
   check.text(fields, 'id', path)
   check.text(fields, 'firstName', path)
   check.text(fields, 'lastName', path)
@@ -286,7 +356,7 @@ function checkPositions(check: Checker, fields: Fields, path: string): SkaterPos
   return positions[0] as SkaterPosition | undefined
 }
 
-function checkClub(check: Checker, value: unknown, path: string, ids: Set<string>): void {
+function checkClub(check: Checker, value: unknown, path: string, file: FileContext): void {
   const club = check.object(value, path, CLUB_FIELDS)
   if (!club) return
   check.text(club, 'id', path)
@@ -300,7 +370,8 @@ function checkClub(check: Checker, value: unknown, path: string, ids: Set<string
     const at = `${path}.skaters[${i}]`
     const skater = check.object(entry, at, SKATER_FIELDS)
     if (!skater) return
-    checkPlayer(check, skater, at, ids)
+    checkPlayer(check, skater, at, file)
+    checkContract(check, skater, at, file)
     const natural = checkPositions(check, skater, at)
     if (natural) {
       if (FORWARD_POSITIONS.includes(natural)) forwards++
@@ -315,7 +386,8 @@ function checkClub(check: Checker, value: unknown, path: string, ids: Set<string
     const at = `${path}.goalies[${i}]`
     const goalie = check.object(entry, at, PLAYER_FIELDS)
     if (!goalie) return
-    checkPlayer(check, goalie, at, ids)
+    checkPlayer(check, goalie, at, file)
+    checkContract(check, goalie, at, file)
     checkAttributes(check, goalie, at, GOALIE_ATTRIBUTE_KEYS)
     checkProvenance(check, goalie, at, GOALIE_ATTRIBUTE_KEYS)
   })
@@ -343,22 +415,30 @@ export function rosterFileProblems(value: unknown, structure: CompetitionStructu
     return check.problems
   }
   const version = file.formatVersion
-  if (version !== ROSTER_FILE_VERSION) {
+  if (!VERSIONS_READ.includes(version as (typeof VERSIONS_READ)[number])) {
     check.add(
       'formatVersion',
       typeof version === 'number' && version > ROSTER_FILE_VERSION
         ? `${version} is newer than this version of the game reads (${ROSTER_FILE_VERSION})`
-        : `must be ${ROSTER_FILE_VERSION}`,
+        : `must be one of ${VERSIONS_READ.join(', ')}`,
     )
     return check.problems
+  }
+  if (file.capUpperLimit !== undefined) {
+    if (version === 1) check.add('capUpperLimit', 'is not a field of format version 1')
+    else check.wholeNumber(file, 'capUpperLimit', 'file', 1, Number.MAX_SAFE_INTEGER)
   }
   if (file.competitionId !== structure.id) {
     check.add('competitionId', `must be "${structure.id}", got ${JSON.stringify(file.competitionId)}`)
   }
 
   const clubs = check.array(file, 'clubs', 'file') ?? []
-  const ids = new Set<string>()
-  clubs.forEach((club, i) => checkClub(check, club, `clubs[${i}]`, ids))
+  const context: FileContext = {
+    version: version as number,
+    ids: new Set<string>(),
+    capUpperLimit: version !== 1 && file.capUpperLimit !== undefined,
+  }
+  clubs.forEach((club, i) => checkClub(check, club, `clubs[${i}]`, context))
 
   const expected = structure.divisions.flatMap((division) => division.clubIds)
   const given = clubs.map((club) => (isFields(club) ? club.id : undefined))
@@ -391,7 +471,18 @@ function importedProvenance<K extends string>(
   ) as Record<K, AttributeProvenance>
 }
 
-function importedClub(club: RosterFileClub): Club {
+function importedClub(club: RosterFileClub, capUpperLimit: number | undefined): Club {
+  const contractOf = ({ contract }: RosterFilePlayer) =>
+    contract && capUpperLimit
+      ? {
+          contract: {
+            capHit: contract.capHit / capUpperLimit,
+            years: contract.years,
+            kind: contract.kind,
+            onExpiry: contract.onExpiry,
+          },
+        }
+      : {}
   const player = (entry: RosterFilePlayer) => ({
     id: entry.id,
     clubId: club.id,
@@ -403,6 +494,7 @@ function importedClub(club: RosterFileClub): Club {
     // A Roster holds no Season: everyone starts rested and at even form.
     form: 50,
     fatigue: 0,
+    ...contractOf(entry),
   })
 
   return {
@@ -441,7 +533,7 @@ export function rostersFromFile(value: unknown, structure: CompetitionStructure)
   const byId = new Map(file.clubs.map((club) => [club.id, club]))
   const clubs = structure.divisions
     .flatMap((division) => division.clubIds)
-    .map((clubId) => importedClub(byId.get(clubId)!))
+    .map((clubId) => importedClub(byId.get(clubId)!, file.capUpperLimit))
   return { structure, clubs }
 }
 

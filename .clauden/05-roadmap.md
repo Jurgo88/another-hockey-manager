@@ -268,6 +268,12 @@ Archive, and for 2026-27 from the live pages. The bands of wage inflation are
 set on thirds of role rather than tenths: the real league's tenths move by up to
 35% in a year.
 
+Item 2 is done in #125: every Player on a Roster holds a contract (ADR-030
+amendment), priced at opening from the measured curve in
+`generate/nhl-cap-shares.ts` and renewed at the ask between Seasons until item
+3. The roster file is at version 2 (ADR-020 amendment), and the 2025-26 file
+carries the real contracts of 894 of its 928 Players.
+
 **Gate:** ten simulated Seasons of AI-only roster movement, on eight generated
 leagues and the 2025-26 roster file, leave wage inflation and talent
 distribution inside defined bounds, and the table targets deferred from the

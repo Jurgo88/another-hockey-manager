@@ -4,11 +4,18 @@ import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
 import { NHL_2026_27, NHL_2026_27_CLUB_SEEDS, writeRosterFile, type CompetitionRosters } from '@ahm/sim'
 import { chooseRosters, estimateRosters } from './estimate.js'
-import { fetchEdge, fetchOutcome, fetchSeason } from './nhl/api.js'
+import { ARCHIVED_VIEWS, fetchView } from './capwages/api.js'
+import { fetchEdge, fetchMovement, fetchOutcome, fetchSeason } from './nhl/api.js'
+import { movementOf } from './nhl/movement.js'
 import { outcomeOf } from './nhl/outcome.js'
 import { recordsOf } from './nhl/records.js'
+import { withContracts } from './roster-contracts.js'
 
-/** ADR-021: estimate real NHL Rosters for a season and write them as a roster file. */
+/**
+ * ADR-021: estimate real NHL Rosters for a season and write them as a roster
+ * file, each Player with the contract CapWages shows for the season where a
+ * view of it is read (#125).
+ */
 
 const HELP = `Usage: pnpm sim:estimate [options]
 
@@ -83,8 +90,18 @@ async function main(): Promise<void> {
     ? resolve(process.env.INIT_CWD ?? process.cwd(), values.out)
     : join(PACKAGE, 'data', `nhl-${season}.json`)
   mkdirSync(dirname(path), { recursive: true })
-  writeFileSync(path, writeRosterFile(rosters))
-  console.log(summary(rosters))
+  const year = Number(season.slice(0, 4))
+  if (ARCHIVED_VIEWS[year] || year === 2026) {
+    const { players } = movementOf(await fetchMovement([season], fetchOptions))
+    const signed = withContracts(rosters, await fetchView(year, fetchOptions), players)
+    writeFileSync(path, writeRosterFile(signed.rosters, signed.upperLimit))
+    console.log(summary(signed.rosters))
+    console.log(`${signed.contracted} of ${signed.players} Players hold their real contract`)
+  } else {
+    writeFileSync(path, writeRosterFile(rosters))
+    console.log(summary(rosters))
+    console.log('No CapWages view of this season: the league opens with generated contracts')
+  }
   console.log(`Wrote ${path}`)
 
   // What really happened, for pnpm sim:validate to compare with (#18).
