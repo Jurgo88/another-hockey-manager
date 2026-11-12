@@ -2,7 +2,8 @@
 
 What changes in the real NHL from one season to the next, measured for Phase 2
 (#83): how Players age, who leaves, what the draft yields, and how much the
-table turns over. ADR-022 to ADR-024 and the Phase 2 gate in
+table turns over; and for Phase 3 (#122), how Players move and what they are
+paid. ADR-022 to ADR-024 and the Phase 2 gate in
 `04-validation-targets.md` are built on it.
 
 `pnpm sim:measure` reproduces every table below from public NHL endpoints
@@ -222,3 +223,208 @@ Fixtures fall into three thirds by ice time in their position group, as in the
 leaving tables above, and Players with fewer form a fourth table. The top third
 is oldest, peaking at 27-28; the bottom third peaks at 24; Players with few
 Fixtures are the youngest (#84).
+
+## Movement and contracts (Phase 3)
+
+Measured for the Phase 3 gate (#122): who changes Club and when, how much of a
+Club returns, what a role is paid, how long contracts run and who re-signs.
+ADR-030 to ADR-035 and the Phase 3 gate in `04-validation-targets.md` are built
+on it. `pnpm sim:measure --movement` and `--contracts` reproduce the tables.
+
+### How to read it
+
+- **Movement** comes from the NHL's `club-stats` per Club and season, and the
+  game logs of every Player who played for more than one Club in a season,
+  2015-16 to 2025-26. A Player's Club at the end of a season is the one he
+  played for last; at the start, the one he played for first.
+- **A move during a season** is dated by the last Fixture for the old Club. It
+  is near the deadline when that Fixture is in the 14 days before it, through
+  its day; the deadlines are public dates, kept in `src/nhl/movement.ts`. No
+  move falls after a deadline: trades stop there.
+- **Contracts** come from CapWages Club pages: copies kept by the Internet
+  Archive of the end of 2024-25 and 2025-26, the latest copy of each Club that
+  still showed that season (taken between February and June), and the live
+  pages for 2026-27. Only derived tables are committed (R-10).
+- **Players are matched** to the NHL by birth date and last name, accents
+  dropped, or by birth date alone where it is unique: 748 of 759 regulars of
+  2024-25 and 772 of 781 of 2025-26.
+- **A share is a cap hit over that season's upper limit**, $88 million in
+  2024-25 and $95.5 million in 2025-26. Contracts are fixed in dollars, so when
+  the cap rose by 8.5% between the two, the shares of contracts signed earlier
+  fell: the change between the seasons is not inflation in the sense of ADR-030,
+  where the cap is constant.
+- **Role** is the rank by ice time per Fixture in the position group among
+  Players with 20 or more Fixtures, Goalies by Fixtures, as ADR-027 ranks it.
+  A tenth of Goalies is six or seven Players, so their rows are noisy.
+- **2024-25 pages do not name a contract's type**, so entry-level contracts are
+  counted as restricted there.
+- **Terms** are standard contracts beginning in the season, signed by Players
+  who were regulars the season before, entry-level contracts left out.
+- **Re-signing** follows regulars whose contract ended with the season into the
+  next view: a contract from the next season with the same Club, with another,
+  or none yet when the next view was taken. A Player traded after the copy of
+  his Club was taken counts as another Club.
+
+### Changing Club between seasons (20 or more Fixtures, and played the next)
+
+| Group | Players | Another Club | Share |
+| --- | --- | --- | --- |
+| All | 6798 | 1355 | 19.9% |
+| 23 or younger | 1726 | 140 | 8.1% |
+| 24-27 | 2434 | 548 | 22.5% |
+| 28-30 | 1405 | 340 | 24.2% |
+| 31-33 | 835 | 208 | 24.9% |
+| 34 or older | 398 | 119 | 29.9% |
+
+### Moving during a season
+
+Of Players with 20 or more Fixtures, 9.6% played for more than one Club (793 of 8242).
+Of 921 moves, 48.5% came in the 14 days before the deadline and 0.0% after it.
+
+| Tenth of the regular season | Moves | Share |
+| --- | --- | --- |
+| 1 | 19 | 2.1% |
+| 2 | 29 | 3.1% |
+| 3 | 49 | 5.3% |
+| 4 | 65 | 7.1% |
+| 5 | 54 | 5.9% |
+| 6 | 78 | 8.5% |
+| 7 | 103 | 11.2% |
+| 8 | 423 | 45.9% |
+| 9 | 73 | 7.9% |
+| 10 | 28 | 3.0% |
+
+| Season | Moves | In the 14 days before the deadline |
+| --- | --- | --- |
+| 2015-16 | 76 | 31 |
+| 2016-17 | 68 | 36 |
+| 2017-18 | 82 | 39 |
+| 2018-19 | 96 | 32 |
+| 2019-20 | 73 | 44 |
+| 2020-21 | 62 | 34 |
+| 2021-22 | 87 | 49 |
+| 2022-23 | 101 | 54 |
+| 2023-24 | 75 | 37 |
+| 2024-25 | 116 | 54 |
+| 2025-26 | 85 | 37 |
+
+### Continuity
+
+A Club's Skater ice time played by Skaters who played for it the season before: 77.1% on average over 312 Club-seasons, from 42.5% to 96.1%.
+
+2024-25: 32 Clubs, 1635 Players under contract, 1007 matched to NHL Players of the season. Of 759 NHL Players with 20 or more Fixtures, 748 are matched with a contract for the season.
+2025-26: 32 Clubs, 1577 Players under contract, 1025 matched to NHL Players of the season. Of 781 NHL Players with 20 or more Fixtures, 772 are matched with a contract for the season.
+
+### Forwards: cap share by tenth of role (20 or more Fixtures)
+
+| Tenth | 2024-25 mean | median | 2025-26 mean | median | Change in the mean |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 8.98% | 9.66% | 8.49% | 8.38% | -5.5% |
+| 2 | 6.93% | 7.10% | 6.33% | 7.33% | -8.7% |
+| 3 | 5.92% | 6.25% | 5.38% | 5.24% | -9.1% |
+| 4 | 3.87% | 3.58% | 4.09% | 3.64% | 5.6% |
+| 5 | 3.58% | 3.41% | 3.03% | 2.70% | -15.4% |
+| 6 | 2.94% | 2.27% | 2.38% | 2.09% | -19.1% |
+| 7 | 2.15% | 1.65% | 2.13% | 1.62% | -1.0% |
+| 8 | 1.61% | 1.05% | 1.81% | 0.99% | 11.9% |
+| 9 | 1.17% | 0.95% | 1.42% | 1.02% | 21.6% |
+| 10 | 1.10% | 0.94% | 1.08% | 0.91% | -1.8% |
+
+### Defencemen: cap share by tenth of role (20 or more Fixtures)
+
+| Tenth | 2024-25 mean | median | 2025-26 mean | median | Change in the mean |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 8.24% | 8.72% | 7.94% | 8.90% | -3.7% |
+| 2 | 6.50% | 6.75% | 6.70% | 7.33% | 3.2% |
+| 3 | 4.59% | 4.56% | 5.83% | 6.47% | 27.1% |
+| 4 | 5.35% | 5.23% | 4.51% | 4.46% | -15.7% |
+| 5 | 3.92% | 3.49% | 3.37% | 3.14% | -14.2% |
+| 6 | 3.14% | 3.47% | 2.96% | 2.91% | -5.5% |
+| 7 | 2.04% | 1.42% | 2.46% | 1.57% | 21.0% |
+| 8 | 1.56% | 0.98% | 1.75% | 0.97% | 12.3% |
+| 9 | 1.80% | 1.04% | 1.16% | 0.93% | -35.5% |
+| 10 | 1.03% | 0.91% | 1.14% | 0.96% | 10.4% |
+
+### Goalies: cap share by tenth of role (20 or more Fixtures)
+
+| Tenth | 2024-25 mean | median | 2025-26 mean | median | Change in the mean |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 7.68% | 9.38% | 6.52% | 6.70% | -15.1% |
+| 2 | 3.98% | 3.68% | 6.97% | 8.64% | 74.9% |
+| 3 | 4.62% | 4.18% | 6.06% | 4.71% | 31.0% |
+| 4 | 4.25% | 4.72% | 3.50% | 3.56% | -17.7% |
+| 5 | 2.19% | 1.45% | 3.32% | 3.23% | 51.5% |
+| 6 | 3.52% | 3.84% | 2.66% | 2.36% | -24.6% |
+| 7 | 2.11% | 1.82% | 3.08% | 2.04% | 45.8% |
+| 8 | 3.19% | 2.59% | 2.66% | 1.05% | -16.5% |
+| 9 | 3.33% | 3.28% | 2.02% | 1.62% | -39.2% |
+| 10 | 2.56% | 1.83% | 2.25% | 1.70% | -12.2% |
+
+### Skaters: cap share by third of role and status, 2025-26
+
+| Third | Status | Players | Mean share |
+| --- | --- | --- | --- |
+| 1 | entry-level | 22 | 0.97% |
+| 1 | restricted | 23 | 3.45% |
+| 1 | unrestricted | 239 | 6.86% |
+| 2 | entry-level | 43 | 0.94% |
+| 2 | restricted | 37 | 2.02% |
+| 2 | unrestricted | 131 | 3.39% |
+| 3 | entry-level | 41 | 0.94% |
+| 3 | restricted | 37 | 1.01% |
+| 3 | unrestricted | 133 | 1.67% |
+
+### Cap share by age, 2025-26
+
+| Age | Players | Mean share | Mean tenth of role |
+| --- | --- | --- | --- |
+| 21 or younger | 64 | 1.07% | 5.8 |
+| 22-24 | 153 | 2.56% | 5.9 |
+| 25-27 | 162 | 3.52% | 6.0 |
+| 28-30 | 179 | 4.83% | 4.9 |
+| 31-33 | 135 | 4.51% | 5.2 |
+| 34 or older | 79 | 4.46% | 5.3 |
+
+### Contracts and payrolls
+
+| Season | Regulars | At the minimum | Entry-level | Restricted | Unrestricted | Payroll, mean | SD | Lowest | Highest | Floor | Clubs within 3 pp of the floor |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2024-25 | 748 | 9.9% | n/a | 28.3% | 71.7% | 93.9% | 9.6% | 63.7% | 111.8% | 73.9% | 1 |
+| 2025-26 | 772 | 8.4% | 13.7% | 14.2% | 72.0% | 96.0% | 6.8% | 79.3% | 105.8% | 73.9% | 0 |
+
+### Term of standard contracts beginning in 2025-26, signed by regulars of 2024-25
+
+| Age at the start, or role | Contracts | Median years | Mean years | One year | Five or more |
+| --- | --- | --- | --- | --- | --- |
+| 21 or younger | 1 | 8 | 8.0 | 0.0% | 100.0% |
+| 22-24 | 57 | 2 | 2.6 | 21.1% | 17.5% |
+| 25-27 | 83 | 2 | 2.6 | 36.1% | 15.7% |
+| 28-30 | 71 | 2 | 3.5 | 32.4% | 38.0% |
+| 31-33 | 38 | 2 | 2.5 | 31.6% | 10.5% |
+| 34 or older | 33 | 1 | 1.9 | 57.6% | 6.1% |
+| Top third | 73 | 5 | 5.0 | 9.6% | 58.9% |
+| Middle third | 84 | 2 | 2.5 | 28.6% | 14.3% |
+| Bottom third | 126 | 1 | 1.6 | 51.6% | 1.6% |
+
+### Term of standard contracts beginning in 2026-27, signed by regulars of 2025-26
+
+| Age at the start, or role | Contracts | Median years | Mean years | One year | Five or more |
+| --- | --- | --- | --- | --- | --- |
+| 21 or younger | 5 | 5 | 5.0 | 0.0% | 80.0% |
+| 22-24 | 45 | 2 | 3.3 | 22.2% | 26.7% |
+| 25-27 | 71 | 2 | 2.6 | 36.6% | 14.1% |
+| 28-30 | 62 | 2 | 3.3 | 30.6% | 29.0% |
+| 31-33 | 44 | 2 | 2.6 | 25.0% | 18.2% |
+| 34 or older | 44 | 1.5 | 1.8 | 50.0% | 4.5% |
+| Top third | 56 | 5 | 4.6 | 12.5% | 51.8% |
+| Middle third | 93 | 2 | 2.8 | 35.5% | 22.6% |
+| Bottom third | 122 | 2 | 1.9 | 39.3% | 3.3% |
+
+### Re-signing: regulars whose contract ended with the season
+
+| Season | Status | Players | Same Club | Another Club | None yet |
+| --- | --- | --- | --- | --- | --- |
+| 2024-25 | restricted | 118 | 74.6% | 16.9% | 8.5% |
+| 2024-25 | unrestricted | 196 | 50.0% | 32.7% | 17.3% |
+| 2025-26 | restricted | 100 | 66.0% | 23.0% | 11.0% |
+| 2025-26 | unrestricted | 202 | 43.1% | 41.1% | 15.8% |

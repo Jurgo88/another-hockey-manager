@@ -258,8 +258,15 @@ Choices made by the author on 2026-11-12, each recorded in an ADR under item 1
 
 Item 1 is split: the ADRs and the gate in #121, the measurements of player
 movement and contracts in #122 (`pnpm sim:measure --movement --contracts`).
-Contracts are measured from one snapshot of CapWages Club pages, cached outside
-git, with only the derived tables committed.
+Contracts are measured from CapWages Club pages, cached outside git, with only
+the derived tables committed.
+
+Item 1 is done in #121 and #122: the ADRs, and the measurements in
+`07-league-over-time.md` behind the gate in `04-validation-targets.md`. Contracts
+are read for 2024-25 and 2025-26 from copies of the pages kept by the Internet
+Archive, and for 2026-27 from the live pages. The bands of wage inflation are
+set on thirds of role rather than tenths: the real league's tenths move by up to
+35% in a year.
 
 **Gate:** ten simulated Seasons of AI-only roster movement, on eight generated
 leagues and the 2025-26 roster file, leave wage inflation and talent
