@@ -317,7 +317,7 @@ describe('the phase between Seasons', () => {
         unmatched.splice(at, 1)
       }
       // The rest fill gaps, each at the natural position of someone who left.
-      const gaps = off.departures
+      const gaps = drafted.departures
         .filter((d) => d.clubId === club.id)
         .map((d) => naturalOf(before.get(d.playerId)!))
       for (const player of unmatched) {

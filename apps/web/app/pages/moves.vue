@@ -40,6 +40,7 @@ interface Violation {
   group?: string
   count?: number
   shape?: number
+  payroll?: number
 }
 
 async function save(moves: { callUps: string[]; releases: string[] }) {
@@ -59,6 +60,7 @@ async function save(moves: { callUps: string[]; releases: string[] }) {
           group: v.group ? t(`moves.group.${v.group}`) : '',
           count: v.count ?? 0,
           shape: v.shape ?? 0,
+          payroll: ((v.payroll ?? 0) * 100).toFixed(1),
         }),
       )
     } else {

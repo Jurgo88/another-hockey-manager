@@ -57,9 +57,15 @@ export interface RosterContract {
   contract?: Contract
 }
 
-/** What each Club paid its Roster in a Season, as shares of the cap (ADR-030, #125). */
-export function payrolls(contracts: readonly RosterContract[]): Payrolls {
-  const byClub = new Map<ClubId, number>()
+/**
+ * What each Club paid in a Season, as shares of the cap (ADR-030, ADR-031): its
+ * Roster's contracts and its dead money.
+ */
+export function payrolls(
+  contracts: readonly RosterContract[],
+  dead: Readonly<Record<ClubId, number>> = {},
+): Payrolls {
+  const byClub = new Map<ClubId, number>(Object.entries(dead))
   for (const entry of contracts) {
     byClub.set(entry.clubId, (byClub.get(entry.clubId) ?? 0) + (entry.contract?.capHit ?? 0))
   }

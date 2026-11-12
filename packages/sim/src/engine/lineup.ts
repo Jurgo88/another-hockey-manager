@@ -32,6 +32,7 @@ export type LineupRule =
   | 'special-teams-unit-invalid'
   | 'not-dressed'
   | 'tactics-invalid'
+  | 'playoff-cap'
 
 export interface LineupViolation {
   rule: LineupRule

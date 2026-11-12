@@ -542,6 +542,8 @@ export function describeMovesViolation(violation: MovesViolation): string {
       return `${violation.count} at ${violation.group}, above the shape of ${violation.shape}`
     case 'cannotDress':
       return 'the Club could not dress a Lineup'
+    case 'overCap':
+      return `the Club would pay ${(violation.payroll * 100).toFixed(1)}% of the cap`
   }
 }
 

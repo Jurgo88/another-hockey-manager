@@ -80,3 +80,5 @@ export type MovesViolation =
   | { kind: 'notOnRoster'; playerId: PlayerId }
   | { kind: 'aboveShape'; group: PositionGroup; count: number; shape: number }
   | { kind: 'cannotDress' }
+  /** The moves add cap hit and leave the Club over the cap, at this payroll for the Season ahead (ADR-031). */
+  | { kind: 'overCap'; payroll: number }

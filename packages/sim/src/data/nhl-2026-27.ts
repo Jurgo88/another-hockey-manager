@@ -187,9 +187,15 @@ const NHL_CAP_2026_27 = 104_000_000
  * maximum, the minimum plus $175,000. Entry-level length by age at signing as
  * the CBA sets it, restricted free agency until 27, and the longest contract
  * since September 2026: 7 Seasons with the Player's own Club, 6 with another.
+ * The floor of $76.9M, buyouts at two thirds of what is left (one third under
+ * 26) over twice the Seasons left, and the playoff cap on the dressed Lineup
+ * from the 2026 playoffs (ADR-031).
  */
 export const NHL_CAP_RULES: CapRules = {
   upperLimit: NHL_CAP_2026_27,
+  lowerLimit: 76_900_000 / NHL_CAP_2026_27,
+  buyout: { fraction: 2 / 3, youngFraction: 1 / 3, youngUnder: 26, spread: 2 },
+  playoffs: 'dressed',
   minimum: 850_000 / NHL_CAP_2026_27,
   maximum: 0.2,
   entryLevel: {

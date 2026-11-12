@@ -242,7 +242,7 @@ function renderPayrolls(run: SimulatedRun): string[] {
   const percent = (share: number) => `${(share * 100).toFixed(1)}%`
   const rows = run.contracts.map((contracts, i) => ({
     year: run.seasons[i]!.year,
-    ...payrolls(contracts),
+    ...payrolls(contracts, run.deadMoney[i]),
     // Who kept his Club is read in the Season after; the last has none.
     reSigned: run.contracts[i + 1] && reSigningRates(run.seasons[i]!, contracts, run.contracts[i + 1]!),
   }))

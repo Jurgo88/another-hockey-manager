@@ -4,6 +4,7 @@ import {
   statusOnExpiry,
   type CapRules,
   type Contract,
+  type DeadMoney,
 } from '../domain/contract.js'
 import {
   playerLevel,
@@ -261,5 +262,69 @@ export function tickedContracts(clubs: readonly Club[]): Club[] {
         ? { ...player, contract: { ...player.contract, years: player.contract.years - 1 } }
         : player,
     ),
+  )
+}
+
+/**
+ * What a Club pays for a contract it releases (ADR-031): the share of what is
+ * left the rules keep, a smaller one for a young Player, spread over a multiple
+ * of the Seasons left. In whole currency.
+ */
+export function buyout(rules: CapRules, player: Player): DeadMoney | null {
+  const contract = player.contract
+  if (!contract || contract.years < 1) return null
+  const { fraction, youngFraction, youngUnder, spread } = rules.buyout
+  const share = player.age < youngUnder ? youngFraction : fraction
+  return {
+    playerId: player.id,
+    capHit: inCurrency(rules, (contract.capHit * share) / spread),
+    years: contract.years * spread,
+  }
+}
+
+/** What a Club's dead money charges this Season, as a share of the cap. */
+export function deadCharge(dead: readonly DeadMoney[] | undefined): number {
+  return (dead ?? []).reduce((sum, entry) => sum + entry.capHit, 0)
+}
+
+/** Dead money a Season on: a Season fewer each, those run out gone. */
+export function tickedDeadMoney(
+  dead: Readonly<Record<string, readonly DeadMoney[]>>,
+): Record<string, DeadMoney[]> {
+  return Object.fromEntries(
+    Object.entries(dead).map(([clubId, entries]) => [
+      clubId,
+      entries.map((e) => ({ ...e, years: e.years - 1 })).filter((e) => e.years > 0),
+    ]),
+  )
+}
+
+/**
+ * A Club below the floor raised to it as a Season starts (ADR-031): its lowest
+ * contracts are lifted together to the level at which its payroll, dead money
+ * included, reaches the floor. Rounded up to whole currency, so it never falls
+ * short.
+ */
+export function atFloor(rules: CapRules, club: Club, dead: number): Club {
+  const players = [...club.skaters, ...club.goalies]
+  const total = payroll(club) + dead
+  if (total >= rules.lowerLimit || players.length === 0) return club
+  const hits = players.map((p) => p.contract?.capHit ?? 0).sort((a, b) => a - b)
+  const target = rules.lowerLimit - dead
+  // The level L at which the sum of max(hit, L) reaches the target.
+  let level = target / hits.length
+  for (let k = hits.length; k > 0; k--) {
+    const above = hits.slice(k).reduce((sum, h) => sum + h, 0)
+    const candidate = (target - above) / k
+    if (candidate >= hits[k - 1]! && (k === hits.length || candidate <= hits[k]!)) {
+      level = candidate
+      break
+    }
+  }
+  const lifted = Math.ceil(level * rules.upperLimit) / rules.upperLimit
+  return mapPlayers(club, (player) =>
+    player.contract && player.contract.capHit < lifted
+      ? { ...player, contract: { ...player.contract, capHit: lifted } }
+      : player,
   )
 }
