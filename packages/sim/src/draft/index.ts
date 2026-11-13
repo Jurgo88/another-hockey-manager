@@ -477,7 +477,11 @@ export function assistantMoves(
 
   for (const natural of gaps) {
     const best = waiting.find((p) => naturalOf(p) === natural)
-    if (best && isReady(withRoster(club, roster), best, SWAP.gap)) call(best)
+    // Only into room: a Club that claimed a Player off waivers may be full (ADR-036).
+    const group = best ? positionGroup(best) : null
+    const room =
+      group !== null && roster.filter((p) => positionGroup(p) === group).length < SHAPE[group]
+    if (best && room && isReady(withRoster(club, roster), best, SWAP.gap)) call(best)
   }
   for (const natural of ['C', 'LW', 'RW', 'LD', 'RD', 'G'] as const) {
     for (;;) {
@@ -524,11 +528,16 @@ export function movesViolations(
   }
   if (out.length > 0) return out
   for (const group of GROUPS) {
+    const before = groupOf(club, group).length
     const count =
-      groupOf(club, group).length -
+      before -
       moves.releases.filter((id) => positionGroup(onRoster.get(id)!) === group).length +
       moves.callUps.filter((id) => positionGroup(held.get(id)!) === group).length
-    if (count > SHAPE[group]) out.push({ kind: 'aboveShape', group, count, shape: SHAPE[group] })
+    // A group may not grow above its shape; one already above it from a claim
+    // off waivers (ADR-036) may stay where it is.
+    if (count > Math.max(SHAPE[group], before)) {
+      out.push({ kind: 'aboveShape', group, count, shape: SHAPE[group] })
+    }
   }
   return out
 }

@@ -258,6 +258,10 @@ export const NHL_FARM_RULES: FarmRules = {
       shortenAfter: 11,
       shortened: { skaters: 3, goalies: 4 },
     },
+    claimDays: 1,
+    // Until 1 November, about 25 days into a regular Season that opens in October.
+    priorTableDays: 25,
+    reWaiver: { days: 30, games: 10 },
   },
 }
 

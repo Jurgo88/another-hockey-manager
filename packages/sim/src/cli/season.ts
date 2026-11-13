@@ -7,6 +7,7 @@ import type { RosterProvider } from '../domain/roster.js'
 import { simulateFixture } from '../engine/simulate.js'
 import {
   advanceDay,
+  clubsHolding,
   isRegularSeasonOver,
   isSeasonOver,
   nextSeason,
@@ -66,7 +67,7 @@ export async function simulateSeason(
 
   return {
     seed,
-    clubs: state.clubs,
+    clubs: clubsHolding(state),
     lineups: new Map(Object.entries(state.lineups)),
     fixtures,
     matches,
@@ -117,11 +118,11 @@ export async function simulateSeasons(
         matches.push(match)
       }
     }
-    const { clubs } = state
+    const clubs = clubsHolding(state)
     const lineups = new Map(Object.entries(state.lineups))
     while (!isSeasonOver(state)) state = advanceDay(state).state
     // Everyone a Club holds, its farm too (ADR-036).
-    for (const club of state.clubs) {
+    for (const club of clubsHolding(state)) {
       for (const player of contractedOf(club)) players.set(player.id, player)
     }
     seasons.push(recordOf(state))
@@ -131,7 +132,7 @@ export async function simulateSeasons(
       ),
     )
     contracts.push(
-      state.clubs.flatMap((club) =>
+      clubsHolding(state).flatMap((club) =>
         contractedOf(club).map((player) => ({
           playerId: player.id,
           clubId: club.id,

@@ -6,6 +6,7 @@ import { ACTIVE_SHAPE, ACTIVE_SIZE, ROSTER_SHAPE } from '../src/domain/roster.js
 import {
   afterFarmMoves,
   assignedClub,
+  claimOrder,
   contractedOf,
   DRESSING_MINIMUM,
   farmMoves,
@@ -17,10 +18,12 @@ import {
 import {
   advanceDay,
   contractedSeason,
+  goesDownFree,
   isSeasonOver,
   nextSeason,
   noticesOf,
   replaceInjured,
+  setClaims,
   startSeason,
   type SeasonState,
   type UncontractedSeason,
@@ -98,10 +101,11 @@ describe('the active Roster', () => {
 })
 
 describe('call-ups for injuries (CBA 13.12, 16.11)', () => {
-  const none: FarmDay = { out: () => false, injuredReserve: () => false }
+  const none: FarmDay = { out: () => false, injuredReserve: () => false, free: () => true }
   const day = (out: readonly PlayerId[], reserve: readonly PlayerId[] = []): FarmDay => ({
     out: (id) => out.includes(id),
     injuredReserve: (id) => reserve.includes(id),
+    free: () => true,
   })
 
   it('moves nobody when everyone is fit', () => {
@@ -422,5 +426,124 @@ describe('service a Season on', () => {
       .filter((p) => p.contract?.kind === 'entry-level' && !before.has(p.id))
     for (const player of called)
       expect(player.service).toEqual({ signedAt: player.age, seasons: 0, games: 0 })
+  })
+})
+
+describe('waivers during a Season (CBA 13.2-13.19)', () => {
+  const firstDay = () => start.fixtures[0]!.day
+  /** A Club's best forward, made a veteran who needs waivers, put on them by his Club. */
+  const onWaivers = (strength: number): { state: SeasonState; player: Player; from: string } => {
+    const club = start.clubs[0]!
+    const base = club.skaters.find((s) => positionGroup(s) === 'forward')!
+    const player: Player = {
+      ...base,
+      attributes: Object.fromEntries(
+        Object.keys(base.attributes).map((k) => [k, strength]),
+      ) as unknown as typeof base.attributes,
+      service: { signedAt: 22, seasons: 6, games: 300 },
+    }
+    const state: SeasonState = {
+      ...start,
+      clubs: start.clubs.map((c) =>
+        c.id === club.id ? { ...c, skaters: c.skaters.filter((s) => s.id !== base.id) } : c,
+      ),
+      waivers: [{ player, clubId: club.id, until: firstDay() }],
+    }
+    return { state, player, from: club.id }
+  }
+
+  it('gives a Player worth having to the first Club in the order of claims', () => {
+    const { state, player, from } = onWaivers(20)
+    const played = advanceDay(state)
+    const claim = played.moves.find((m) => m.kind === 'claimed')!
+    expect(claim).toMatchObject({ playerId: player.id, fromClubId: from })
+    const order = claimOrder(
+      state.standings,
+      state.clubs.map((c) => c.id).filter((id) => id !== from),
+    )
+    expect(claim.clubId).toBe(order[0])
+    const claimer = played.state.clubs.find((c) => c.id === claim.clubId)!
+    const taken = contractedOf(claimer).find((p) => p.id === player.id)!
+    expect(taken.clubId).toBe(claimer.id)
+    expect(taken.contract).toEqual(player.contract)
+    expect(played.state.waivers).toEqual([])
+    // Both Clubs are told.
+    expect(noticesOf(state, played, claimer.id)).toContainEqual({
+      kind: 'claimed',
+      day: played.day,
+      playerId: player.id,
+      fromClubId: from,
+    })
+    expect(noticesOf(state, played, from)).toContainEqual({
+      kind: 'claimedBy',
+      day: played.day,
+      playerId: player.id,
+      clubId: claimer.id,
+    })
+  })
+
+  it('sends a Player nobody claims to his farm, cleared', () => {
+    const { state, player, from } = onWaivers(1)
+    const played = advanceDay(state)
+    expect(played.moves).toContainEqual({ kind: 'cleared', clubId: from, playerId: player.id })
+    const club = played.state.clubs.find((c) => c.id === from)!
+    expect((club.farm ?? []).some((p) => p.id === player.id)).toBe(true)
+    expect(played.state.cleared[player.id]).toEqual({ gamesAt: 0, days: 0, upSince: null })
+  })
+
+  it('takes a Manager’s declared claims instead of the assistant’s (D-04)', () => {
+    const { state, player, from } = onWaivers(20)
+    const order = claimOrder(
+      state.standings,
+      state.clubs.map((c) => c.id).filter((id) => id !== from),
+    )
+    // The first in the order declares it claims nobody; the next would.
+    const declined = setClaims(state, order[0]!, [])
+    const claim = advanceDay(declined).moves.find((m) => m.kind === 'claimed')!
+    expect(claim.clubId).toBe(order[1])
+    expect(() => setClaims(state, from, [player.id])).toThrow(/itself/)
+    expect(() => setClaims(state, order[0]!, ['nobody'])).toThrow(/not on waivers/)
+  })
+
+  it('lets a cleared Player go down again without waivers until 30 days up or 10 games', () => {
+    const { player } = onWaivers(10)
+    const day = firstDay()
+    const base: SeasonState = {
+      ...start,
+      cleared: { [player.id]: { gamesAt: 0, days: 25, upSince: null } },
+    }
+    expect(goesDownFree(base, player, day)).toBe(true)
+    const up = { ...base, cleared: { [player.id]: { gamesAt: 0, days: 25, upSince: day } } }
+    expect(goesDownFree(up, player, day + 4)).toBe(true)
+    expect(goesDownFree(up, player, day + 5)).toBe(false)
+    const unlisted = { ...start, cleared: {} }
+    expect(goesDownFree(unlisted, player, day)).toBe(false)
+  })
+
+  it('orders claims by the share of points, the lower in the table first', () => {
+    const table = [
+      { clubId: 'a', points: 10, gamesPlayed: 6 },
+      { clubId: 'b', points: 6, gamesPlayed: 6 },
+      { clubId: 'c', points: 6, gamesPlayed: 6 },
+      { clubId: 'd', points: 4, gamesPlayed: 4 },
+    ]
+    // b, c and d tie at half the points possible: the lowest in the table first, and a Club with no row after them.
+    expect(claimOrder(table, ['a', 'b', 'c', 'd', 'e'])).toEqual(['d', 'c', 'b', 'e', 'a'])
+  })
+})
+
+describe('camp, as the next Season starts', () => {
+  it('sends everyone who needs waivers through them: each on a farm has cleared them', () => {
+    let ended = start
+    while (!isSeasonOver(ended)) ended = advanceDay(ended).state
+    const next = nextSeason(ended)
+    for (const club of next.clubs) {
+      for (const player of club.farm ?? []) {
+        if (!waiverExempt(player, next.farmRules, 0)) expect(next.cleared[player.id]).toBeDefined()
+      }
+      expect(contractedOf(club).length).toBeLessThanOrEqual(next.farmRules.contractsMax)
+    }
+    expect(next.waivers).toEqual([])
+    expect(next.priorStandings).toEqual(ended.standings)
   })
 })

@@ -25,6 +25,18 @@ export interface FarmRules {
 /** Who goes down to the farm without waivers, and how a claim is made (CBA Article 13). */
 export interface WaiverRules {
   exemption: WaiverExemption
+  /** Days a Player stays on waivers before he is claimed or clears them (13.18). */
+  claimDays: number
+  /**
+   * Days from the first of the regular Season during which claims go by the last
+   * Season's final table rather than this one's (13.19).
+   */
+  priorTableDays: number
+  /**
+   * Once cleared, a Player goes down again without waivers until he has spent
+   * `days` on an active Roster or played `games` NHL games since (13.2, 13.5).
+   */
+  reWaiver: { days: number; games: number }
 }
 
 /**

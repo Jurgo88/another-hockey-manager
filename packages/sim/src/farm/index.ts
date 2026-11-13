@@ -7,13 +7,14 @@ import {
   positionGroup,
   type Goalie,
   type NaturalPosition,
+  type ClubId,
   type Player,
   type PlayerId,
   type PositionGroup,
   type Service,
   type Skater,
 } from '../domain/player.js'
-import { ACTIVE_SHAPE } from '../domain/roster.js'
+import { ACTIVE_SHAPE, ROSTER_SIZE } from '../domain/roster.js'
 
 /**
  * The farm (ADR-036): which of a Club's contracted Players are on its active
@@ -159,24 +160,31 @@ export function waiverExempt(player: Player, rules: FarmRules, gamesThisSeason: 
   return season <= allowed
 }
 
-/** A move between a Club's active Roster and its farm. */
-export interface FarmMove {
-  clubId: string
-  playerId: PlayerId
-  kind: 'calledUp' | 'sentDown'
-}
+/**
+ * A move between a Club's active Roster and its farm, or through waivers: put
+ * on them, claimed by another Club (`clubId` the one claiming), or cleared to
+ * the farm.
+ */
+export type FarmMove =
+  | { kind: 'calledUp' | 'sentDown' | 'waived' | 'cleared'; clubId: ClubId; playerId: PlayerId }
+  | { kind: 'claimed'; clubId: ClubId; playerId: PlayerId; fromClubId: ClubId }
 
-/** What a Club's farm moves read about a day: who cannot play, and who is on Injured Reserve. */
+/**
+ * What a Club's farm moves read about a day: who cannot play, who is on Injured
+ * Reserve, and who can go down to the farm without waivers.
+ */
 export interface FarmDay {
   out: (playerId: PlayerId) => boolean
   injuredReserve: (playerId: PlayerId) => boolean
+  free: (playerId: PlayerId) => boolean
 }
 
 /**
  * The assistant's call-ups and send-downs for a day of the Season (ADR-036,
  * #133), before its Fixtures. A Player back from Injured Reserve who leaves the
  * active Roster above its limit sends down the weakest fit Player of a group
- * above the shape the Club keeps. A group with fewer fit Players than that
+ * above the shape the Club keeps who can go down without waivers, or the
+ * weakest of them all, through waivers, when none can. A group with fewer fit Players than that
  * shape calls up the best of its farm while the Roster has room, or whatever
  * it holds when fewer are fit than the emergency rule names (CBA 13.12(m)).
  * A Player on Injured Reserve does not count against the limit (CBA 16.11).
@@ -192,10 +200,8 @@ export function farmMoves(club: Club, rules: FarmRules, day: FarmDay): FarmMove[
   // Back from Injured Reserve: the active Roster down to its limit.
   while (counted() > rules.activeMax) {
     const surplus = GROUPS.filter((g) => fit(g).length > ACTIVE_GROUPS[g])
-    const weakest = surplus
-      .flatMap((g) => fit(g))
-      .sort(byLevel)
-      .at(-1)
+    const candidates = surplus.flatMap((g) => fit(g)).sort(byLevel)
+    const weakest = candidates.filter((p) => day.free(p.id)).at(-1) ?? candidates.at(-1)
     if (!weakest) break
     moves.push({ clubId: club.id, playerId: weakest.id, kind: 'sentDown' })
     active = active.filter((p) => p.id !== weakest.id)
@@ -229,14 +235,67 @@ export function farmMoves(club: Club, rules: FarmRules, day: FarmDay): FarmMove[
   return moves
 }
 
-/** A Club after its farm moves: those called up join its active Roster, those sent down its farm. */
+/** A Club after its call-ups and send-downs: those called up join its active Roster, those sent down its farm. */
 export function afterFarmMoves(club: Club, moves: readonly FarmMove[]): Club {
   if (moves.length === 0) return club
   const active = new Set([...club.skaters, ...club.goalies].map((p) => p.id))
   for (const move of moves) {
     if (move.kind === 'calledUp') active.add(move.playerId)
-    else active.delete(move.playerId)
+    else if (move.kind === 'sentDown') active.delete(move.playerId)
   }
   // Those staying keep their order, and those called up follow them.
   return withActive(club, active)
+}
+
+// ---------------------------------------------------------------------------
+// Claims (CBA 13.19)
+
+/**
+ * How much better than the weakest of his group on its active Roster a Player
+ * on waivers must be for the assistant to claim him, in levels, and how many
+ * contracts beyond the shape it keeps (`ROSTER_SHAPE`) it holds at most to claim
+ * one. Estimates, as `SWAP.margin` is: no measured rate of claims is a target.
+ * Without the second, the Club lowest in the table claimed nearly every Player
+ * better than its weakest, and held 50 contracts by the Season's end.
+ */
+export const CLAIM = { margin: 1, spare: 2 }
+
+/**
+ * Whether the assistant claims a Player off waivers for a Club (ADR-036), the
+ * same for every Club (D-04): one its active Roster is short of at his group,
+ * or one clearly better than the weakest there, while it holds few enough
+ * contracts. Whether the Club can afford him
+ * and has a contract to spare is the caller's to check.
+ */
+export function wantsClaim(club: Club, player: Player): boolean {
+  if (contractedOf(club).length >= ROSTER_SIZE + CLAIM.spare) return false
+  const group = positionGroup(player)
+  const mates = [...club.skaters, ...club.goalies].filter((p) => positionGroup(p) === group)
+  if (mates.length < ACTIVE_GROUPS[group]) return true
+  const weakest = Math.min(...mates.map(playerLevel))
+  return playerLevel(player) >= weakest + CLAIM.margin
+}
+
+/** A row of a table as claims read it. */
+export interface ClaimRow {
+  clubId: ClubId
+  points: number
+  gamesPlayed: number
+}
+
+/**
+ * The order in which Clubs may claim (CBA 13.19): the lowest share of the points
+ * possible first. `table` lists the Clubs best first, as standings are kept, so
+ * a tie goes to the Club lower in it; a Club without a row comes after them all.
+ */
+export function claimOrder(table: readonly ClaimRow[], clubIds: readonly ClubId[]): ClubId[] {
+  const at = new Map(table.map((row, i) => [row.clubId, i]))
+  const share = (id: ClubId) => {
+    const row = table.find((r) => r.clubId === id)
+    return row && row.gamesPlayed > 0 ? row.points / (2 * row.gamesPlayed) : 0.5
+  }
+  return [...clubIds].sort(
+    (a, b) =>
+      share(a) - share(b) || (at.get(b) ?? -1) - (at.get(a) ?? -1) || (a < b ? -1 : a > b ? 1 : 0),
+  )
 }

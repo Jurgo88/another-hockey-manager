@@ -150,9 +150,13 @@ describe('nextSeason', () => {
       const allDefence = all.filter(
         (p) => p.kind === 'skater' && ['LD', 'RD'].includes(p.preferredPositions[0]!),
       ).length
-      expect(all.length - goalies - allDefence).toBe(ROSTER_SHAPE.forwards)
-      expect(allDefence).toBe(ROSTER_SHAPE.defence)
-      expect(goalies).toBe(ROSTER_SHAPE.goalies)
+      // The shape of its contracts, but for a Player or two moved through waivers at camp.
+      expect(
+        Math.abs(all.length - goalies - allDefence - ROSTER_SHAPE.forwards),
+      ).toBeLessThanOrEqual(4)
+      expect(Math.abs(allDefence - ROSTER_SHAPE.defence)).toBeLessThanOrEqual(4)
+      expect(Math.abs(goalies - ROSTER_SHAPE.goalies)).toBeLessThanOrEqual(2)
+      expect(all.length).toBeLessThanOrEqual(next.farmRules.contractsMax)
       for (const player of all) {
         if (before.has(player.id)) continue
         const drafted = next.draft.some((p) => p.playerId === player.id && p.clubId === club.id)

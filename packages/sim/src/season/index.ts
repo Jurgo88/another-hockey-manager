@@ -1,4 +1,4 @@
-import type { Club, Lineup, Tactics } from '../domain/club.js'
+import { farmOf, type Club, type Lineup, type Tactics } from '../domain/club.js'
 import type { CompetitionStructure, SeasonFormat } from '../domain/competition.js'
 import type {
   CapRules,
@@ -39,10 +39,13 @@ import { NHL_2026_27_CLUB_SEEDS, NHL_2026_27_SEASON } from '../data/nhl-2026-27.
 import {
   afterFarmMoves,
   assignedClub,
+  claimOrder,
   contractedOf,
   firstService,
   openingService,
   serviceAfter,
+  waiverExempt,
+  wantsClaim,
   DRESSING_MINIMUM,
   farmMoves,
   type FarmMove,
@@ -159,6 +162,17 @@ export interface SeasonState {
    * until they are back.
    */
   injuredReserve: Readonly<Record<PlayerId, true>>
+  /** Players on waivers, off their Club's Roster until claimed or cleared (ADR-036). */
+  waivers: readonly OnWaivers[]
+  /**
+   * Players who cleared waivers this Season and may go down again without them
+   * until the rules' days on an active Roster or NHL games run out (CBA 13.5).
+   */
+  cleared: Readonly<Record<PlayerId, Cleared>>
+  /** Each Club's declared claims on Players on waivers; a Club without any is the assistant's. */
+  claims: Readonly<Record<ClubId, readonly PlayerId[]>>
+  /** The last Season's final table, which claims go by early in this one; empty in the first. */
+  priorStandings: readonly StandingsRow[]
   /** The regular-Season table. */
   standings: readonly StandingsRow[]
   /** Player counts so far, the playoffs kept apart. */
@@ -297,6 +311,23 @@ export interface FixtureSoFar {
   lineups: Readonly<Record<ClubId, Lineup>>
 }
 
+/** A Player on waivers: who put him there, and the day the claims are settled (CBA 13.18). */
+export interface OnWaivers {
+  player: Player
+  clubId: ClubId
+  until: number
+}
+
+/** A Player since he cleared waivers: what the rules count before he needs them again (CBA 13.5). */
+export interface Cleared {
+  /** His NHL games this Season when he cleared. */
+  gamesAt: number
+  /** Days on an active Roster since, before the stay under way. */
+  days: number
+  /** The day he went back up, while he is up; null on the farm. */
+  upSince: number | null
+}
+
 export interface PlayedFixture {
   fixture: Fixture
   input: FixtureInput
@@ -324,8 +355,12 @@ export type ClubNotice =
   | { kind: 'drafted'; day: number; playerId: PlayerId; round: number; pick: number }
   | { kind: 'released'; day: number; playerId: PlayerId }
   | { kind: 'calledUp'; day: number; playerId: PlayerId }
-  // From the farm and to it during a Season (ADR-036, #133).
+  // From the farm and to it during a Season, and through waivers (ADR-036, #133).
   | { kind: 'sentDown'; day: number; playerId: PlayerId }
+  | { kind: 'waived'; day: number; playerId: PlayerId }
+  | { kind: 'cleared'; day: number; playerId: PlayerId }
+  | { kind: 'claimed'; day: number; playerId: PlayerId; fromClubId: ClubId }
+  | { kind: 'claimedBy'; day: number; playerId: PlayerId; clubId: ClubId }
   | { kind: 'joined'; day: number; playerId: PlayerId }
   | { kind: 'reSigned'; day: number; playerId: PlayerId; years: number }
   | { kind: 'letGo'; day: number; playerId: PlayerId }
@@ -385,6 +420,11 @@ export async function startSeason(
     lineups: {},
     absent: {},
     injuredReserve: {},
+    // A league opens with its Rosters as its source gives them: no camp.
+    waivers: [],
+    cleared: {},
+    claims: {},
+    priorStandings: [],
     departures: [],
     prospects: openingProspects(
       format.draft,
@@ -429,12 +469,23 @@ function pooled(club: Club): Club {
  */
 export type UncontractedSeason = Omit<
   SeasonState,
-  'capRules' | 'deadMoney' | 'farmRules' | 'injuredReserve'
+  | 'capRules'
+  | 'deadMoney'
+  | 'farmRules'
+  | 'injuredReserve'
+  | 'waivers'
+  | 'cleared'
+  | 'claims'
+  | 'priorStandings'
 > & {
   capRules?: Partial<CapRules>
   deadMoney?: SeasonState['deadMoney']
   farmRules?: FarmRules
   injuredReserve?: SeasonState['injuredReserve']
+  waivers?: SeasonState['waivers']
+  cleared?: SeasonState['cleared']
+  claims?: SeasonState['claims']
+  priorStandings?: SeasonState['priorStandings']
 }
 
 /** A phase between Seasons as stored before contracts (#125). */
@@ -456,11 +507,15 @@ export function contractedSeason(state: UncontractedSeason): SeasonState {
   const current =
     state.capRules?.buried !== undefined &&
     state.deadMoney !== undefined &&
-    state.farmRules !== undefined
+    state.farmRules !== undefined &&
+    state.waivers !== undefined
   if (current && !unsigned(state.clubs) && !unserviced(state.clubs)) return state as SeasonState
   // Rules stored before #129 lack the floor, buyouts and the playoff regime,
-  // and before #133 the buried allowance.
+  // and before #133 the buried allowance and the waivers.
   const capRules: CapRules = { ...NHL_2026_27_SEASON.cap, ...state.capRules }
+  const farmRules: FarmRules = state.farmRules?.waivers?.claimDays
+    ? state.farmRules
+    : NHL_2026_27_SEASON.farm
   // Stored before the farm (#133): every Club gets one, the same each time it is read.
   const farmed = state.farmRules
     ? state.clubs
@@ -468,8 +523,12 @@ export function contractedSeason(state: UncontractedSeason): SeasonState {
   return {
     ...state,
     capRules,
-    farmRules: state.farmRules ?? NHL_2026_27_SEASON.farm,
+    farmRules,
     injuredReserve: state.injuredReserve ?? {},
+    waivers: state.waivers ?? [],
+    cleared: state.cleared ?? {},
+    claims: state.claims ?? {},
+    priorStandings: state.priorStandings ?? [],
     deadMoney: state.deadMoney ?? {},
     clubs: (unsigned(farmed)
       ? openingContracts(capRules, farmed, createRng(state.seed).fork('contracts')).map((club) =>
@@ -555,8 +614,16 @@ export function endSeason(state: SeasonState): Offseason {
 
   const year = state.year + 1
   const format = state.draftFormat
-  // Between Seasons a Club's active Roster and farm are held as one (ADR-036).
-  const held = state.clubs.map(pooled)
+  // Between Seasons a Club's active Roster and farm are held as one (ADR-036),
+  // with any Player still on waivers as the Season ends.
+  const held = state.clubs.map((club) =>
+    pooled(
+      withPlayers(
+        club,
+        state.waivers.filter((w) => w.clubId === club.id).map((w) => w.player),
+      ),
+    ),
+  )
   const roleOf = roles(held, (player) => usageOf(state, player))
   const departures = leaving(held, roleOf, (player) =>
     createRng(state.seed).fork(`leave:y${state.year}:${player.id}`),
@@ -1255,21 +1322,22 @@ export function startNextSeason(offseason: Offseason): SeasonState {
   const { daysPerYear } = state.structure.calendar
   const firstDay = fresh.fixtures[0]!.day
 
-  const clubs = off.clubs.map((club) => {
+  // The assistant picks each active Roster, the rest go to the farm (ADR-036);
+  // whoever signed his first contract between the Seasons starts his service.
+  const assigned = off.clubs.map((club) => {
     const full = signed(
       state.capRules,
       filledRosterAt(club, needsAtOpening(off, club), fillStream(off, club.id), year),
       new Set(),
     )
-    // The assistant picks the active Roster, the rest go to the farm (ADR-036),
-    // and the floor binds as the Season starts (ADR-031).
-    // Whoever signed his first contract between the Seasons starts his service.
-    return atFloor(
-      state.capRules,
-      assignedClub(serviced(full, firstService)),
-      deadCharge(off.deadMoney[club.id]),
-    )
+    return assignedClub(serviced(full, firstService))
   })
+  // Those who need waivers to go down go through them at camp, by the table just
+  // ended; then the floor binds as the Season starts (ADR-031).
+  const camp = campWaivers(state, assigned, off.deadMoney)
+  const clubs = camp.clubs.map((club) =>
+    atFloor(state.capRules, club, deadCharge(off.deadMoney[club.id])),
+  )
   const gone = new Set(off.departures.map((departure) => departure.playerId))
   const absent = Object.fromEntries(
     Object.entries(state.absent)
@@ -1297,6 +1365,10 @@ export function startNextSeason(offseason: Offseason): SeasonState {
     lineups,
     absent,
     injuredReserve,
+    waivers: [],
+    cleared: camp.cleared,
+    claims: {},
+    priorStandings: state.standings,
     departures: off.departures,
     prospects: off.prospects,
     draft: off.picks,
@@ -1625,7 +1697,10 @@ export function recordOf(state: SeasonState): SeasonRecord {
     draft: state.draft,
     departures: state.departures,
     roster: state.clubs.flatMap((club) =>
-      contractedOf(club).map((player) => ({
+      [
+        ...contractedOf(club),
+        ...state.waivers.filter((w) => w.clubId === club.id).map((w) => w.player),
+      ].map((player) => ({
         playerId: player.id,
         clubId: club.id,
         age: player.age,
@@ -1914,9 +1989,17 @@ export function noticesOf(before: SeasonState, played: PlayedDay, clubId: ClubId
     .flatMap(({ match }) => match.injuries)
     .filter((injury) => injury.clubId === clubId)
     .map(({ playerId, days }): ClubNotice => ({ kind: 'injury', day, playerId, days }))
-  const moved = played.moves
-    .filter((move) => move.clubId === clubId)
-    .map(({ kind, playerId }): ClubNotice => ({ kind, day, playerId }))
+  const moved = played.moves.flatMap((move): ClubNotice[] => {
+    if (move.kind === 'claimed') {
+      if (move.clubId === clubId) {
+        return [{ kind: 'claimed', day, playerId: move.playerId, fromClubId: move.fromClubId }]
+      }
+      return move.fromClubId === clubId
+        ? [{ kind: 'claimedBy', day, playerId: move.playerId, clubId: move.clubId }]
+        : []
+    }
+    return move.clubId === clubId ? [{ kind: move.kind, day, playerId: move.playerId }] : []
+  })
   return [...recovered, ...moved, ...injured]
 }
 
@@ -2038,7 +2121,10 @@ export function advanceDay(state: SeasonState): PlayedDay {
   if (!next) throw new Error(`Season s${state.seed} has no Fixtures left`)
 
   const played: PlayedFixture[] = []
-  const { state: moved, moves } = withFarmMoves(recovered(state, next.day), next.day)
+  const settled = settledWaivers(recovered(state, next.day), next.day)
+  const farmed = withFarmMoves(settled.state, next.day)
+  const moved = farmed.state
+  const moves = [...settled.moves, ...farmed.moves]
   let current = moved
   for (;;) {
     const fixture = current.fixtures[current.nextFixture]
@@ -2056,16 +2142,238 @@ export function advanceDay(state: SeasonState): PlayedDay {
  */
 function withFarmMoves(state: SeasonState, day: number): { state: SeasonState; moves: FarmMove[] } {
   const moves: FarmMove[] = []
+  const waivers: OnWaivers[] = [...state.waivers]
+  const cleared: Record<PlayerId, Cleared> = { ...state.cleared }
   const clubs = state.clubs.map((club) => {
     const made = farmMoves(club, state.farmRules, {
       out: (id) => daysOut(state, id, day) > 0,
       injuredReserve: (id) => id in state.injuredReserve,
+      free: (id) => goesDownFree(state, playerOf(club, id), day),
     })
-    moves.push(...made)
-    return afterFarmMoves(club, made)
+    if (made.length === 0) return club
+    // A Player who needs waivers to go down goes on them instead (CBA 13.2).
+    const settled = made.map((move): FarmMove => {
+      if (move.kind !== 'sentDown') return move
+      const player = playerOf(club, move.playerId)
+      return goesDownFree(state, player, day) ? move : { ...move, kind: 'waived' }
+    })
+    for (const move of settled) {
+      const entry = cleared[move.playerId]
+      if (move.kind === 'calledUp' && entry) cleared[move.playerId] = { ...entry, upSince: day }
+      if (move.kind === 'sentDown' && entry?.upSince != null) {
+        cleared[move.playerId] = { ...entry, days: entry.days + day - entry.upSince, upSince: null }
+      }
+      if (move.kind === 'waived') {
+        waivers.push({
+          player: playerOf(club, move.playerId),
+          clubId: club.id,
+          until: day + state.farmRules.waivers.claimDays,
+        })
+      }
+    }
+    moves.push(...settled)
+    const waived = new Set(settled.filter((m) => m.kind === 'waived').map((m) => m.playerId))
+    const after = afterFarmMoves(club, settled)
+    return waived.size === 0 ? after : withoutPlayers(after, waived)
   })
-  return moves.length === 0 ? { state, moves } : { state: { ...state, clubs }, moves }
+  return moves.length === 0
+    ? { state, moves }
+    : { state: { ...state, clubs, waivers, cleared }, moves }
 }
+
+/** A Player a Club holds, active or on its farm. */
+function playerOf(club: Club, playerId: PlayerId): Player {
+  const player = contractedOf(club).find((p) => p.id === playerId)
+  if (!player) throw new Error(`Player ${playerId} is not held by Club ${club.id}`)
+  return player
+}
+
+/** A Club without these Players, on its active Roster or its farm. */
+function withoutPlayers(club: Club, ids: ReadonlySet<PlayerId>): Club {
+  const keep = (p: Player) => !ids.has(p.id)
+  return {
+    ...club,
+    skaters: club.skaters.filter(keep),
+    goalies: club.goalies.filter(keep),
+    ...(club.farm ? { farm: club.farm.filter(keep) } : {}),
+  }
+}
+
+/** A Player's NHL games so far this Season, regular Season and playoffs, folded from its events (D-03). */
+function gamesThisSeason(state: SeasonState, playerId: PlayerId): number {
+  const of = (t: SeasonTotals) => (t.skaters[playerId] ?? t.goalies[playerId])?.gamesPlayed ?? 0
+  return of(state.totals.regular) + of(state.totals.playoffs)
+}
+
+/**
+ * Whether a Player goes down to the farm on `day` without waivers: exempt
+ * (CBA 13.4), or cleared and not yet past the days or games that end it (13.5).
+ */
+export function goesDownFree(state: SeasonState, player: Player, day: number): boolean {
+  const games = gamesThisSeason(state, player.id)
+  if (waiverExempt(player, state.farmRules, games)) return true
+  const entry = state.cleared[player.id]
+  if (!entry) return false
+  const { reWaiver } = state.farmRules.waivers
+  const days = entry.days + (entry.upSince !== null ? day - entry.upSince : 0)
+  return days < reWaiver.days && games - entry.gamesAt < reWaiver.games
+}
+
+/**
+ * Declares the Players on waivers a Club claims, for any Manager (D-04). They
+ * replace the assistant's choice for that Club. A Club may claim only a Player
+ * another Club put on waivers.
+ */
+export function setClaims(
+  state: SeasonState,
+  clubId: ClubId,
+  playerIds: readonly PlayerId[],
+): SeasonState {
+  clubOf(state, clubId)
+  for (const id of playerIds) {
+    const on = state.waivers.find((w) => w.player.id === id)
+    if (!on) throw new Error(`Player ${id} is not on waivers`)
+    if (on.clubId === clubId) throw new Error(`Club ${clubId} put Player ${id} on waivers itself`)
+  }
+  return { ...state, claims: { ...state.claims, [clubId]: [...playerIds] } }
+}
+
+/**
+ * The waivers due by `day` settled (CBA 13.19): each Player goes to the first
+ * Club in the order of claims that claims him, its own declaration or the
+ * assistant's, and that can afford him and has a contract to spare; he joins
+ * its active Roster with his contract. A Player nobody claims clears and goes
+ * to his farm.
+ */
+function settledWaivers(
+  state: SeasonState,
+  day: number,
+): { state: SeasonState; moves: FarmMove[] } {
+  const due = state.waivers.filter((w) => w.until <= day)
+  if (due.length === 0) return { state, moves: [] }
+  const moves: FarmMove[] = []
+  const cleared: Record<PlayerId, Cleared> = { ...state.cleared }
+  let clubs = [...state.clubs]
+  const firstDay = state.fixtures[0]!.day
+  const early = day - firstDay < state.farmRules.waivers.priorTableDays
+  const table = early && state.priorStandings.length > 0 ? state.priorStandings : state.standings
+  for (const { player, clubId } of due) {
+    const order = claimOrder(
+      table,
+      clubs.map((c) => c.id).filter((id) => id !== clubId),
+    )
+    const claimer = order.find((id) => {
+      const club = clubs.find((c) => c.id === id)!
+      const declared = state.claims[id]
+      const wants = declared ? declared.includes(player.id) : wantsClaim(club, player)
+      return wants && canTakeOn(state, club, player)
+    })
+    if (claimer) {
+      moves.push({ kind: 'claimed', clubId: claimer, playerId: player.id, fromClubId: clubId })
+      clubs = clubs.map((c) =>
+        c.id === claimer ? withPlayers(c, [{ ...player, clubId: claimer }]) : c,
+      )
+    } else {
+      moves.push({ kind: 'cleared', clubId, playerId: player.id })
+      cleared[player.id] = { gamesAt: gamesThisSeason(state, player.id), days: 0, upSince: null }
+      clubs = clubs.map((c) => (c.id === clubId ? { ...c, farm: [...farmOf(c), player] } : c))
+    }
+  }
+  const settled = new Set(due.map((w) => w.player.id))
+  const claims = Object.fromEntries(
+    Object.entries(state.claims).map(([id, list]) => [id, list.filter((p) => !settled.has(p))]),
+  )
+  return {
+    state: {
+      ...state,
+      clubs,
+      waivers: state.waivers.filter((w) => !settled.has(w.player.id)),
+      cleared,
+      claims,
+    },
+    moves,
+  }
+}
+
+/**
+ * Whether a Club can take on a Player's contract during a Season: a contract to
+ * spare, and room under the cap with him on its active Roster (ADR-031).
+ */
+function canTakeOn(state: SeasonState, club: Club, player: Player): boolean {
+  if (contractedOf(club).length >= state.farmRules.contractsMax) return false
+  const dead = deadCharge(state.deadMoney[club.id])
+  const before = payroll(club, state.capRules.buried) + dead
+  const after = payroll(withPlayers(club, [player]), state.capRules.buried) + dead
+  return withinCap(after, before)
+}
+
+/**
+ * Camp, as the next Season starts (ADR-036): every Player the assistant put on a
+ * farm who needs waivers goes through them, the best first, claimed by the
+ * Clubs in the order of the table just ended. A Club that claims one re-picks
+ * its active Roster, which may send another of its Players through them. Who
+ * clears may go down without them again this Season, by the rules of 13.5.
+ */
+function campWaivers(
+  ended: SeasonState,
+  assigned: readonly Club[],
+  deadMoney: Readonly<Record<ClubId, readonly DeadMoney[]>>,
+): { clubs: Club[]; cleared: Record<PlayerId, Cleared> } {
+  const rules = ended.farmRules
+  const capRules = ended.capRules
+  let clubs = [...assigned]
+  const cleared: Record<PlayerId, Cleared> = {}
+  const done = new Set<PlayerId>()
+  for (let round = 0; round < CAMP_ROUNDS; round++) {
+    const pending = clubs
+      .flatMap((club) => farmOf(club).map((player) => ({ club: club.id, player })))
+      .filter(({ player }) => !done.has(player.id) && !waiverExempt(player, rules, 0))
+      .sort(
+        (a, b) =>
+          playerLevel(b.player) - playerLevel(a.player) || (a.player.id < b.player.id ? -1 : 1),
+      )
+    if (pending.length === 0) break
+    for (const { club: from, player } of pending) {
+      done.add(player.id)
+      const order = claimOrder(
+        ended.standings,
+        clubs.map((c) => c.id).filter((id) => id !== from),
+      )
+      const claimer = order.find((id) => {
+        const club = clubs.find((c) => c.id === id)!
+        if (!wantsClaim(club, player)) return false
+        if (contractedOf(club).length >= rules.contractsMax) return false
+        const dead = deadCharge(deadMoney[id])
+        const players = contractedOf(club)
+        return withinCap(
+          payrollAhead(capRules, [...players, player], dead),
+          payrollAhead(capRules, players, dead),
+        )
+      })
+      if (!claimer) {
+        cleared[player.id] = { gamesAt: 0, days: 0, upSince: null }
+        continue
+      }
+      clubs = clubs.map((c) => {
+        if (c.id === from) return withoutPlayers(c, new Set([player.id]))
+        if (c.id === claimer) return assignedClub(withPlayers(c, [{ ...player, clubId: claimer }]))
+        return c
+      })
+    }
+  }
+  // Anyone still waiting after the last round goes down as cleared.
+  for (const club of clubs) {
+    for (const player of farmOf(club)) {
+      if (!done.has(player.id) && !waiverExempt(player, rules, 0)) {
+        cleared[player.id] = { gamesAt: 0, days: 0, upSince: null }
+      }
+    }
+  }
+  return { clubs, cleared }
+}
+
+/** Rounds of camp waivers: a claim can send another Player through them, so it settles in a few. */
+const CAMP_ROUNDS = 5
 
 /**
  * Moves the playoffs on once the last due Fixture is in: the end of the regular
@@ -2317,4 +2625,16 @@ function playFixture(
           : { ...state.totals, playoffs: foldTotals(state.totals.playoffs, [match]) },
     },
   }
+}
+
+/**
+ * A Season's Clubs with everyone they hold, a Player on waivers back on the farm
+ * of the Club that put him there (ADR-036): who a Club holds, for a reader that
+ * does not follow the waivers.
+ */
+export function clubsHolding(state: SeasonState): Club[] {
+  return state.clubs.map((club) => {
+    const waived = state.waivers.filter((w) => w.clubId === club.id).map((w) => w.player)
+    return waived.length === 0 ? club : { ...club, farm: [...farmOf(club), ...waived] }
+  })
 }
