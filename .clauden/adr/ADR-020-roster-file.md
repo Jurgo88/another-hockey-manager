@@ -1,6 +1,6 @@
 # ADR-020 - A roster file keeps the provenance it carries
 
-- **Status:** Accepted
+- **Status:** Accepted; its Roster shape amended by ADR-036
 - **Date:** 2026-11-02
 - **Supersedes in part:** ADR-003, on every imported value arriving as `rated`
 - **Relates to:** FR-17, FR-18, FR-19, D-05, D-11, ADR-003, ADR-008, ADR-012, issue #16

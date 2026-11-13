@@ -47,6 +47,28 @@ export interface DeadMoney {
   years: number
 }
 
+/**
+ * A Club's offer to a free agent in one round of the market (ADR-032): a cap hit
+ * within a band about his ask, and a term.
+ */
+export interface Offer {
+  playerId: PlayerId
+  /** As a share of the cap. */
+  capHit: number
+  years: number
+}
+
+/** A rule a Club's offers break: data, so a Manager reads it in his own language. */
+export type OfferViolation =
+  | { kind: 'notFreeAgent'; playerId: PlayerId }
+  | { kind: 'offeredTwice'; playerId: PlayerId }
+  | { kind: 'outsideBand'; playerId: PlayerId; capHit: number; low: number; high: number }
+  | { kind: 'termOutOfRange'; playerId: PlayerId; years: number; max: number }
+  | { kind: 'noRoom'; group: 'forward' | 'defence' | 'goalie'; offers: number; room: number }
+  | { kind: 'overCap'; payroll: number }
+  /** With every offer taken, the Club could not dress a Lineup. */
+  | { kind: 'cannotDress' }
+
 /** An entry-level contract's length by the Player's age when he signs it. */
 export interface EntryLevelTerm {
   /** The oldest age at signing this length applies to. */

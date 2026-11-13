@@ -79,7 +79,8 @@ describe('nextSeason', () => {
     const stayed = next.clubs
       .flatMap((club) => [...club.skaters, ...club.goalies])
       .filter((player) => before.has(player.id))
-    expect(stayed.length).toBeGreaterThan(before.size * 0.8)
+    // The market moves some Players to other Clubs (ADR-032).
+    expect(stayed.length).toBeGreaterThan(before.size * 0.75)
     for (const player of stayed) {
       expect(player.age).toBe(before.get(player.id)!.age + 1)
       expect(player.form).toBe(50)
@@ -111,7 +112,7 @@ describe('nextSeason', () => {
     expect(changed.length).toBeGreaterThan(after.size / 2)
   })
 
-  it('lets some Players leave, and records who and why (ADR-023, ADR-027)', () => {
+  it('lets some Players leave, and records who and why (ADR-023, ADR-027, ADR-032)', () => {
     const before = new Map(
       ended.clubs.flatMap((club) => [...club.skaters, ...club.goalies]).map((p) => [p.id, p]),
     )
@@ -119,17 +120,22 @@ describe('nextSeason', () => {
     const gone = [...before.keys()].filter((id) => !after.has(id))
     const fromRosters = next.departures.filter((d) => d.reason !== 'rights-expired')
     expect(fromRosters.map((d) => d.playerId).sort()).toEqual(gone.sort())
-    // About 3 a Club in the NHL (ADR-028).
+    // About 3 a Club in the NHL (ADR-028); a small league leans on its outside pool more.
     expect(gone.length).toBeGreaterThan(next.clubs.length)
-    expect(gone.length).toBeLessThan(next.clubs.length * 6)
+    expect(gone.length).toBeLessThan(next.clubs.length * 8)
     for (const departure of fromRosters) {
       const player = before.get(departure.playerId)!
       expect(departure.clubId).toBe(player.clubId)
       expect(departure.age).toBe(player.age)
       expect(next.absent[departure.playerId]).toBeUndefined()
     }
-    // Prospects called up push the weakest out (ADR-028).
-    expect(next.departures.some((d) => d.reason === 'released')).toBe(true)
+    // Some Players sign with another Club in the market (ADR-032).
+    const clubOf = new Map(
+      next.clubs.flatMap((c) => [...c.skaters, ...c.goalies]).map((p) => [p.id, p.clubId]),
+    )
+    expect(
+      [...before.values()].some((p) => clubOf.has(p.id) && clubOf.get(p.id) !== p.clubId),
+    ).toBe(true)
     // Rights expire only for the oldest class the league opened with (#90).
     const opening = new Map(ended.prospects.map((p) => [p.player.id, p]))
     for (const departure of next.departures.filter((d) => d.reason === 'rights-expired')) {
@@ -138,7 +144,9 @@ describe('nextSeason', () => {
   })
 
   it('fills every gap with a prospect or an undrafted Player, so each Club keeps its 16-10-3 shape', () => {
-    const before = new Set(ended.clubs.flatMap((c) => [...c.skaters, ...c.goalies]).map((p) => p.id))
+    const before = new Set(
+      ended.clubs.flatMap((c) => [...c.skaters, ...c.goalies]).map((p) => p.id),
+    )
     for (const club of next.clubs) {
       const defence = club.skaters.filter((s) => ['LD', 'RD'].includes(s.preferredPositions[0]!))
       expect(club.skaters.length - defence.length).toBe(16)
@@ -148,7 +156,9 @@ describe('nextSeason', () => {
         if (before.has(player.id)) continue
         const drafted = next.draft.some((p) => p.playerId === player.id && p.clubId === club.id)
         const held = ended.prospects.some((p) => p.player.id === player.id)
-        expect(drafted || held || player.id.startsWith(`${club.id}-y2-u`)).toBe(true)
+        // Or a Player from outside the league signed in the market (ADR-032).
+        const outside = player.id.startsWith('fa-y2-')
+        expect(drafted || held || outside || player.id.startsWith(`${club.id}-y2-u`)).toBe(true)
         expect(player.clubId).toBe(club.id)
         expect(Object.values(player.provenance!).every((p) => p.source === 'generated')).toBe(true)
       }
@@ -188,7 +198,9 @@ describe('nextSeason', () => {
 
   it('keeps a Lineup that is still valid, and rebuilds one that is not with its Tactics', () => {
     // In a small league a Club may lose a Player of its Lineup; one that loses none keeps it.
-    const kept = next.clubs.find((club) => validateLineup(ended.lineups[club.id]!, club).length === 0)!
+    const kept = next.clubs.find(
+      (club) => validateLineup(ended.lineups[club.id]!, club).length === 0,
+    )!
     const broken = ended.clubs.find((club) => club.id !== kept.id)
     expect(next.lineups[kept.id]).toEqual(ended.lineups[kept.id])
 

@@ -1,6 +1,6 @@
 # ADR-028 - Between Seasons Managers decide: the draft, call-ups and releases
 
-- **Status:** Accepted; its windows extended by ADR-032, releases become buyouts (ADR-031, ADR-032), the assistant decides on its own view (ADR-035)
+- **Status:** Accepted; its windows extended by ADR-032, releases become buyouts (ADR-031, ADR-032), the assistant decides on its own view (ADR-035), its readiness eased until the farm (ADR-036)
 - **Date:** 2026-11-10
 - **Refines:** ADR-024 (the draft), and carries out the release of ADR-023 that
   ADR-027 moved to #89
@@ -323,3 +323,12 @@ fill a gap. A new kind is one more member of `ClubNotice` (FR-33).
 **Violations as data.** `movesViolations` returns `MovesViolation` values, as
 a Lineup's checks return `LineupViolation`, so a Manager reads them in his own
 language. `InvalidMovesError` carries them.
+
+## Amendment, 2026-11-13: a gap takes a prospect nearly ready, until the farm (#130)
+
+`SWAP.gap`: a gap at a natural position takes the best prospect at it even when
+he looks up to 4 levels weaker a Season ahead than the weakest there. Without a
+farm a prospect has nowhere else to grow; at 0, with free agency in place, the
+draft's targets and the tenth Season's scoring fell out of their bands. The
+author chose it on 2026-11-13 as a stand-in until the farm (ADR-036), which
+takes it back to 0.

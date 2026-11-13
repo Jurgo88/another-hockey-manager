@@ -407,8 +407,14 @@ const outlook = (player: Player) => expectedLevel(player)
  * prospect; a swap wants a clear gain.
  *
  * FITTED in #90 against the leaving and age tables of the Phase 2 gate.
+ *
+ * `gap`: how much weaker a prospect may look than the weakest at his position
+ * and still take a gap. FITTED in #130 at 4 levels: without a farm a prospect
+ * has nowhere else to grow, and at 0 the draft's targets and the tenth
+ * Season's scoring fell out of their bands. A stand-in until the farm
+ * (ADR-036), which takes it back to 0.
  */
-export const SWAP = { margin: 1 }
+export const SWAP = { margin: 1, gap: 4 }
 
 const byOutlook = (a: Player, b: Player) =>
   outlook(a) - outlook(b) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
@@ -435,11 +441,11 @@ function atNatural(players: readonly Player[], natural: Natural): Player[] {
  * Roster, or of his position group when nobody plays it. A group with nobody in
  * it takes anyone.
  */
-export function isReady(club: Club, prospect: Player): boolean {
+export function isReady(club: Club, prospect: Player, tolerance = 0): boolean {
   const roster = [...club.skaters, ...club.goalies]
   const weakest =
     atNatural(roster, naturalOf(prospect))[0] ?? groupOf(club, positionGroup(prospect))[0]
-  return !weakest || outlook(prospect) >= outlook(weakest)
+  return !weakest || outlook(prospect) >= outlook(weakest) - tolerance
 }
 
 /**
@@ -471,7 +477,7 @@ export function assistantMoves(
 
   for (const natural of gaps) {
     const best = waiting.find((p) => naturalOf(p) === natural)
-    if (best && isReady(withRoster(club, roster), best)) call(best)
+    if (best && isReady(withRoster(club, roster), best, SWAP.gap)) call(best)
   }
   for (const natural of ['C', 'LW', 'RW', 'LD', 'RD', 'G'] as const) {
     for (;;) {

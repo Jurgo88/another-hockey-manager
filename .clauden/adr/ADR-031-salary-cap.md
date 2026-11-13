@@ -1,6 +1,6 @@
 # ADR-031 - A hard cap, charged by the day, with injury relief and a cap on the playoff Lineup
 
-- **Status:** Accepted
+- **Status:** Accepted; what the cap counts amended by ADR-036, which takes over the daily charge and long-term injury relief
 - **Date:** 2026-11-12
 - **Relates to:** FR-20, D-04, D-08, D-10, ADR-012, ADR-014, ADR-015, ADR-030, ADR-033, ADR-034, issue #121
 

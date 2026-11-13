@@ -32,6 +32,7 @@ import {
   isSeasonOver,
   nextSeason,
   proposedMoves,
+  rosterGaps,
   runDraft,
   runReSigning,
   setDraftList,
@@ -290,7 +291,9 @@ describe('the phase between Seasons', () => {
     expect(drafted.phase).toBe('roster')
     expect(drafted.picks).toHaveLength(128)
     for (const club of drafted.clubs) {
-      const held = drafted.prospects.filter((p) => p.player.clubId === club.id && p.year === drafted.year)
+      const held = drafted.prospects.filter(
+        (p) => p.player.clubId === club.id && p.year === drafted.year,
+      )
       expect(held.map((p) => p.round).sort()).toEqual([1, 2, 3, 4])
       const ids = new Set(everyone(club).map((p) => p.id))
       expect(held.some((p) => ids.has(p.player.id))).toBe(false)
@@ -298,7 +301,6 @@ describe('the phase between Seasons', () => {
   })
 
   it('fills gaps at the leavers’ positions, and releases the weakest next Season for a better prospect', () => {
-    const before = new Map(ended.clubs.flatMap(everyone).map((p) => [p.id, p]))
     let callUps = 0
     let releases = 0
     for (const club of drafted.clubs) {
@@ -317,9 +319,11 @@ describe('the phase between Seasons', () => {
         unmatched.splice(at, 1)
       }
       // The rest fill gaps, each at the natural position of someone who left.
-      const gaps = drafted.departures
-        .filter((d) => d.clubId === club.id)
-        .map((d) => naturalOf(before.get(d.playerId)!))
+      // Who left the Club since the Season: retired, let go or testing the market.
+      const now = new Set(everyone(club).map((p) => p.id))
+      const gaps = everyone(ended.clubs.find((c) => c.id === club.id)!)
+        .filter((p) => !now.has(p.id))
+        .map(naturalOf)
       for (const player of unmatched) {
         const at = gaps.indexOf(naturalOf(player))
         expect(at).toBeGreaterThanOrEqual(0)
@@ -332,11 +336,13 @@ describe('the phase between Seasons', () => {
 
   it('never proposes a prospect below the weakest at his position', () => {
     for (const club of drafted.clubs) {
-      const { callUps, releases } = proposedMoves(drafted, club.id)
+      // Before the cap trims it (ADR-031).
+      const { callUps, releases } = assistantMoves(club, drafted.prospects, rosterGaps(drafted, club.id))
       if (releases.length > 0 || callUps.length > 0) continue
       for (const prospect of drafted.prospects.filter((p) => p.player.clubId === club.id)) {
-        const gapAtHisPosition = off.departures.some(
-          (d) => d.clubId === club.id && naturalOf(ended.clubs.flatMap(everyone).find((p) => p.id === d.playerId)!) === naturalOf(prospect.player),
+        const now = new Set(everyone(club).map((p) => p.id))
+        const gapAtHisPosition = everyone(ended.clubs.find((c) => c.id === club.id)!).some(
+          (p) => !now.has(p.id) && naturalOf(p) === naturalOf(prospect.player),
         )
         if (!gapAtHisPosition) expect(isReady(club, prospect.player)).toBe(false)
       }
@@ -349,13 +355,15 @@ describe('the phase between Seasons', () => {
     const others = drafted.prospects.find((p) => p.player.clubId !== club.id)!.player
     const full = theirs.filter((p) => positionGroup(p) === 'forward')
     const gapsAtForward = 16 - club.skaters.filter((p) => positionGroup(p) === 'forward').length
-    expect(() => setRosterMoves(off, club.id, { callUps: [], releases: [] })).toThrow(/not been made/)
-    expect(() =>
-      setRosterMoves(drafted, club.id, { callUps: [others.id], releases: [] }),
-    ).toThrow(InvalidMovesError)
-    expect(() =>
-      setRosterMoves(drafted, club.id, { callUps: [], releases: ['nobody'] }),
-    ).toThrow(InvalidMovesError)
+    expect(() => setRosterMoves(off, club.id, { callUps: [], releases: [] })).toThrow(
+      /not been made/,
+    )
+    expect(() => setRosterMoves(drafted, club.id, { callUps: [others.id], releases: [] })).toThrow(
+      InvalidMovesError,
+    )
+    expect(() => setRosterMoves(drafted, club.id, { callUps: [], releases: ['nobody'] })).toThrow(
+      InvalidMovesError,
+    )
     if (full.length > gapsAtForward) {
       expect(() =>
         setRosterMoves(drafted, club.id, { callUps: full.map((p) => p.id), releases: [] }),
@@ -377,12 +385,14 @@ describe('the phase between Seasons', () => {
     const ids = new Set(everyone(roster).map((p) => p.id))
     expect(ids.has(prospect.id)).toBe(true)
     expect(ids.has(sameNatural.id)).toBe(false)
-    expect(next.departures).toContainEqual({
-      playerId: sameNatural.id,
-      clubId: club.id,
-      age: sameNatural.age - 1,
-      reason: 'released',
-    })
+    // Released, he is a free agent: he signs elsewhere or leaves unsigned (ADR-032).
+    const signedElsewhere = next.clubs.some(
+      (c) => c.id !== club.id && everyone(c).some((p) => p.id === sameNatural.id),
+    )
+    const leftUnsigned = next.departures.some(
+      (d) => d.playerId === sameNatural.id && d.reason === 'unsigned',
+    )
+    expect(signedElsewhere || leftUnsigned).toBe(true)
     expect(next.prospects.some((p) => p.player.id === prospect.id)).toBe(false)
   })
 
@@ -443,15 +453,21 @@ describe('the phase between Seasons', () => {
 })
 
 describe('the assistant’s moves', () => {
-  it('fill a gap only with a ready prospect, and swap only for a better one', () => {
+  it('fill a gap only with a prospect nearly ready (SWAP.gap), and swap only for a better one', () => {
     const [a, b, c] = generateClass(createRng(4), 2, 40).filter(
       (p): p is Skater => !isGoalie(p) && naturalOf(p) === 'C',
     ) as [Skater, Skater, Skater]
-    const at = (player: Skater, level: number): Skater => ({ ...withLevel(player, level), clubId: 'x' })
+    const at = (player: Skater, level: number): Skater => ({
+      ...withLevel(player, level),
+      clubId: 'x',
+    })
     const club: Club = { id: 'x', code: 'X', name: 'X', skaters: [at(a, 8)], goalies: [] }
     const prospect = (player: Skater): Prospect => ({ player, year: 2, round: 1, pick: 1 })
-    expect(assistantMoves(club, [prospect(at(b, 6))], ['C'])).toEqual({ callUps: [], releases: [] })
-    expect(assistantMoves(club, [prospect(at(b, 9))], ['C'])).toEqual({ callUps: [b.id], releases: [] })
+    expect(assistantMoves(club, [prospect(at(b, 3))], ['C'])).toEqual({ callUps: [], releases: [] })
+    expect(assistantMoves(club, [prospect(at(b, 9))], ['C'])).toEqual({
+      callUps: [b.id],
+      releases: [],
+    })
     expect(assistantMoves(club, [prospect(at(b, 9))], [])).toEqual({
       callUps: [b.id],
       releases: [a.id],

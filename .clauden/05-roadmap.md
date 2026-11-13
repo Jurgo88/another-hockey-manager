@@ -223,12 +223,14 @@ The simulation comes first, up to the gate, and the web application after it:
 3. Asking price, term and re-signing
 4. The cap, its floor, injury relief and buyouts
 5. Free agency
+5a. The farm and waivers, call-ups during the Season, and the daily cap
+5b. The farm's games
 6. Trades, during the Season up to the deadline and between Seasons
 7. Club budgets
 8. Scouting, and every Club deciding on its own view
 9. Long-run realism suite and calibration
 10. Web: contracts, the cap and re-signing
-11. Web: the market and trades
+11. Web: the market, trades, the farm and waivers
 12. Web: scouting, and ranges in a generated league
 
 Choices made by the author on 2026-11-12, each recorded in an ADR under item 1
@@ -252,6 +254,14 @@ Choices made by the author on 2026-11-12, each recorded in an ADR under item 1
   Club alike. ADR-033.
 - **A Club's budget** is its wage limit, between the floor and the cap, as data,
   with no revenue. Scouting capacity is equal for every Club. ADR-034.
+- **The farm** (ADR-036, decided on 2026-11-13): every Club has an active
+  Roster of at most 23 and a farm, at most 50 contracts in all, as in the NHL. A
+  Player without an exemption goes down through waivers, where any Club may
+  claim him, the lowest in the table first. Call-ups during the Season for
+  injury and form, a cap that counts the farm only above the buried allowance,
+  and the daily charge and long-term injury relief come with it. The farm plays
+  its own schedule; whether a run plays it is a choice of the run, and the
+  realism and long-run tiers do not, while a tier of its own plays a block.
 - **Scouting** gives each Club its own estimate of every Player, narrowing with
   Fixtures seen and assignments. Every decision a Club makes, AI or human,
   reads its own view; the engine reads the truth. ADR-035.
@@ -284,6 +294,14 @@ Season ahead, the floor as every Season starts, a release is a buyout, and the
 playoff Lineup must fit under the cap (ADR-031 amendment). The daily charge and
 long-term injury relief move to item 6, where moves during a Season first read
 them.
+
+Item 5 is done in #130: a market after the Roster window, with an outside pool,
+offers within a band, asks that fall while unsigned, and rounds; the unsigned
+draw of ADR-027 is gone (ADR-032 amendment). The calibration found that without
+a farm a declining veteran blocks a place and a prospect has nowhere to grow,
+which led to the farm (ADR-036, items 5a and 5b), where the daily charge and
+long-term injury relief now go. Until 5a the Phase 2 targets of age and debut
+are reported, not asserted.
 
 **Gate:** ten simulated Seasons of AI-only roster movement, on eight generated
 leagues and the 2025-26 roster file, leave wage inflation and talent

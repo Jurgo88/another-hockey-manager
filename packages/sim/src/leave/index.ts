@@ -20,14 +20,11 @@ import type { Rng } from '../rng/index.js'
 /**
  * Leaving the league between Seasons (ADR-023, ADR-027, #88).
  *
- * Two ways out, drawn in turn from one stream per Player and Season (D-08):
- *
- * - **Retired**: the Player's decision, by age, and later for a Player who
- *   still plays a large role (#90). A Manager cannot overrule it.
- * - **Unsigned**: nobody gives him a new contract. Its chance falls steeply
- *   with his role, his ice time per Fixture among the Players at his position
- *   across the league. It stands in for contracts until Phase 3, where a
- *   Manager's decision not to re-sign, and free agency, replace it.
+ * One way out is drawn here, from one stream per Player and Season (D-08):
+ * **retired**, the Player's decision, by age, and later for a Player who still
+ * plays a large role (#90). A Manager cannot overrule it. The other, leaving
+ * unsigned, is no longer drawn: a Player leaves so when his contract runs out
+ * and no Club signs him in the market (ADR-032, #130).
  *
  * A Club then fills each gap with an undrafted Player at the depth of a
  * call-up, so it keeps its Roster shape. Release, the Club's decision when new
@@ -51,34 +48,8 @@ export const RETIREMENT = { logOddsAt35: -2.28, perYear: 0.51, roleWeight: 3.48 
 /** A Player's chance to retire after a Season, from his age in it and his role. */
 export function retirementChance(age: number, role: number): number {
   return logistic(
-    RETIREMENT.logOddsAt35 +
-      RETIREMENT.perYear * (age - 35) +
-      RETIREMENT.roleWeight * (0.5 - role),
+    RETIREMENT.logOddsAt35 + RETIREMENT.perYear * (age - 35) + RETIREMENT.roleWeight * (0.5 - role),
   )
-}
-
-/**
- * Not signed again: about 41% at 27 for a Player with the smallest role, below
- * 1% for a regular in the top half, and likelier by a fifth for each year older,
- * so a young Player who barely played is more often kept than a veteran (#90).
- */
-export const UNSIGNED = { logOdds: -3.81, roleWeight: 6.86, perYear: 0.19, aroundAge: 27 } as const
-
-/**
- * A Player's chance to be left without a contract after a Season, from his age
- * in it and his role: 0 the smallest at his position in the league, 1 the largest.
- */
-export function unsignedChance(age: number, role: number): number {
-  return logistic(
-    UNSIGNED.logOdds +
-      UNSIGNED.roleWeight * (0.5 - role) +
-      UNSIGNED.perYear * (age - UNSIGNED.aroundAge),
-  )
-}
-
-/** The chance to leave by either way, as `departures` draws them in turn. */
-export function leavingChance(age: number, role: number): number {
-  return 1 - (1 - retirementChance(age, role)) * (1 - unsignedChance(age, role))
 }
 
 function logistic(logOdds: number): number {
@@ -137,9 +108,8 @@ export function roles(
 }
 
 /**
- * Who leaves after the Season the Clubs have just played, and why. Each Player
- * draws from his own stream (D-08): first whether he retires, then, if not,
- * whether he is signed again.
+ * Who retires after the Season the Clubs have just played. Each Player draws
+ * from his own stream (D-08).
  */
 export function departures(
   clubs: readonly Club[],
@@ -151,15 +121,43 @@ export function departures(
     for (const player of [...club.skaters, ...club.goalies]) {
       const rng = streamOf(player)
       const role = roleOf.get(player.id) ?? 0
-      const reason = rng.chance(retirementChance(player.age, role))
-        ? 'retired'
-        : rng.chance(unsignedChance(player.age, role))
-          ? 'unsigned'
-          : null
-      if (reason) out.push({ playerId: player.id, clubId: club.id, age: player.age, reason })
+      if (rng.chance(retirementChance(player.age, role))) {
+        out.push({ playerId: player.id, clubId: club.id, age: player.age, reason: 'retired' })
+      }
     }
   }
   return out
+}
+
+/**
+ * Players from outside the league for the market (ADR-032, #130), one at each
+ * natural position given, generated as the fill is, at an ability drawn evenly
+ * from that of a call-up to `lift` above it for a Skater. They belong to no Club until one
+ * signs them.
+ */
+export function generatedFreeAgents(
+  naturals: readonly (SkaterPosition | 'G')[],
+  rng: Rng,
+  year: number,
+  lift = 0,
+): Player[] {
+  const names = generateDistinctNames(rng, naturals.length)
+  return naturals.map((natural, k): Player => {
+    const person = names[k]!
+    const id = `fa-y${year}-${k}`
+    if (natural === 'G') {
+      // A Goalie at the depth of a call-up is already an NHL Goalie (GOALIE_SLOT_ABILITY):
+      // only Skaters are lifted.
+      const ability = FILL_ABILITY.goalie
+      const { age, headroom } = generateAgeAndHeadroom(rng, ability, 'goalie')
+      return generateGoalie(rng, { id, clubId: '', person, ability, age, headroom })
+    }
+    const fill = FILL_ABILITY[natural === 'LD' || natural === 'RD' ? 'defence' : 'forward']
+    const ability = fill + rng.next() * lift
+    // Aged as a call-up is: young, with room to grow.
+    const { age, headroom } = generateAgeAndHeadroom(rng, fill)
+    return generateSkater(rng, { id, clubId: '', person, natural, ability, age, headroom })
+  })
 }
 
 /**
@@ -170,12 +168,31 @@ export function departures(
  * a filled Player is never mistaken for one who left.
  */
 export function filledRoster(club: Club, left: readonly Player[], rng: Rng, year: number): Club {
+  return filledRosterAt(
+    club,
+    left.map((player) => (isGoalie(player) ? 'G' : player.preferredPositions[0]!)),
+    rng,
+    year,
+  )
+}
+
+/**
+ * The Club with each gap in its Roster shape filled as `filledRoster` does, a
+ * gap at forward or on defence taking the first natural position of its group
+ * still in `naturals`, in order.
+ */
+export function filledRosterAt(
+  club: Club,
+  naturals: readonly (SkaterPosition | 'G')[],
+  rng: Rng,
+  year: number,
+): Club {
   const forwards = club.skaters.filter((skater) => positionGroup(skater) === 'forward').length
   const defence = club.skaters.length - forwards
   const wanted = (group: PositionGroup, have: number, shape: number): SkaterPosition[] => {
-    const natural = left
-      .filter((player): player is Skater => !isGoalie(player) && positionGroup(player) === group)
-      .map((skater) => skater.preferredPositions[0]!)
+    const natural = naturals.filter(
+      (n): n is SkaterPosition => n !== 'G' && (group === 'defence') === (n === 'LD' || n === 'RD'),
+    )
     const fallback: SkaterPosition[] = group === 'forward' ? ['C', 'LW', 'RW'] : ['LD', 'RD']
     return Array.from(
       { length: Math.max(0, shape - have) },

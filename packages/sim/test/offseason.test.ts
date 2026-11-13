@@ -141,12 +141,9 @@ describe('notices between Seasons', () => {
     let calledUp = 0
     for (const club of next.clubs) {
       const notices = startNoticesOf(drafted, next, club.id)
-      const before = new Set(
-        [
-          ...drafted.clubs.find((c) => c.id === club.id)!.skaters,
-          ...drafted.clubs.find((c) => c.id === club.id)!.goalies,
-        ].map((p) => p.id),
-      )
+      // A Player who tested the market and came back did not arrive.
+      const ended = drafted.ended.clubs.find((c) => c.id === club.id)!
+      const before = new Set([...ended.skaters, ...ended.goalies].map((p) => p.id))
       const arrived = [...club.skaters, ...club.goalies]
         .filter((p) => !before.has(p.id))
         .map((p) => p.id)
