@@ -113,7 +113,7 @@ export function aggregateSuite(
       within(saves / shotsAgainst, 0.889, 0.008)
     })
 
-    it('penalties committed per Club per Fixture: 2.88 ±0.15', () => {
+    target('penalties committed per Club per Fixture: 2.88 ±0.15', () => {
       within(perClub(penalties), 2.88, 0.15)
     })
 

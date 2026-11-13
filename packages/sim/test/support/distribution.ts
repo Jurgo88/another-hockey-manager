@@ -194,7 +194,7 @@ export function distributionSuite(
       )
     })
 
-    it('Skaters with 40+ goals: 15 ±6', () => {
+    target('Skaters with 40+ goals: 15 ±6', () => {
       within(
         average((s) => s.fortyGoalScorers),
         15,

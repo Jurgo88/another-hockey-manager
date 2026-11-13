@@ -99,9 +99,9 @@ describe('between Seasons', () => {
       setRosterMoves(roster, club.id, { callUps: [], releases: [released.id] }),
     )
     expect(next.deadMoney[club.id]).toContainEqual(buyout(rules, released))
-    expect(next.departures).toContainEqual(
-      expect.objectContaining({ playerId: released.id, reason: 'released' }),
-    )
+    expect(
+      playersOf(next.clubs.find((c) => c.id === club.id)!).some((p) => p.id === released.id),
+    ).toBe(false)
   })
 
   it('refuses moves that add cap hit over the cap, and the assistant keeps within it', () => {

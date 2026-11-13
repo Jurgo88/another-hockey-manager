@@ -1,13 +1,17 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import type { Club } from '../src/domain/club.js'
-import { isGoalie, isSkater, playerLevel, positionGroup, type Player } from '../src/domain/player.js'
+import {
+  isGoalie,
+  isSkater,
+  playerLevel,
+  positionGroup,
+  type Player,
+} from '../src/domain/player.js'
 import {
   departures,
   filledRoster,
-  leavingChance,
   retirementChance,
   roles,
-  unsignedChance,
   type SeasonUsage,
 } from '../src/leave/index.js'
 import { createRng } from '../src/rng/index.js'
@@ -38,19 +42,6 @@ describe('the chances', () => {
   it('let a Player who still plays a large role retire later (#90)', () => {
     expect(retirementChance(36, 1)).toBeLessThan(retirementChance(36, 0.5) / 3)
     expect(retirementChance(36, 0)).toBeGreaterThan(retirementChance(36, 0.5) * 3)
-  })
-
-  it('leave a regular signed and a Player who barely played often not', () => {
-    expect(unsignedChance(26, 1)).toBeLessThan(0.01)
-    expect(unsignedChance(26, 0.5)).toBeLessThan(0.05)
-    expect(unsignedChance(26, 0)).toBeGreaterThan(0.25)
-    expect(unsignedChance(33, 0)).toBeGreaterThan(unsignedChance(23, 0))
-  })
-
-  it('combine both ways as one is drawn after the other', () => {
-    const [age, role] = [36, 0.3]
-    const expected = 1 - (1 - retirementChance(age, role)) * (1 - unsignedChance(age, role))
-    expect(leavingChance(age, role)).toBeCloseTo(expected, 12)
   })
 })
 
@@ -108,7 +99,7 @@ describe('departures', () => {
     )
   })
 
-  it('send the old into retirement and the unused out unsigned', () => {
+  it('send the old into retirement, and nobody young out unsigned (ADR-032)', () => {
     const old = clubs.map((club) => ({
       ...club,
       skaters: club.skaters.map((skater) => ({ ...skater, age: 42 })),
@@ -116,9 +107,7 @@ describe('departures', () => {
     }))
     const retired = departures(old, fullRoles(), streamOf('b'))
     expect(retired.length).toBeGreaterThan(everyone().length * 0.6)
-    expect(retired.filter((d) => d.reason === 'retired').length).toBeGreaterThan(
-      retired.length * 0.9,
-    )
+    expect(retired.every((d) => d.reason === 'retired')).toBe(true)
 
     const young = clubs.map((club) => ({
       ...club,
@@ -127,8 +116,8 @@ describe('departures', () => {
     }))
     const unused = new Map(everyone().map((player) => [player.id, 0]))
     const gone = departures(young, unused, streamOf('c'))
-    expect(gone.length).toBeGreaterThan(everyone().length * 0.2)
-    expect(gone.every((d) => d.reason === 'unsigned')).toBe(true)
+    // Leaving unsigned is the market's outcome now, not a draw.
+    expect(gone.length).toBeLessThan(everyone().length * 0.01)
   })
 
   it('record who left, from where and at what age', () => {
