@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { targetIt, type Reported } from './reported.js'
 import type { SimulatedRun } from '../../src/cli/season.js'
 import { draftOutcomes } from '../../src/stats/history.js'
 import {
@@ -60,7 +61,12 @@ const DRAFT = [
 ]
 
 /** The gate tables on the runs given, each of ten Seasons. */
-export function gateSuite(when: string, runs: () => Promise<readonly SimulatedRun[]>): void {
+export function gateSuite(
+  when: string,
+  runs: () => Promise<readonly SimulatedRun[]>,
+  reported: Reported = {},
+): void {
+  const target = targetIt(reported)
   describe(`the Phase 2 gate, ${when}`, async () => {
     const all = await runs()
     const tenth = all.map((run) => run.seasons.at(-1)!)
@@ -73,15 +79,15 @@ export function gateSuite(when: string, runs: () => Promise<readonly SimulatedRu
     describe('the age of the league, in the tenth Season', () => {
       const ages = tenth.map(ageProfile)
 
-      it('mean age, weighted by Fixtures: 27.0 ±0.7', () => {
+      target('mean age, weighted by Fixtures: 27.0 ±0.7', () => {
         within(mean(ages.map((age) => age.meanAge)), 27.0, 0.7)
       })
 
-      it('Players aged 31 or more: 18% ±5 pp', () => {
+      target('Players aged 31 or more: 18% ±5 pp', () => {
         within(mean(ages.map((age) => age.oldShare)), 0.18, 0.05)
       })
 
-      it('Players aged 23 or younger: 30% ±5 pp', () => {
+      target('Players aged 23 or younger: 30% ±5 pp', () => {
         within(mean(ages.map((age) => age.youngShare)), 0.3, 0.05)
       })
 
@@ -93,56 +99,55 @@ export function gateSuite(when: string, runs: () => Promise<readonly SimulatedRu
     describe('leaving the league, per Season, Players with 20 or more Fixtures', () => {
       const rows: LeavingRow[] = all.flatMap((run) => leavingRows(run.seasons))
 
-      it.each(LEAVING_BY_AGE)('aged $label: $rate ±$band', ({ from, to, rate, band }) => {
-        within(leavingRate(rows.filter((row) => row.age >= from && row.age <= to)), rate, band)
-      })
+      for (const { label, from, to, rate, band } of LEAVING_BY_AGE) {
+        target(`aged ${label}: ${rate} ±${band}`, () => {
+          within(leavingRate(rows.filter((row) => row.age >= from && row.age <= to)), rate, band)
+        })
+      }
 
-      it.each(LEAVING_BY_THIRD.map((target, third) => ({ ...target, third })))(
-        '$label third of ice time in his group: $rate ±$band',
-        ({ third, rate, band }) => {
+      LEAVING_BY_THIRD.forEach(({ label, rate, band }, third) => {
+        target(`${label} third of ice time in his group: ${rate} ±${band}`, () => {
           within(leavingRate(rows.filter((row) => row.third === third)), rate, band)
-        },
-      )
+        })
+      })
     })
 
     describe('the draft, its first four classes, read in Season 10', () => {
       const tables = all.map((run) => draftOutcomes(run.seasons, CLASSES))
 
-      it.each(DRAFT)(
-        'round $round: $regulars play 200 Fixtures or more (±$band)',
-        ({ round, regulars, band }) => {
+      for (const { round, regulars, band } of DRAFT) {
+        target(`round ${round}: ${regulars} play 200 Fixtures or more (±${band})`, () => {
           within(
             mean(tables.map((table) => table.find((row) => row.round === round)!.regulars)),
             regulars,
             band,
           )
-        },
-      )
+        })
+      }
 
-      it.each(DRAFT)(
-        'round $round: a median of $debut Seasons to debut (±1)',
-        ({ round, debut }) => {
+      for (const { round, debut } of DRAFT) {
+        target(`round ${round}: a median of ${debut} Seasons to debut (±1)`, () => {
           within(
             median(tables.map((table) => table.find((row) => row.round === round)!.seasonsToDebut)),
             debut,
             1,
           )
-        },
-      )
+        })
+      }
     })
 
     describe('the table, across the ten Seasons', () => {
       const tables = all.map((run) => tableDynamics(run.seasons))
 
-      it('correlation of Club points, consecutive Seasons: 0.51 ±0.12', () => {
+      target('correlation of Club points, consecutive Seasons: 0.51 ±0.12', () => {
         within(mean(tables.map((table) => table.correlation)), 0.51, 0.12)
       })
 
-      it('top 8 still top 8 the next Season: 46% ±12 pp', () => {
+      target('top 8 still top 8 the next Season: 46% ±12 pp', () => {
         within(mean(tables.map((table) => table.topStays)), 0.46, 0.12)
       })
 
-      it('bottom 8 still bottom 8 the next Season: 51% ±12 pp', () => {
+      target('bottom 8 still bottom 8 the next Season: 51% ±12 pp', () => {
         within(mean(tables.map((table) => table.bottomStays)), 0.51, 0.12)
       })
     })

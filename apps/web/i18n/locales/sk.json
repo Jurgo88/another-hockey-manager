@@ -355,7 +355,8 @@
       "notProspect": "{name} nie je tvoj prospekt.",
       "notOnRoster": "{name} nie je na tvojej súpiske.",
       "aboveShape": "{count} – {group}, viac než {shape}, koľko súpiska unesie.",
-      "cannotDress": "S týmito presunmi by klub nezložil zostavu."
+      "cannotDress": "S týmito presunmi by klub nezložil zostavu.",
+      "overCap": "S týmito presunmi by klub platil {payroll} % platového stropu, nad strop."
     },
     "group": {
       "forward": "útočníci",

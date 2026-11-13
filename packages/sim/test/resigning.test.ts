@@ -2,7 +2,8 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { NHL_CAP_RULES } from '../src/data/nhl-2026-27.js'
 import type { Club } from '../src/domain/club.js'
 import type { Player } from '../src/domain/player.js'
-import { askingContract } from '../src/generate/contracts.js'
+import { expectedLevel } from '../src/develop/index.js'
+import { askingContract, payroll } from '../src/generate/contracts.js'
 import { createRng } from '../src/rng/index.js'
 import {
   advanceDay,
@@ -102,23 +103,61 @@ describe('the re-signing window', () => {
     expect(window.expiring[most!.id]!.rank).toBeLessThan(window.expiring[least!.id]!.rank)
   })
 
-  it('has the assistant re-sign every expiring Player at his ask, for every Club alike', () => {
+  it('has the assistant re-sign the best a Season ahead while they fit under the cap (D-04)', () => {
     const closed = runReSigning(window)
     expect(closed.phase).toBe('roster')
     for (const club of window.clubs) {
       const proposal = proposedReSignings(window, club.id)
-      expect(proposal.map((r) => r.playerId).sort()).toEqual(
-        expiringPlayers(window, club.id)
-          .map((p) => p.id)
-          .sort(),
-      )
+      const expiring = expiringPlayers(window, club.id)
+      const level = new Map(expiring.map((p) => [p.id, expectedLevel(p)]))
+      const levels = proposal.map((r) => level.get(r.playerId)!)
+      expect(levels).toEqual([...levels].sort((x, y) => y - x))
       const after = closed.clubs.find((c) => c.id === club.id)!
+      // Each is kept at his ask, or tests the market with that offer standing (ADR-032).
       for (const { playerId, years } of proposal) {
-        const player = playersOf(after).find((p) => p.id === playerId)!
-        expect(player.contract).toEqual(askOf(window, playerId, years))
+        const player = playersOf(after).find((p) => p.id === playerId)
+        if (player) expect(player.contract).toEqual(askOf(window, playerId, years))
+        else
+          expect(closed.freeAgents.find((a) => a.player.id === playerId)!.standing).toEqual({
+            clubId: club.id,
+            years,
+          })
       }
+      const kept = new Set(proposal.map((r) => r.playerId))
+      const free = new Set(closed.freeAgents.map((a) => a.player.id))
+      for (const player of expiring.filter((p) => !kept.has(p.id))) {
+        expect(free.has(player.id)).toBe(true)
+      }
+      const open = 29 - playersOf(after).length
+      expect(payroll(after) + open * rules.minimum).toBeLessThanOrEqual(1 + 1e-9)
     }
-    expect(closed.departures).toEqual(window.departures)
+  })
+
+  it('refuses re-signings that take a Club over the cap', () => {
+    const club = window.clubs.find((c) =>
+      expiringPlayers(window, c.id).some((p) => askOf(window, p.id).capHit > rules.minimum),
+    )!
+    const dear = expiringPlayers(window, club.id).find(
+      (p) => askOf(window, p.id).capHit > rules.minimum,
+    )!
+    const running = club.skaters.find((p) => !(p.id in window.expiring))!
+    const full: Offseason = {
+      ...window,
+      clubs: window.clubs.map((c) =>
+        c.id !== club.id
+          ? c
+          : {
+              ...c,
+              skaters: c.skaters.map((p) =>
+                p.id === running.id ? { ...p, contract: { ...p.contract!, capHit: 0.85 } } : p,
+              ),
+            },
+      ),
+    }
+    expect(() => setReSignings(full, club.id, [{ playerId: dear.id, years: 2 }])).toThrow(
+      InvalidReSigningsError,
+    )
+    expect(proposedReSignings(full, club.id).some((r) => r.playerId === dear.id)).toBe(false)
   })
 
   it('makes a Manager’s choice: a term of his own, and a Player let go (D-04)', () => {
@@ -127,17 +166,21 @@ describe('the re-signing window', () => {
     const decided = setReSignings(window, club.id, [{ playerId: kept!.id, years: 3 }])
     const closed = runReSigning(decided)
     const after = closed.clubs.find((c) => c.id === club.id)!
-    expect(playersOf(after).find((p) => p.id === kept!.id)!.contract!.years).toBe(3)
+    const stayed = playersOf(after).find((p) => p.id === kept!.id)
+    const testing = closed.freeAgents.find((a) => a.player.id === kept!.id)
+    expect(stayed?.contract!.years ?? testing!.standing!.years).toBe(3)
     expect(playersOf(after).some((p) => p.id === gone!.id)).toBe(false)
-    expect(closed.departures).toContainEqual({
-      playerId: gone!.id,
-      clubId: club.id,
-      age: gone!.age - 1,
-      reason: 'unsigned',
+    // Let go, he is a free agent with no offer standing.
+    expect(closed.freeAgents.find((a) => a.player.id === gone!.id)).toMatchObject({
+      origin: 'league',
     })
     const notices = reSigningNoticesOf(closed, club.id)
     expect(notices).toContainEqual(
-      expect.objectContaining({ kind: 'reSigned', playerId: kept!.id, years: 3 }),
+      expect.objectContaining(
+        stayed
+          ? { kind: 'reSigned', playerId: kept!.id, years: 3 }
+          : { kind: 'testsMarket', playerId: kept!.id },
+      ),
     )
     expect(notices).toContainEqual(expect.objectContaining({ kind: 'letGo', playerId: gone!.id }))
 

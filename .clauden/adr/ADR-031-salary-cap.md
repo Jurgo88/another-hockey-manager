@@ -1,6 +1,6 @@
 # ADR-031 - A hard cap, charged by the day, with injury relief and a cap on the playoff Lineup
 
-- **Status:** Accepted
+- **Status:** Accepted; what the cap counts amended by ADR-036, which takes over the daily charge and long-term injury relief
 - **Date:** 2026-11-12
 - **Relates to:** FR-20, D-04, D-08, D-10, ADR-012, ADR-014, ADR-015, ADR-030, ADR-033, ADR-034, issue #121
 
@@ -120,3 +120,44 @@ includes the call-ups, so counting it whole is the nearest equivalent.
 - A strong Club cannot keep every good Player: re-signing a star means paying his
   ask, which pushes out others. This is the mechanism expected to hold the table
   targets of the Phase 3 gate.
+
+## Amendment, 2026-11-12: the cap between Seasons, the floor, buyouts and the playoff cap (#129)
+
+Item 4 of Phase 3. The author chose on 2026-11-12:
+
+- **The daily charge and long-term injury relief move to item 6.** Both matter
+  only to moves during a Season, which trades bring; without them they would be
+  state nothing reads. Until then every Roster change happens between Seasons,
+  where the payroll for the Season ahead is what counts.
+- **The rules as data** gain the lower limit (0.739, $76.9M), the buyout
+  fractions (two thirds, one third under 26, over twice the Seasons left) and
+  the playoff regime (`dressed`, or `none` for a league before 2025).
+- **Dead money** is a list per Club in the Season and in the phase between
+  Seasons, each entry a cap hit and the Seasons left, one fewer each Season.
+  A release in the Roster window is a buyout. The released Player leaves as
+  `released` until the market of item 5.
+- **The payroll for the Season ahead** is a Club's contracts, its dead money and
+  each place its 16-10-3 Roster still has open at the minimum, since the fill
+  takes them at that. A re-signing or a move may leave it at or under the cap;
+  a Club already over may make no change that adds to it (`overCap`, as data).
+  Nothing is forced: a Club over the cap from contracts that run on still has
+  its gaps filled at the minimum.
+- **The assistant** re-signs the best by level first, each at his ask, while he
+  fits; the rest are let go. Its Roster moves drop their swaps first, then
+  call-ups from the last, until they fit. It reads the truth until scouting
+  (item 8) gives every Club its own view.
+- **The floor binds as every Season starts, the first too:** the lowest
+  contracts are raised together, rounded up, until the payroll with dead money
+  reaches it.
+- **The playoff cap** counts the 20 dressed and dead money at full cap hits.
+  `setLineup` refuses a Lineup above it (`playoff-cap`). The Lineup a Fixture
+  is played with, and the assistant's, stand the dearest dressed Player down as
+  an injured one would be, the best fit spare at his position taking his place,
+  until it fits: the same for every Club (D-04).
+
+Reported by `pnpm sim:season --seasons 10`, not asserted: in a generated league
+no Club ends above the cap and none starts below the floor; the mean payroll
+rises from 87% to 94-97%, and its spread across Clubs falls from 9 pp to 2.5-5
+pp against the measured 7-10 pp, since every Club spends to the cap. The budgets
+of item 7 are what spread it. The assistant keeps 83-94% of expiring restricted
+regulars and 78-81% of unrestricted ones.

@@ -355,7 +355,8 @@
       "notProspect": "{name} is not your prospect.",
       "notOnRoster": "{name} is not on your Roster.",
       "aboveShape": "{count} {group} is more than the {shape} a Roster holds.",
-      "cannotDress": "With these moves the Club could not dress a Lineup."
+      "cannotDress": "With these moves the Club could not dress a Lineup.",
+      "overCap": "With these moves the Club would pay {payroll}% of the cap, above it."
     },
     "group": {
       "forward": "forwards",

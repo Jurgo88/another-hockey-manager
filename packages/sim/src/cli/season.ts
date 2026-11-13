@@ -15,6 +15,7 @@ import {
   type PlayedFixture,
 } from '../season/index.js'
 import { careerTotals, skaterCareer, type SeasonRecord } from '../stats/history.js'
+import { deadCharge } from '../generate/contracts.js'
 import type { RosterContract } from '../stats/league.js'
 import { points, type MatchStats } from '../stats/match.js'
 import { foldSeason, type SeasonStats } from '../stats/season.js'
@@ -87,6 +88,8 @@ export interface SimulatedRun {
   seasons: readonly SeasonRecord[]
   /** Each Season's contracts as it ended, oldest first (#125). */
   contracts: readonly (readonly RosterContract[])[]
+  /** Each Season's dead money by Club, oldest first (#129). */
+  deadMoney: readonly Readonly<Record<ClubId, number>>[]
 }
 
 /** Several Seasons in a row from one seed, each played to its champion (#85). */
@@ -100,6 +103,7 @@ export async function simulateSeasons(
   const players = new Map<PlayerId, Player>()
   const seasons: SeasonRecord[] = []
   const contracts: RosterContract[][] = []
+  const deadMoney: Record<ClubId, number>[] = []
   for (;;) {
     const fixtures: Fixture[] = []
     const matches: MatchStats[] = []
@@ -119,6 +123,11 @@ export async function simulateSeasons(
       for (const player of [...club.skaters, ...club.goalies]) players.set(player.id, player)
     }
     seasons.push(recordOf(state))
+    deadMoney.push(
+      Object.fromEntries(
+        Object.entries(state.deadMoney).map(([id, entries]) => [id, deadCharge(entries)]),
+      ),
+    )
     contracts.push(
       state.clubs.flatMap((club) =>
         [...club.skaters, ...club.goalies].map((player) => ({
@@ -130,7 +139,7 @@ export async function simulateSeasons(
     )
     if (state.year === count) {
       const last = { clubs, lineups, fixtures, matches, season: foldSeason(matches) }
-      return { clubs: state.clubs, last, players, seasons, contracts }
+      return { clubs: state.clubs, last, players, seasons, contracts, deadMoney }
     }
     state = nextSeason(state)
   }
