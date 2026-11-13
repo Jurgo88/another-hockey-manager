@@ -188,3 +188,57 @@ unrestricted ones, against the measured 70% and 47% the Phase 3 gate asserts
 once the market exists. Payrolls rise from 87% of the cap in Season 1 to 96% by
 Season 5 as asks follow role, with the highest Club near 113%; the cap of item 4
 bounds that.
+
+## Amendment, 2026-11-13: the market as built (#130)
+
+Item 5 of Phase 3. The market follows the decision above; what it took to make
+it work, and the author's choices of 2026-11-13:
+
+- **The windows.** `runRosterMoves` closes the Roster window and opens the
+  market (phase `market`); `marketRound` resolves one round and `runMarket`
+  all of them (phase `closed`). A Club declares its offers for the round with
+  `setOffers`, or the assistant's (`proposedOffers`) stand: the same call for
+  every Club (D-04). Violations are data: not a free agent, offered twice,
+  outside the band, a term outside the rules (7 Seasons to the Club's own
+  Player, 6 to another's), more offers than places in a group, over the cap, or
+  a Roster that could no longer dress a Lineup.
+- **Who is in it.** Those let go in the re-signing window; unrestricted Players
+  testing the market, a draw at `testRate` (an estimate, 0.35), their Club's
+  offer standing in the first round ahead of its other offers while its
+  Roster has room; released Players after their buyout; prospects whose rights
+  expired; and Players from outside the league, 1.5 times the league's open
+  places, at their natural positions.
+- **The outside pool** is generated at the age of a call-up and an ability up to
+  0.4 above it, for Skaters; a Goalie at a call-up's depth is already an NHL
+  Goalie and is not lifted. Weaker, it could not push out the bottom of a Roster
+  as Players from Europe and the AHL do.
+- **An ask falls 15% for every round its Player goes unsigned,** down to the
+  minimum. The author chose it on 2026-11-13: without it a Player no Club can
+  afford at his ask left the league, the top third of role among them.
+- **The assistant** judges a Player a Season ahead (`expectedLevel`), as it
+  does prospects. It re-signs the top four fifths of the league's regulars by
+  role and Players up to 23, the best first while they fit (the author's choice
+  of 2026-11-13; it re-signed every expiring Player before). In the market it
+  offers, for each open place, the best free agent it can afford at the natural
+  position the Club needs, its shortfalls to dress a Lineup first, at his ask.
+- **A free agent rates an offer** by money against his ask, his role there,
+  the Club's share of points and a draw (weights estimated, money 4, role 1,
+  strength 0.5, draw 0.5). The best by level choose first.
+- **Leaving.** A free agent from the league nobody signs leaves as `unsigned`,
+  a former prospect as `rights-expired`; a Player from outside goes back. A
+  release is a move with its notice, no longer a departure. The unsigned draw of
+  ADR-027 is gone; the realism test of its chances goes with it, and leaving is
+  asserted on the ten-Season runs of the Phase 2 gate.
+- **Gaps the market leaves** take a generated fill at the natural positions the
+  Club needs, its shortfalls to dress a Lineup first.
+
+Fitted on eight generated leagues and the roster file: every leaving band by
+age and by third of role is inside on the generated leagues. Until the farm
+(ADR-036) a prospect takes a gap before he is ready (ADR-028 amendment), and the
+targets that follows from are reported, not asserted: the share of Players aged 23 or younger, the leaving rate of those aged 23
+or younger, and the median Seasons to a debut of rounds 2 to 4, on the
+generated leagues and the roster file; on the roster file alone, the leaving
+rates of the top and middle thirds of ice time and the share of round 4 who
+play 200 Fixtures, each a hair outside; and in the tenth Season the penalties
+per Club (3.04 against 3.03) and the Skaters with 40 goals or more (8.4 against
+9).

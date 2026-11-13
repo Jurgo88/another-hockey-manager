@@ -1,6 +1,6 @@
 # ADR-022 - Players age along measured curves, by attribute group
 
-- **Status:** Accepted; its group table and cap rule superseded by ADR-026, amended by ADR-028
+- **Status:** Accepted; its group table and cap rule superseded by ADR-026, amended by ADR-028 and ADR-036 (development on the farm)
 - **Date:** 2026-11-03
 - **Relates to:** D-01, D-06, D-08, D-11, ADR-008, ADR-020, ADR-021, issue #83, issue #87
 
