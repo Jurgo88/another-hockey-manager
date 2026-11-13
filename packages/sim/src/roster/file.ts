@@ -37,7 +37,7 @@ import {
  * the contract a league opens with. Version 1 is still read.
  *
  * Version 3 adds the farm (ADR-036, #133): a Club may list Players on its farm
- * apart from its active Roster. A Club then holds the shape of every contracted
+ * apart from its active Roster, and a Player his service for waivers. A Club then holds the shape of every contracted
  * Player, active Roster and farm together; a Club without a farm may still hold
  * the NHL Roster alone, 16-10-3, which a Season completes with a farm.
  */
@@ -83,6 +83,16 @@ interface RosterFilePlayer {
   potential: number
   handedness: Handedness
   contract?: RosterFileContract
+  /** His service for waivers (version 3): a Player under contract without one has it estimated. */
+  service?: RosterFileService
+}
+
+/** A Player's service as the file holds it (ADR-036). */
+export interface RosterFileService {
+  signedAt: number
+  seasons: number
+  games: number
+  shortenedIn?: number
 }
 
 export interface RosterFileSkater extends RosterFilePlayer {
@@ -132,10 +142,14 @@ const PLAYER_FIELDS = [
   'attributes',
   'provenance',
   'contract',
+  'service',
 ] as const
 const SKATER_FIELDS = [...PLAYER_FIELDS, 'positions'] as const
 const PROVENANCE_FIELDS = ['source', 'confidence', 'note', 'seasonsAged'] as const
 const CONTRACT_FIELDS = ['capHit', 'years', 'kind', 'onExpiry'] as const
+const SERVICE_FIELDS = ['signedAt', 'seasons', 'games', 'shortenedIn'] as const
+/** No Player plays more: a check on a typing slip, not a rule of any league. */
+const GAMES_MAX = 3000
 const CONTRACT_KINDS: readonly Contract['kind'][] = ['entry-level', 'standard']
 const EXPIRY_STATUSES: readonly Contract['onExpiry'][] = ['restricted', 'unrestricted']
 /** No contract runs longer: a check on a typing slip, not a rule of any league. */
@@ -172,6 +186,7 @@ function filePlayer(player: Skater | Goalie, capUpperLimit: number | undefined):
     age: player.age,
     potential: player.potential,
     handedness: player.handedness,
+    ...(player.service ? { service: { ...player.service } } : {}),
     ...(contract && capUpperLimit !== undefined
       ? {
           contract: {
@@ -344,6 +359,21 @@ interface FileContext {
   capUpperLimit: boolean
 }
 
+function checkService(check: Checker, fields: Fields, path: string, file: FileContext): void {
+  if (fields.service === undefined) return
+  const at = `${path}.service`
+  if (file.version < 3) {
+    check.add(at, `is not a field of format version ${file.version}`)
+    return
+  }
+  const service = check.object(fields.service, at, SERVICE_FIELDS)
+  if (!service) return
+  check.wholeNumber(service, 'signedAt', at, AGE_MIN, AGE_MAX)
+  check.wholeNumber(service, 'seasons', at, 0, AGE_MAX)
+  check.wholeNumber(service, 'games', at, 0, GAMES_MAX)
+  if (service.shortenedIn !== undefined) check.wholeNumber(service, 'shortenedIn', at, 1, AGE_MAX)
+}
+
 function checkContract(check: Checker, fields: Fields, path: string, file: FileContext): void {
   if (fields.contract === undefined) return
   const at = `${path}.contract`
@@ -406,6 +436,7 @@ function checkClub(check: Checker, value: unknown, path: string, file: FileConte
       if (!skater) return
       checkPlayer(check, skater, at, file)
       checkContract(check, skater, at, file)
+      checkService(check, skater, at, file)
       const natural = checkPositions(check, skater, at)
       if (natural) {
         if (FORWARD_POSITIONS.includes(natural)) forwards++
@@ -423,6 +454,7 @@ function checkClub(check: Checker, value: unknown, path: string, file: FileConte
       if (!goalie) return
       checkPlayer(check, goalie, at, file)
       checkContract(check, goalie, at, file)
+      checkService(check, goalie, at, file)
       checkAttributes(check, goalie, at, GOALIE_ATTRIBUTE_KEYS)
       checkProvenance(check, goalie, at, GOALIE_ATTRIBUTE_KEYS)
     })
@@ -551,6 +583,7 @@ function importedClub(club: RosterFileClub, capUpperLimit: number | undefined): 
     form: 50,
     fatigue: 0,
     ...contractOf(entry),
+    ...(entry.service ? { service: { ...entry.service } } : {}),
   })
 
   const skater = (entry: RosterFileSkater): Skater => ({

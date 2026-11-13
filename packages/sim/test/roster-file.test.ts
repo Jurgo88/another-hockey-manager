@@ -222,9 +222,12 @@ describe('roster file validation', () => {
     ])
   })
 
-  it('reads a farm only from version 3', () => {
+  it('reads a farm and service for waivers only from version 3', () => {
     expect(problemsOf({ ...exported(), formatVersion: 2 })).toContain(
       'clubs[0].farmSkaters: is not a field of format version 2',
+    )
+    expect(problemsOf({ ...exported(), formatVersion: 2 })).toContain(
+      'clubs[0].skaters[0].service: is not a field of format version 2',
     )
   })
 
@@ -286,8 +289,10 @@ describe('contracts in the file (ADR-030, #125)', () => {
       for (const player of [
         ...(club.skaters as Record<string, unknown>[]),
         ...(club.goalies as Record<string, unknown>[]),
-      ])
+      ]) {
         delete player.contract
+        delete player.service
+      }
     const provider = createFileRosterProvider(JSON.stringify(file), NHL_2026_27)
     const opened = await startSeason(SEED, provider)
     const named = new Set(

@@ -9,12 +9,16 @@ import {
   contractedOf,
   DRESSING_MINIMUM,
   farmMoves,
+  openingService,
+  serviceAfter,
+  waiverExempt,
   type FarmDay,
 } from '../src/farm/index.js'
 import {
   advanceDay,
   contractedSeason,
   isSeasonOver,
+  nextSeason,
   noticesOf,
   replaceInjured,
   startSeason,
@@ -272,5 +276,151 @@ describe('a Season stored before the farm', () => {
     )
     expect(contractedSeason(stored)).toEqual(upgraded)
     expect(contractedSeason(upgraded)).toBe(upgraded)
+  })
+})
+
+describe('the exemption from waivers (CBA 13.4)', () => {
+  const skater = (signedAt: number, seasons: number, games: number, shortenedIn?: number) =>
+    ({
+      ...start.clubs[0]!.skaters[0]!,
+      service: { signedAt, seasons, games, ...(shortenedIn ? { shortenedIn } : {}) },
+    }) as Player
+  const goalie = (signedAt: number, seasons: number, games: number) =>
+    ({ ...start.clubs[0]!.goalies[0]!, service: { signedAt, seasons, games } }) as Player
+  const exemption = rules.waivers.exemption
+  /** Exempt in each Season from the first, playing `games` NHL games a Season. */
+  const seasonsExempt = (first: Player, games: number): boolean[] => {
+    let player = first
+    const out: boolean[] = []
+    for (let i = 0; i < 7; i++) {
+      out.push(waiverExempt(player, rules, games))
+      player = { ...player, service: serviceAfter(player.service!, games, exemption) }
+    }
+    return out
+  }
+
+  it('example (a): signed at 18 and played 11 NHL games in his first Season, exempt for three', () => {
+    // Fewer than 160 games in all, so the Seasons end it.
+    expect(seasonsExempt(skater(18, 0, 0), 12)).toEqual([
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+    ])
+  })
+
+  it('example (b): signed at 19, 11 games in his first Season, exempt for three', () => {
+    expect(seasonsExempt(skater(19, 0, 0), 11)).toEqual([
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+    ])
+  })
+
+  it('example (c): signed at 20, exempt for three Seasons', () => {
+    expect(seasonsExempt(skater(20, 0, 0), 5)).toEqual([
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+    ])
+  })
+
+  it('example (d): signed at 25 or older, exempt for the Season he signs in only', () => {
+    expect(seasonsExempt(skater(27, 0, 0), 30).slice(0, 2)).toEqual([true, false])
+  })
+
+  it('keeps an 18-year-old who stays on the farm exempt for five Seasons', () => {
+    expect(seasonsExempt(skater(18, 0, 0), 0)).toEqual([true, true, true, true, true, false, false])
+  })
+
+  it('ends the exemption the day his games reach the limit, playoffs included', () => {
+    expect(waiverExempt(skater(21, 1, 70), rules, 9)).toBe(true)
+    expect(waiverExempt(skater(21, 1, 70), rules, 10)).toBe(false)
+    expect(waiverExempt(skater(22, 0, 0), rules, 70)).toBe(false)
+  })
+
+  it('reads the Goalies’ own table', () => {
+    // A Goalie signed at 20: four Seasons or 80 games.
+    expect(seasonsExempt(goalie(20, 0, 0), 10)).toEqual([
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+    ])
+    expect(waiverExempt(goalie(20, 0, 79), rules, 1)).toBe(false)
+    // An 18-year-old Goalie's shortened exemption is four Seasons.
+    const young = { ...goalie(18, 0, 0) }
+    expect(seasonsExempt(young, 11).filter(Boolean)).toHaveLength(4)
+  })
+
+  it('counts a young Player’s shortened exemption from the Season of his eleventh game', () => {
+    // Five Seasons at 18; the 11 games come in his third, so three from there: the fifth.
+    const third = skater(18, 2, 6)
+    expect(waiverExempt(third, rules, 11)).toBe(true)
+    const after = serviceAfter(third.service!, 11, exemption)
+    expect(after.shortenedIn).toBe(3)
+    expect(after).toEqual({ signedAt: 18, seasons: 3, games: 17, shortenedIn: 3 })
+  })
+
+  it('exempts a Player who has not signed', () => {
+    const unsigned: Player = { ...skater(20, 0, 0) }
+    delete unsigned.service
+    expect(waiverExempt(unsigned, rules, 0)).toBe(true)
+  })
+})
+
+describe('service through a run (D-03)', () => {
+  it('opens a league with service estimated from age, and folds each Season’s games into it', () => {
+    for (const club of start.clubs) {
+      for (const player of contractedOf(club)) {
+        expect(player.service).toEqual(openingService(player))
+      }
+    }
+  })
+})
+
+describe('service a Season on', () => {
+  it('adds the Season and the NHL games played in it, playoffs included, and starts a new signing at nothing', () => {
+    let ended = start
+    while (!isSeasonOver(ended)) ended = advanceDay(ended).state
+    const next = nextSeason(ended)
+    const before = new Map(ended.clubs.flatMap(contractedOf).map((p) => [p.id, p]))
+    const games = (id: PlayerId) =>
+      [ended.totals.regular, ended.totals.playoffs].reduce(
+        (sum, t) => sum + ((t.skaters[id] ?? t.goalies[id])?.gamesPlayed ?? 0),
+        0,
+      )
+    let checked = 0
+    for (const player of next.clubs.flatMap(contractedOf)) {
+      const was = before.get(player.id)
+      if (!was) {
+        // A first contract signed between the Seasons, or a Player who had one before.
+        expect(player.service).toBeDefined()
+        continue
+      }
+      expect(player.service!.seasons).toBe(was.service!.seasons + 1)
+      expect(player.service!.games).toBe(was.service!.games + games(player.id))
+      checked++
+    }
+    expect(checked).toBeGreaterThan(100)
+    const called = next.clubs
+      .flatMap(contractedOf)
+      .filter((p) => p.contract?.kind === 'entry-level' && !before.has(p.id))
+    for (const player of called)
+      expect(player.service).toEqual({ signedAt: player.age, seasons: 0, games: 0 })
   })
 })

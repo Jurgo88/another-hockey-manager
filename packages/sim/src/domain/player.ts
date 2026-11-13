@@ -38,6 +38,30 @@ interface PlayerBase {
    * Season starts; a prospect never does. The engine does not read it.
    */
   contract?: Contract
+  /**
+   * What his exemption from waivers reads (CBA 13.4, ADR-036): kept from his
+   * first contract on, and folded from the records each Season (D-03). The
+   * engine does not read it.
+   */
+  service?: Service
+}
+
+/**
+ * A Player's service as waivers count it (ADR-036): his age at his first
+ * contract, and the Seasons and NHL games since, before the Season under way.
+ */
+export interface Service {
+  /** His age when he signed his first contract in the league. */
+  signedAt: number
+  /** Seasons he has completed under contract. */
+  seasons: number
+  /** NHL games, regular Season and playoffs, in those Seasons. */
+  games: number
+  /**
+   * For a Player who signed young, the Season, counted from 1, in which he first
+   * played the NHL games that shorten his exemption; absent until then.
+   */
+  shortenedIn?: number
 }
 
 export interface Skater extends PlayerBase {

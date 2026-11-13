@@ -1,5 +1,5 @@
 import { farmOf, type Club } from '../domain/club.js'
-import type { FarmRules } from '../domain/farm.js'
+import type { FarmRules, WaiverExemption } from '../domain/farm.js'
 import {
   isGoalie,
   naturalPosition,
@@ -10,6 +10,7 @@ import {
   type Player,
   type PlayerId,
   type PositionGroup,
+  type Service,
   type Skater,
 } from '../domain/player.js'
 import { ACTIVE_SHAPE } from '../domain/roster.js'
@@ -90,6 +91,72 @@ export function assignedClub(club: Club): Club {
       .forEach((p) => chosen.add(p.id))
   }
   return withActive(club, chosen)
+}
+
+// ---------------------------------------------------------------------------
+// Service and the exemption from waivers (CBA 13.4)
+
+/**
+ * The age at which a Player in a league as it opens is taken to have signed his
+ * first contract, when nothing says otherwise: an estimate. A Player older than
+ * it is taken to have played every Season since under contract, and NHL games
+ * are not estimated, so his Seasons end his exemption.
+ */
+export const OPENING_SIGNED_AT = 20
+
+/** The service of a Player as a league opens, when his source gives none. */
+export function openingService(player: Player): Service {
+  const signedAt = Math.min(player.age, OPENING_SIGNED_AT)
+  return { signedAt, seasons: player.age - signedAt, games: 0 }
+}
+
+/** The service of a Player who has just signed his first contract. */
+export function firstService(player: Player): Service {
+  return { signedAt: player.age, seasons: 0, games: 0 }
+}
+
+/**
+ * A Player's service after a Season under contract, with the NHL games he
+ * played in it, regular Season and playoffs, folded from its events (D-03).
+ */
+export function serviceAfter(service: Service, games: number, exemption: WaiverExemption): Service {
+  const season = service.seasons + 1
+  const shortens =
+    service.shortenedIn === undefined &&
+    service.signedAt <= exemption.youngUpTo &&
+    games >= exemption.shortenAfter
+  return {
+    ...service,
+    seasons: season,
+    games: service.games + games,
+    ...(shortens ? { shortenedIn: season } : {}),
+  }
+}
+
+/**
+ * Whether a Player goes down to the farm without waivers (CBA 13.4), given the
+ * NHL games he has played so far this Season. The row of his age at signing
+ * sets the Seasons and the games, and whichever runs out first ends it; for a
+ * Player who signed young, the Seasons are cut from the first in which he played
+ * enough games. A Player without service is exempt: he has not signed yet.
+ */
+export function waiverExempt(player: Player, rules: FarmRules, gamesThisSeason: number): boolean {
+  const service = player.service
+  if (!service) return true
+  const { exemption } = rules.waivers
+  const goalie = isGoalie(player)
+  const table = goalie ? exemption.goalies : exemption.skaters
+  const row = table.find((r) => service.signedAt <= r.age) ?? table.at(-1)!
+  if (row.games !== null && service.games + gamesThisSeason >= row.games) return false
+  const season = service.seasons + 1
+  let allowed = row.seasons
+  if (service.signedAt <= exemption.youngUpTo) {
+    const from =
+      service.shortenedIn ?? (gamesThisSeason >= exemption.shortenAfter ? season : undefined)
+    const shortened = goalie ? exemption.shortened.goalies : exemption.shortened.skaters
+    if (from !== undefined) allowed = Math.min(allowed, from - 1 + shortened)
+  }
+  return season <= allowed
 }
 
 /** A move between a Club's active Roster and its farm. */

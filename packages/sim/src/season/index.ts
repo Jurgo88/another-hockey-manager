@@ -29,6 +29,7 @@ import {
   type Player,
   type PlayerId,
   type PositionGroup,
+  type Service,
   type Skater,
 } from '../domain/player.js'
 import type { PlayoffFormat, PlayoffState } from '../domain/playoff.js'
@@ -39,6 +40,9 @@ import {
   afterFarmMoves,
   assignedClub,
   contractedOf,
+  firstService,
+  openingService,
+  serviceAfter,
   DRESSING_MINIMUM,
   farmMoves,
   type FarmMove,
@@ -366,7 +370,10 @@ export async function startSeason(
     format.cap,
     loaded.clubs.map((club) => withFarm(club, seed)),
     createRng(seed).fork('contracts'),
-  ).map((club) => atFloor(format.cap, club, 0))
+  )
+    // Everyone under contract has service for waivers, estimated where the source gives none.
+    .map((club) => serviced(club, openingService))
+    .map((club) => atFloor(format.cap, club, 0))
   const unset: SeasonState = {
     ...freshSeason(seed, structure, 1),
     seed,
@@ -450,7 +457,7 @@ export function contractedSeason(state: UncontractedSeason): SeasonState {
     state.capRules?.buried !== undefined &&
     state.deadMoney !== undefined &&
     state.farmRules !== undefined
-  if (current && !unsigned(state.clubs)) return state as SeasonState
+  if (current && !unsigned(state.clubs) && !unserviced(state.clubs)) return state as SeasonState
   // Rules stored before #129 lack the floor, buyouts and the playoff regime,
   // and before #133 the buried allowance.
   const capRules: CapRules = { ...NHL_2026_27_SEASON.cap, ...state.capRules }
@@ -464,11 +471,43 @@ export function contractedSeason(state: UncontractedSeason): SeasonState {
     farmRules: state.farmRules ?? NHL_2026_27_SEASON.farm,
     injuredReserve: state.injuredReserve ?? {},
     deadMoney: state.deadMoney ?? {},
-    clubs: unsigned(farmed)
+    clubs: (unsigned(farmed)
       ? openingContracts(capRules, farmed, createRng(state.seed).fork('contracts')).map((club) =>
           atFloor(capRules, club, 0),
         )
-      : farmed,
+      : farmed
+    ).map((club) => serviced(club, openingService)),
+  }
+}
+
+/** Whether any Player under contract lacks service for waivers (stored before #133). */
+const unserviced = (clubs: readonly Club[]) =>
+  clubs.some((club) => contractedOf(club).some((player) => player.contract && !player.service))
+
+/** A Club whose Players under contract all have service, `from` giving it to any who lack it. */
+function serviced(club: Club, from: (player: Player) => Service): Club {
+  const give = <P extends Player>(player: P): P =>
+    player.contract && !player.service ? { ...player, service: from(player) } : player
+  return {
+    ...club,
+    skaters: club.skaters.map(give),
+    goalies: club.goalies.map(give),
+    ...(club.farm ? { farm: club.farm.map(give) } : {}),
+  }
+}
+
+/**
+ * A Player's service after the Season just played, with the NHL games he played
+ * in it, regular Season and playoffs, folded from its events (D-03).
+ */
+function servedSeason<P extends Player>(state: SeasonState, player: P): P {
+  if (!player.service) return player
+  const games = (totals: SeasonTotals) =>
+    (totals.skaters[player.id] ?? totals.goalies[player.id])?.gamesPlayed ?? 0
+  const played = games(state.totals.regular) + games(state.totals.playoffs)
+  return {
+    ...player,
+    service: serviceAfter(player.service, played, state.farmRules.waivers.exemption),
   }
 }
 
@@ -524,7 +563,8 @@ export function endSeason(state: SeasonState): Offseason {
   )
   const gone = new Set(departures.map((departure) => departure.playerId))
   const grownClubs = held.map((club) => {
-    const grown = <P extends Player>(player: P) => olderAndRested(developed(state, club.id, player))
+    const grown = <P extends Player>(player: P) =>
+      olderAndRested(servedSeason(state, developed(state, club.id, player)))
     const stays = (player: Player) => !gone.has(player.id)
     return {
       ...club,
@@ -1223,7 +1263,12 @@ export function startNextSeason(offseason: Offseason): SeasonState {
     )
     // The assistant picks the active Roster, the rest go to the farm (ADR-036),
     // and the floor binds as the Season starts (ADR-031).
-    return atFloor(state.capRules, assignedClub(full), deadCharge(off.deadMoney[club.id]))
+    // Whoever signed his first contract between the Seasons starts his service.
+    return atFloor(
+      state.capRules,
+      assignedClub(serviced(full, firstService)),
+      deadCharge(off.deadMoney[club.id]),
+    )
   })
   const gone = new Set(off.departures.map((departure) => departure.playerId))
   const absent = Object.fromEntries(

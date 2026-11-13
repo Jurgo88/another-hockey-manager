@@ -218,12 +218,47 @@ export const NHL_CAP_RULES: CapRules = {
  * memoranda of 2020 and 2025 left it: an active Roster of 23 (16.4), 50
  * contracts (Article 10), Injured Reserve from 7 days (16.11), emergency
  * call-ups below 2 Goalies, 6 defencemen and 12 forwards fit (13.12(m)).
+ *
+ * The exemption from waivers as 13.4 tables it, Skaters and Goalies apart, NHL
+ * games counting the playoffs. A Player who signs at 18 or 19 has his Seasons
+ * cut to 3, a Goalie to 4, from the first Season in which he plays 11 NHL games
+ * or more. 13.4 counts a young Player's Seasons from his signing and an older
+ * one's from his first professional game; in a league whose farm plays, every
+ * Season under contract is professional, so both count from the first Season
+ * under contract.
  */
 export const NHL_FARM_RULES: FarmRules = {
   activeMax: 23,
   contractsMax: 50,
   injuredReserveDays: 7,
   emergency: { forward: 12, defence: 6, goalie: 2 },
+  waivers: {
+    exemption: {
+      skaters: [
+        { age: 18, seasons: 5, games: 160 },
+        { age: 19, seasons: 4, games: 160 },
+        { age: 20, seasons: 3, games: 160 },
+        { age: 21, seasons: 3, games: 80 },
+        { age: 22, seasons: 3, games: 70 },
+        { age: 23, seasons: 3, games: 60 },
+        { age: 24, seasons: 2, games: 60 },
+        { age: 25, seasons: 1, games: null },
+      ],
+      goalies: [
+        { age: 18, seasons: 6, games: 80 },
+        { age: 19, seasons: 5, games: 80 },
+        { age: 20, seasons: 4, games: 80 },
+        { age: 21, seasons: 4, games: 60 },
+        { age: 22, seasons: 4, games: 60 },
+        { age: 23, seasons: 3, games: 60 },
+        { age: 24, seasons: 2, games: 60 },
+        { age: 25, seasons: 1, games: null },
+      ],
+      youngUpTo: 19,
+      shortenAfter: 11,
+      shortened: { skaters: 3, goalies: 4 },
+    },
+  },
 }
 
 /** A Season of the NHL 2026-27: its alignment, bracket, draft, contracts and farm. */
