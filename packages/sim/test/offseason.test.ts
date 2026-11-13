@@ -21,6 +21,7 @@ import {
   type SeasonState,
 } from '../src/season/index.js'
 import { SMALL_SEASON } from './support/league.js'
+import { contractedOf } from '../src/farm/index.js'
 
 /** The draft room and the notices between Seasons (ADR-028 amendment, #92). */
 
@@ -143,8 +144,9 @@ describe('notices between Seasons', () => {
       const notices = startNoticesOf(drafted, next, club.id)
       // A Player who tested the market and came back did not arrive.
       const ended = drafted.ended.clubs.find((c) => c.id === club.id)!
-      const before = new Set([...ended.skaters, ...ended.goalies].map((p) => p.id))
-      const arrived = [...club.skaters, ...club.goalies]
+      // Everyone a Club holds, active Roster and farm (ADR-036).
+      const before = new Set(contractedOf(ended).map((p) => p.id))
+      const arrived = contractedOf(club)
         .filter((p) => !before.has(p.id))
         .map((p) => p.id)
       expect(

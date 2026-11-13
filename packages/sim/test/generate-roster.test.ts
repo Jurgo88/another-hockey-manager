@@ -3,7 +3,8 @@ import { ATTRIBUTE_MAX, ATTRIBUTE_MIN, SKATER_ATTRIBUTE_KEYS } from '../src/doma
 import type { Club } from '../src/domain/club.js'
 import { playerLevel, type Skater } from '../src/domain/player.js'
 import { isUniformSource } from '../src/domain/provenance.js'
-import { ROSTER_SHAPE, ROSTER_SIZE } from '../src/domain/roster.js'
+import { ACTIVE_SHAPE, ACTIVE_SIZE, ROSTER_SIZE } from '../src/domain/roster.js'
+import { GENERATED_ROSTER } from '../src/generate/roster.js'
 import { NHL_2026_27, NHL_2026_27_CLUB_SEEDS } from '../src/data/nhl-2026-27.js'
 import { createGeneratedRosterProvider, generateSkater } from '../src/generate/roster.js'
 import {
@@ -109,19 +110,20 @@ describe('createGeneratedRosterProvider', () => {
         defence: defence.length,
       }).toEqual({
         club: club.id,
-        skaters: ROSTER_SHAPE.forwards + ROSTER_SHAPE.defence,
-        goalies: ROSTER_SHAPE.goalies,
-        forwards: ROSTER_SHAPE.forwards,
-        defence: ROSTER_SHAPE.defence,
+        skaters: GENERATED_ROSTER.forwards + GENERATED_ROSTER.defence,
+        goalies: GENERATED_ROSTER.goalies,
+        forwards: GENERATED_ROSTER.forwards,
+        defence: GENERATED_ROSTER.defence,
       })
     }
   })
 
-  it('produces enough depth to make Lineup selection meaningful', () => {
-    // A Lineup dresses 18 Skaters and 2 Goalies (FR-20).
-    expect(ROSTER_SHAPE.forwards + ROSTER_SHAPE.defence).toBeGreaterThan(18)
-    expect(ROSTER_SHAPE.goalies).toBeGreaterThan(2)
-    expect(ROSTER_SIZE).toBe(29)
+  it('produces enough depth to make Lineup selection meaningful, and a farm (ADR-036)', () => {
+    // A Lineup dresses 18 Skaters and 2 Goalies (FR-20), the NHL's active Roster holds 23.
+    expect(ACTIVE_SHAPE.forwards + ACTIVE_SHAPE.defence).toBeGreaterThan(18)
+    expect(ACTIVE_SHAPE.goalies).toBe(2)
+    expect(ACTIVE_SIZE).toBe(23)
+    expect(ROSTER_SIZE).toBe(34)
   })
 
   it('gives every Player a unique id and no duplicate names inside a Club', () => {

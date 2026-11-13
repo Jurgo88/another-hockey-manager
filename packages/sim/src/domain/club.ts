@@ -1,4 +1,4 @@
-import type { ClubId, Goalie, PlayerId, Skater } from './player.js'
+import type { ClubId, Goalie, Player, PlayerId, Skater } from './player.js'
 
 export type ManagerId = string
 
@@ -21,8 +21,21 @@ export interface Club {
   /** Short code used in standings tables, e.g. 'BOS'. */
   code: string
   name: string
+  /** The active Roster (ADR-036): only these dress, and only these the engine sees. */
   skaters: readonly Skater[]
   goalies: readonly Goalie[]
+  /**
+   * Players under contract on the Club's farm, off the active Roster (ADR-036).
+   * Optional: a Club without one has an empty farm. Between Seasons, while the
+   * windows are open, a Club's contracted Players are held together on the
+   * active Roster, and the farm is empty until the next Season assigns them.
+   */
+  farm?: readonly Player[]
+}
+
+/** A Club's farm, empty when it has none. */
+export function farmOf(club: Club): readonly Player[] {
+  return club.farm ?? []
 }
 
 /** A forward unit. */

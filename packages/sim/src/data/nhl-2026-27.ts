@@ -13,6 +13,7 @@
 
 import type { CapRules } from '../domain/contract.js'
 import type { DraftFormat } from '../domain/draft.js'
+import type { FarmRules } from '../domain/farm.js'
 import type {
   Conference,
   CompetitionStructure,
@@ -189,7 +190,8 @@ const NHL_CAP_2026_27 = 104_000_000
  * since September 2026: 7 Seasons with the Player's own Club, 6 with another.
  * The floor of $76.9M, buyouts at two thirds of what is left (one third under
  * 26) over twice the Seasons left, and the playoff cap on the dressed Lineup
- * from the 2026 playoffs (ADR-031).
+ * from the 2026 playoffs (ADR-031). A contract on the farm counts only above
+ * the minimum plus $375,000 (CBA 50.5, ADR-036).
  */
 export const NHL_CAP_RULES: CapRules = {
   upperLimit: NHL_CAP_2026_27,
@@ -208,12 +210,27 @@ export const NHL_CAP_RULES: CapRules = {
   },
   restrictedUntil: 27,
   maxTerm: { ownClub: 7, otherClub: 6 },
+  buried: (850_000 + 375_000) / NHL_CAP_2026_27,
 }
 
-/** A Season of the NHL 2026-27: its alignment, bracket, draft and contracts. */
+/**
+ * The NHL's farm rules for 2026-27 (ADR-036), from the CBA of 2013 as the
+ * memoranda of 2020 and 2025 left it: an active Roster of 23 (16.4), 50
+ * contracts (Article 10), Injured Reserve from 7 days (16.11), emergency
+ * call-ups below 2 Goalies, 6 defencemen and 12 forwards fit (13.12(m)).
+ */
+export const NHL_FARM_RULES: FarmRules = {
+  activeMax: 23,
+  contractsMax: 50,
+  injuredReserveDays: 7,
+  emergency: { forward: 12, defence: 6, goalie: 2 },
+}
+
+/** A Season of the NHL 2026-27: its alignment, bracket, draft, contracts and farm. */
 export const NHL_2026_27_SEASON: SeasonFormat = {
   structure: NHL_2026_27,
   playoffs: NHL_PLAYOFF_FORMAT,
   draft: NHL_DRAFT_FORMAT,
   cap: NHL_CAP_RULES,
+  farm: NHL_FARM_RULES,
 }

@@ -15,7 +15,12 @@ import {
   type AttributeProvenance,
   type AttributeSource,
 } from '../domain/provenance.js'
-import { ROSTER_SHAPE, type CompetitionRosters, type RosterProvider } from '../domain/roster.js'
+import {
+  NHL_ROSTER_SHAPE,
+  ROSTER_SHAPE,
+  type CompetitionRosters,
+  type RosterProvider,
+} from '../domain/roster.js'
 
 /**
  * The roster file (ADR-020, `06-roster-file.md`): the Rosters of one Competition
@@ -30,11 +35,17 @@ import { ROSTER_SHAPE, type CompetitionRosters, type RosterProvider } from '../d
  * currency against the `capUpperLimit` the file names, so a file of one season
  * keeps its shares of the cap in a league with another. A Player without one gets
  * the contract a league opens with. Version 1 is still read.
+ *
+ * Version 3 adds the farm (ADR-036, #133): a Club may list Players on its farm
+ * apart from its active Roster. A Club then holds the shape of every contracted
+ * Player, active Roster and farm together; a Club without a farm may still hold
+ * the NHL Roster alone, 16-10-3, which a Season completes with a farm.
  */
 
 export const ROSTER_FILE_FORMAT = 'ahm-roster'
-export const ROSTER_FILE_VERSION = 2
-const VERSIONS_READ = [1, 2] as const
+export const ROSTER_FILE_VERSION = 3
+const VERSIONS_READ = [1, 2, 3] as const
+
 
 export interface RosterFile {
   format: typeof ROSTER_FILE_FORMAT
@@ -59,6 +70,9 @@ export interface RosterFileClub {
   name: string
   skaters: readonly RosterFileSkater[]
   goalies: readonly RosterFileGoalie[]
+  /** On the farm, off the active Roster (version 3). */
+  farmSkaters?: readonly RosterFileSkater[]
+  farmGoalies?: readonly RosterFileGoalie[]
 }
 
 interface RosterFilePlayer {
@@ -99,7 +113,15 @@ const HANDEDNESS: readonly Handedness[] = ['left', 'right']
 const SOURCES: readonly AttributeSource[] = ['measured', 'derived', 'rated', 'generated']
 
 const FILE_FIELDS = ['format', 'formatVersion', 'competitionId', 'capUpperLimit', 'clubs'] as const
-const CLUB_FIELDS = ['id', 'code', 'name', 'skaters', 'goalies'] as const
+const CLUB_FIELDS = [
+  'id',
+  'code',
+  'name',
+  'skaters',
+  'goalies',
+  'farmSkaters',
+  'farmGoalies',
+] as const
 const PLAYER_FIELDS = [
   'id',
   'firstName',
@@ -169,32 +191,43 @@ function filePlayer(player: Skater | Goalie, capUpperLimit: number | undefined):
  */
 export function rosterFileOf(rosters: CompetitionRosters, capUpperLimit?: number): RosterFile {
   const contracted = rosters.clubs.some((club) =>
-    [...club.skaters, ...club.goalies].some((player) => player.contract),
+    [...club.skaters, ...club.goalies, ...(club.farm ?? [])].some((player) => player.contract),
   )
   if (contracted && capUpperLimit === undefined) {
     throw new Error('Rosters with contracts need the cap their cap hits are shares of')
   }
+  const fileSkater = (skater: Skater): RosterFileSkater => ({
+    ...filePlayer(skater, capUpperLimit),
+    positions: [...skater.preferredPositions],
+    attributes: { ...skater.attributes },
+    provenance: fullProvenance(SKATER_ATTRIBUTE_KEYS, skater.provenance),
+  })
+  const fileGoalie = (goalie: Goalie): RosterFileGoalie => ({
+    ...filePlayer(goalie, capUpperLimit),
+    attributes: { ...goalie.attributes },
+    provenance: fullProvenance(GOALIE_ATTRIBUTE_KEYS, goalie.provenance),
+  })
   return {
     format: ROSTER_FILE_FORMAT,
     formatVersion: ROSTER_FILE_VERSION,
     competitionId: rosters.structure.id,
     ...(contracted && capUpperLimit !== undefined ? { capUpperLimit } : {}),
-    clubs: rosters.clubs.map((club) => ({
-      id: club.id,
-      code: club.code,
-      name: club.name,
-      skaters: club.skaters.map((skater) => ({
-        ...filePlayer(skater, capUpperLimit),
-        positions: [...skater.preferredPositions],
-        attributes: { ...skater.attributes },
-        provenance: fullProvenance(SKATER_ATTRIBUTE_KEYS, skater.provenance),
-      })),
-      goalies: club.goalies.map((goalie) => ({
-        ...filePlayer(goalie, capUpperLimit),
-        attributes: { ...goalie.attributes },
-        provenance: fullProvenance(GOALIE_ATTRIBUTE_KEYS, goalie.provenance),
-      })),
-    })),
+    clubs: rosters.clubs.map((club) => {
+      const farm = club.farm ?? []
+      return {
+        id: club.id,
+        code: club.code,
+        name: club.name,
+        skaters: club.skaters.map(fileSkater),
+        goalies: club.goalies.map(fileGoalie),
+        ...(farm.length > 0
+          ? {
+              farmSkaters: farm.filter((p): p is Skater => p.kind === 'skater').map(fileSkater),
+              farmGoalies: farm.filter((p): p is Goalie => p.kind === 'goalie').map(fileGoalie),
+            }
+          : {}),
+      }
+    }),
   }
 }
 
@@ -363,44 +396,67 @@ function checkClub(check: Checker, value: unknown, path: string, file: FileConte
   check.text(club, 'code', path)
   check.text(club, 'name', path)
 
-  const skaters = check.array(club, 'skaters', path) ?? []
   let forwards = 0
   let defence = 0
-  skaters.forEach((entry, i) => {
-    const at = `${path}.skaters[${i}]`
-    const skater = check.object(entry, at, SKATER_FIELDS)
-    if (!skater) return
-    checkPlayer(check, skater, at, file)
-    checkContract(check, skater, at, file)
-    const natural = checkPositions(check, skater, at)
-    if (natural) {
-      if (FORWARD_POSITIONS.includes(natural)) forwards++
-      else defence++
-    }
-    checkAttributes(check, skater, at, SKATER_ATTRIBUTE_KEYS)
-    checkProvenance(check, skater, at, SKATER_ATTRIBUTE_KEYS)
-  })
-
-  const goalies = check.array(club, 'goalies', path) ?? []
-  goalies.forEach((entry, i) => {
-    const at = `${path}.goalies[${i}]`
-    const goalie = check.object(entry, at, PLAYER_FIELDS)
-    if (!goalie) return
-    checkPlayer(check, goalie, at, file)
-    checkContract(check, goalie, at, file)
-    checkAttributes(check, goalie, at, GOALIE_ATTRIBUTE_KEYS)
-    checkProvenance(check, goalie, at, GOALIE_ATTRIBUTE_KEYS)
-  })
-
-  // The Roster shape the injury rate is calibrated on (ADR-012, ADR-020).
-  if (forwards !== ROSTER_SHAPE.forwards || defence !== ROSTER_SHAPE.defence) {
-    check.add(
-      `${path}.skaters`,
-      `must hold ${ROSTER_SHAPE.forwards} forwards and ${ROSTER_SHAPE.defence} defencemen by natural position, has ${forwards} and ${defence}`,
-    )
+  const checkSkaters = (key: 'skaters' | 'farmSkaters') => {
+    const skaters = key === 'skaters' ? (check.array(club, key, path) ?? []) : optional(key)
+    skaters.forEach((entry, i) => {
+      const at = `${path}.${key}[${i}]`
+      const skater = check.object(entry, at, SKATER_FIELDS)
+      if (!skater) return
+      checkPlayer(check, skater, at, file)
+      checkContract(check, skater, at, file)
+      const natural = checkPositions(check, skater, at)
+      if (natural) {
+        if (FORWARD_POSITIONS.includes(natural)) forwards++
+        else defence++
+      }
+      checkAttributes(check, skater, at, SKATER_ATTRIBUTE_KEYS)
+      checkProvenance(check, skater, at, SKATER_ATTRIBUTE_KEYS)
+    })
   }
-  if (goalies.length !== ROSTER_SHAPE.goalies) {
-    check.add(`${path}.goalies`, `must hold ${ROSTER_SHAPE.goalies}, has ${goalies.length}`)
+  const checkGoalies = (key: 'goalies' | 'farmGoalies') => {
+    const goalies = key === 'goalies' ? (check.array(club, key, path) ?? []) : optional(key)
+    goalies.forEach((entry, i) => {
+      const at = `${path}.${key}[${i}]`
+      const goalie = check.object(entry, at, PLAYER_FIELDS)
+      if (!goalie) return
+      checkPlayer(check, goalie, at, file)
+      checkContract(check, goalie, at, file)
+      checkAttributes(check, goalie, at, GOALIE_ATTRIBUTE_KEYS)
+      checkProvenance(check, goalie, at, GOALIE_ATTRIBUTE_KEYS)
+    })
+    return goalies.length
+  }
+  // The farm is a field of version 3 (ADR-036).
+  const optional = (key: 'farmSkaters' | 'farmGoalies'): readonly unknown[] => {
+    if (club[key] === undefined) return []
+    if (file.version < 3) {
+      check.add(`${path}.${key}`, `is not a field of format version ${file.version}`)
+      return []
+    }
+    return check.array(club, key, path) ?? []
+  }
+
+  checkSkaters('skaters')
+  checkSkaters('farmSkaters')
+  const goalies = checkGoalies('goalies') + checkGoalies('farmGoalies')
+  const hasFarm = club.farmSkaters !== undefined || club.farmGoalies !== undefined
+
+  // The NHL Roster alone, which a Season completes with a farm, or every
+  // contracted Player, active Roster and farm together (ADR-020, ADR-036).
+  const shapes = hasFarm || file.version < 3 ? [hasFarm ? ROSTER_SHAPE : NHL_ROSTER_SHAPE] : [NHL_ROSTER_SHAPE, ROSTER_SHAPE]
+  const fits = shapes.some(
+    (shape) => forwards === shape.forwards && defence === shape.defence && goalies === shape.goalies,
+  )
+  if (!fits) {
+    const named = shapes
+      .map((s) => `${s.forwards} forwards, ${s.defence} defencemen and ${s.goalies} Goalies`)
+      .join(', or ')
+    check.add(
+      path,
+      `must hold ${named} by natural position${hasFarm ? ', active Roster and farm together' : ''}, has ${forwards}, ${defence} and ${goalies}`,
+    )
   }
 }
 
@@ -497,27 +553,28 @@ function importedClub(club: RosterFileClub, capUpperLimit: number | undefined): 
     ...contractOf(entry),
   })
 
+  const skater = (entry: RosterFileSkater): Skater => ({
+    kind: 'skater',
+    ...player(entry),
+    preferredPositions: [...entry.positions],
+    attributes: { ...entry.attributes },
+    provenance: importedProvenance(SKATER_ATTRIBUTE_KEYS, entry.provenance),
+  })
+  const goalie = (entry: RosterFileGoalie): Goalie => ({
+    kind: 'goalie',
+    ...player(entry),
+    attributes: { ...entry.attributes },
+    provenance: importedProvenance(GOALIE_ATTRIBUTE_KEYS, entry.provenance),
+  })
+  const farm = [...(club.farmSkaters ?? []).map(skater), ...(club.farmGoalies ?? []).map(goalie)]
+
   return {
     id: club.id,
     code: club.code,
     name: club.name,
-    skaters: club.skaters.map(
-      (skater): Skater => ({
-        kind: 'skater',
-        ...player(skater),
-        preferredPositions: [...skater.positions],
-        attributes: { ...skater.attributes },
-        provenance: importedProvenance(SKATER_ATTRIBUTE_KEYS, skater.provenance),
-      }),
-    ),
-    goalies: club.goalies.map(
-      (goalie): Goalie => ({
-        kind: 'goalie',
-        ...player(goalie),
-        attributes: { ...goalie.attributes },
-        provenance: importedProvenance(GOALIE_ATTRIBUTE_KEYS, goalie.provenance),
-      }),
-    ),
+    skaters: club.skaters.map(skater),
+    goalies: club.goalies.map(goalie),
+    ...(club.farmSkaters !== undefined || club.farmGoalies !== undefined ? { farm } : {}),
   }
 }
 

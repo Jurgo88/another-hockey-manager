@@ -1,6 +1,7 @@
 import type { CapRules } from './contract.js'
 import type { ClubId } from './player.js'
 import type { DraftFormat } from './draft.js'
+import type { FarmRules } from './farm.js'
 import type { OvertimeRegime, PlayoffFormat } from './playoff.js'
 
 export type ConferenceId = string
@@ -77,4 +78,5 @@ export interface SeasonFormat {
   playoffs: PlayoffFormat
   draft: DraftFormat
   cap: CapRules
+  farm: FarmRules
 }

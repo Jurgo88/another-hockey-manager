@@ -115,6 +115,11 @@ export interface CapRules {
   restrictedUntil: number
   /** The longest contract in Seasons: with the Player's own Club, and with another. */
   maxTerm: { ownClub: number; otherClub: number }
+  /**
+   * What a contract on the farm leaves off the cap, as a share of it: it counts
+   * only by how much its cap hit exceeds this (ADR-036, CBA 50.5).
+   */
+  buried: number
 }
 
 /** The length of an entry-level contract signed at `age`. */

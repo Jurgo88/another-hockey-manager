@@ -10,7 +10,7 @@ import {
   type SkaterPosition,
 } from '../domain/player.js'
 import { uniformProvenance } from '../domain/provenance.js'
-import { ROSTER_SHAPE, type CompetitionRosters, type RosterProvider } from '../domain/roster.js'
+import type { CompetitionRosters, RosterProvider } from '../domain/roster.js'
 import { createRng, type Rng } from '../rng/index.js'
 import { generateDistinctNames } from './names.js'
 import {
@@ -35,6 +35,18 @@ import {
  * its own forked stream, so adding or reordering Clubs does not change the
  * Players on the others - the same reasoning as D-08 for Fixtures.
  */
+
+/**
+ * The NHL Roster a generated Club opens with, one Player per slot of the
+ * ladders: 16 forwards, 10 defencemen and 3 Goalies. A Season completes it with
+ * a farm from a stream of its own (ADR-036, #133), so the Players generated here
+ * are those generated before the farm came.
+ */
+export const GENERATED_ROSTER = {
+  forwards: FORWARD_SLOT_ABILITY.length,
+  defence: DEFENCE_SLOT_ABILITY.length,
+  goalies: GOALIE_SLOT_ABILITY.length,
+} as const
 
 const FORWARD_SLOT_POSITIONS: readonly SkaterPosition[] = ['LW', 'C', 'RW']
 const DEFENCE_SLOT_POSITIONS: readonly SkaterPosition[] = ['LD', 'RD']
@@ -139,7 +151,7 @@ function generateClub(
 ): Club {
   const names = generateDistinctNames(
     rng,
-    ROSTER_SHAPE.forwards + ROSTER_SHAPE.defence + ROSTER_SHAPE.goalies,
+    GENERATED_ROSTER.forwards + GENERATED_ROSTER.defence + GENERATED_ROSTER.goalies,
   )
   let nameIndex = 0
 
@@ -167,7 +179,7 @@ function generateClub(
 
   DEFENCE_SLOT_ABILITY.forEach((slotAbility, index) => {
     addSkater(
-      ROSTER_SHAPE.forwards + index,
+      GENERATED_ROSTER.forwards + index,
       slotAbility,
       DEFENCE_SLOT_POSITIONS[index % 2]!,
     )

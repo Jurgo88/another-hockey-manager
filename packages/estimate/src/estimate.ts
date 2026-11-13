@@ -1,6 +1,6 @@
 import {
   GOALIE_ATTRIBUTE_KEYS,
-  ROSTER_SHAPE,
+  NHL_ROSTER_SHAPE,
   SKATER_ATTRIBUTE_KEYS,
   abilityOfLevel,
   createRng,
@@ -122,13 +122,13 @@ export function chooseRosters(records: SeasonRecords, clubs: readonly ClubIdenti
       .sort(byIce)
     return {
       club,
-      forwards: skatersHere.filter((p) => p.record.position !== 'D').slice(0, ROSTER_SHAPE.forwards),
-      defence: skatersHere.filter((p) => p.record.position === 'D').slice(0, ROSTER_SHAPE.defence),
+      forwards: skatersHere.filter((p) => p.record.position !== 'D').slice(0, NHL_ROSTER_SHAPE.forwards),
+      defence: skatersHere.filter((p) => p.record.position === 'D').slice(0, NHL_ROSTER_SHAPE.defence),
       goalies: here
         .filter((s) => s.goalie && goalies.has(s.playerId))
         .map((stint) => ({ record: goalies.get(stint.playerId)!, stint }))
         .sort(byIce)
-        .slice(0, ROSTER_SHAPE.goalies),
+        .slice(0, NHL_ROSTER_SHAPE.goalies),
     }
   })
 }
@@ -753,12 +753,12 @@ export function estimateRosters(records: SeasonRecords, options: EstimateOptions
     const fillForwards = fillPositions(
       forwards.map((p) => listedNatural(p.record)),
       'forwards',
-      ROSTER_SHAPE.forwards - forwards.length,
+      NHL_ROSTER_SHAPE.forwards - forwards.length,
     )
     const fillDefence = fillPositions(
       defence.map((p) => listedNatural(p.record)),
       'defence',
-      ROSTER_SHAPE.defence - defence.length,
+      NHL_ROSTER_SHAPE.defence - defence.length,
     )
     const extra = new Map<SkaterPosition, number>()
     for (const p of [...fillForwards, ...fillDefence]) extra.set(p, (extra.get(p) ?? 0) + 1)
@@ -785,7 +785,7 @@ export function estimateRosters(records: SeasonRecords, options: EstimateOptions
     }
     fills.set(
       club.id,
-      fillClub(club.id, fillForwards, fillDefence, ROSTER_SHAPE.goalies - goalies.length, settings.seed, reference),
+      fillClub(club.id, fillForwards, fillDefence, NHL_ROSTER_SHAPE.goalies - goalies.length, settings.seed, reference),
     )
   }
 

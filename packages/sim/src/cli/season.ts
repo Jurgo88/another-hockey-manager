@@ -16,6 +16,7 @@ import {
 } from '../season/index.js'
 import { careerTotals, skaterCareer, type SeasonRecord } from '../stats/history.js'
 import { deadCharge } from '../generate/contracts.js'
+import { contractedOf } from '../farm/index.js'
 import type { RosterContract } from '../stats/league.js'
 import { points, type MatchStats } from '../stats/match.js'
 import { foldSeason, type SeasonStats } from '../stats/season.js'
@@ -119,8 +120,9 @@ export async function simulateSeasons(
     const { clubs } = state
     const lineups = new Map(Object.entries(state.lineups))
     while (!isSeasonOver(state)) state = advanceDay(state).state
+    // Everyone a Club holds, its farm too (ADR-036).
     for (const club of state.clubs) {
-      for (const player of [...club.skaters, ...club.goalies]) players.set(player.id, player)
+      for (const player of contractedOf(club)) players.set(player.id, player)
     }
     seasons.push(recordOf(state))
     deadMoney.push(
@@ -130,7 +132,7 @@ export async function simulateSeasons(
     )
     contracts.push(
       state.clubs.flatMap((club) =>
-        [...club.skaters, ...club.goalies].map((player) => ({
+        contractedOf(club).map((player) => ({
           playerId: player.id,
           clubId: club.id,
           ...(player.contract ? { contract: player.contract } : {}),

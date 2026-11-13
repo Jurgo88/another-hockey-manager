@@ -10,6 +10,7 @@ import type {
   ReSigningViolation,
 } from '../domain/contract.js'
 import type { MatchEvent } from '../domain/event.js'
+import type { FarmRules } from '../domain/farm.js'
 import type { Fixture, FixtureChange, FixtureId, FixtureInput } from '../domain/fixture.js'
 import type {
   DraftFormat,
@@ -31,9 +32,17 @@ import {
   type Skater,
 } from '../domain/player.js'
 import type { PlayoffFormat, PlayoffState } from '../domain/playoff.js'
-import { ROSTER_SHAPE, ROSTER_SIZE, type RosterProvider } from '../domain/roster.js'
+import { ACTIVE_SIZE, ROSTER_SHAPE, type RosterProvider } from '../domain/roster.js'
 import type { StandingsRow } from '../domain/standings.js'
 import { NHL_2026_27_CLUB_SEEDS, NHL_2026_27_SEASON } from '../data/nhl-2026-27.js'
+import {
+  afterFarmMoves,
+  assignedClub,
+  contractedOf,
+  DRESSING_MINIMUM,
+  farmMoves,
+  type FarmMove,
+} from '../farm/index.js'
 import { develop, expectedLevel } from '../develop/index.js'
 import {
   applyMoves,
@@ -77,6 +86,7 @@ import {
   entryLevelContract,
   minimumContract,
   openingContracts,
+  payroll,
   placesOf,
   tickedContracts,
   tickedDeadMoney,
@@ -119,7 +129,9 @@ export interface SeasonState {
   draftFormat: DraftFormat
   /** What contracts are made to (ADR-030). */
   capRules: CapRules
-  /** Every rostered Player holds a contract (#125). */
+  /** What a Club's active Roster and farm are kept to (ADR-036). */
+  farmRules: FarmRules
+  /** Every rostered Player holds a contract (#125), on the active Roster or the farm (ADR-036). */
   clubs: readonly Club[]
   /** Each Club's declared Lineup. What a Fixture gets is this, less injuries and rotation. */
   lineups: Readonly<Record<ClubId, Lineup>>
@@ -137,6 +149,12 @@ export interface SeasonState {
    * every Fixture before it, however many the Club plays meanwhile.
    */
   absent: Readonly<Record<PlayerId, number>>
+  /**
+   * Those out long enough to go on Injured Reserve (CBA 16.11, ADR-036): they
+   * stay on their Club's active Roster without counting against its limit,
+   * until they are back.
+   */
+  injuredReserve: Readonly<Record<PlayerId, true>>
   /** The regular-Season table. */
   standings: readonly StandingsRow[]
   /** Player counts so far, the playoffs kept apart. */
@@ -287,6 +305,8 @@ export interface PlayedDay {
   state: SeasonState
   day: number
   played: readonly PlayedFixture[]
+  /** Call-ups and send-downs made before the day's Fixtures (ADR-036). */
+  moves: readonly FarmMove[]
 }
 
 /** What a Manager is told about a day. A new kind of news is one more member here. */
@@ -300,6 +320,8 @@ export type ClubNotice =
   | { kind: 'drafted'; day: number; playerId: PlayerId; round: number; pick: number }
   | { kind: 'released'; day: number; playerId: PlayerId }
   | { kind: 'calledUp'; day: number; playerId: PlayerId }
+  // From the farm and to it during a Season (ADR-036, #133).
+  | { kind: 'sentDown'; day: number; playerId: PlayerId }
   | { kind: 'joined'; day: number; playerId: PlayerId }
   | { kind: 'reSigned'; day: number; playerId: PlayerId; years: number }
   | { kind: 'letGo'; day: number; playerId: PlayerId }
@@ -339,19 +361,23 @@ export async function startSeason(
       ),
     })
   const loaded = await rosters.loadCompetition(structure.id)
-  // The floor binds as every Season starts, the first too (ADR-031).
-  const clubs = openingContracts(format.cap, loaded.clubs, createRng(seed).fork('contracts')).map(
-    (club) => atFloor(format.cap, club, 0),
-  )
+  // Every Club has a farm (ADR-036). The floor binds as every Season starts, the first too (ADR-031).
+  const clubs = openingContracts(
+    format.cap,
+    loaded.clubs.map((club) => withFarm(club, seed)),
+    createRng(seed).fork('contracts'),
+  ).map((club) => atFloor(format.cap, club, 0))
   const unset: SeasonState = {
     ...freshSeason(seed, structure, 1),
     seed,
     playoffFormat: format.playoffs,
     draftFormat: format.draft,
     capRules: format.cap,
+    farmRules: format.farm,
     clubs,
     lineups: {},
     absent: {},
+    injuredReserve: {},
     departures: [],
     prospects: openingProspects(
       format.draft,
@@ -366,12 +392,42 @@ export async function startSeason(
 }
 
 /**
- * A Season as stored before contracts (#125): without cap rules or dead money,
- * its Players without contracts, its rules perhaps without the floor (#129).
+ * A Club as a Season opens (ADR-036): one whose source gives it a farm keeps
+ * it; otherwise everyone it holds is pooled, completed with an undrafted fill
+ * to the shape of a Club's contracts, and the assistant picks its active
+ * Roster. The fill draws from a stream of the Club's own (D-08).
  */
-export type UncontractedSeason = Omit<SeasonState, 'capRules' | 'deadMoney'> & {
+function withFarm(club: Club, seed: number): Club {
+  if (club.farm !== undefined) return club
+  const pool = pooled(club)
+  const full = filledRosterAt(pool, [], createRng(seed).fork(`farm:${club.id}`), 1)
+  return assignedClub(full)
+}
+
+/** A Club with everyone it holds on its active Roster and none on its farm, as between Seasons. */
+function pooled(club: Club): Club {
+  const all = contractedOf(club)
+  return {
+    ...club,
+    skaters: all.filter((p): p is Skater => !isGoalie(p)),
+    goalies: all.filter((p): p is Goalie => isGoalie(p)),
+    farm: [],
+  }
+}
+
+/**
+ * A Season as stored before contracts (#125): without cap rules or dead money,
+ * its Players without contracts, its rules perhaps without the floor (#129),
+ * the buried allowance or the farm (#133).
+ */
+export type UncontractedSeason = Omit<
+  SeasonState,
+  'capRules' | 'deadMoney' | 'farmRules' | 'injuredReserve'
+> & {
   capRules?: Partial<CapRules>
   deadMoney?: SeasonState['deadMoney']
+  farmRules?: FarmRules
+  injuredReserve?: SeasonState['injuredReserve']
 }
 
 /** A phase between Seasons as stored before contracts (#125). */
@@ -382,7 +438,7 @@ export type UncontractedOffseason = Omit<
   Partial<Pick<Offseason, 'expiring' | 'reSignings' | 'deadMoney'>> & { ended: UncontractedSeason }
 
 const unsigned = (clubs: readonly Club[]) =>
-  clubs.some((club) => [...club.skaters, ...club.goalies].some((player) => !player.contract))
+  clubs.some((club) => contractedOf(club).some((player) => !player.contract))
 
 /**
  * A Season stored before contracts brought up to them (#125): the NHL's cap
@@ -390,19 +446,29 @@ const unsigned = (clubs: readonly Club[]) =>
  * opened with. The same Season gives the same contracts each time it is read.
  */
 export function contractedSeason(state: UncontractedSeason): SeasonState {
-  const current = state.capRules?.lowerLimit !== undefined && state.deadMoney !== undefined
+  const current =
+    state.capRules?.buried !== undefined &&
+    state.deadMoney !== undefined &&
+    state.farmRules !== undefined
   if (current && !unsigned(state.clubs)) return state as SeasonState
-  // Rules stored before #129 lack the floor, buyouts and the playoff regime.
+  // Rules stored before #129 lack the floor, buyouts and the playoff regime,
+  // and before #133 the buried allowance.
   const capRules: CapRules = { ...NHL_2026_27_SEASON.cap, ...state.capRules }
+  // Stored before the farm (#133): every Club gets one, the same each time it is read.
+  const farmed = state.farmRules
+    ? state.clubs
+    : state.clubs.map((club) => withFarm(club, state.seed))
   return {
     ...state,
     capRules,
+    farmRules: state.farmRules ?? NHL_2026_27_SEASON.farm,
+    injuredReserve: state.injuredReserve ?? {},
     deadMoney: state.deadMoney ?? {},
-    clubs: unsigned(state.clubs)
-      ? openingContracts(capRules, state.clubs, createRng(state.seed).fork('contracts')).map(
-          (club) => atFloor(capRules, club, 0),
+    clubs: unsigned(farmed)
+      ? openingContracts(capRules, farmed, createRng(state.seed).fork('contracts')).map((club) =>
+          atFloor(capRules, club, 0),
         )
-      : state.clubs,
+      : farmed,
   }
 }
 
@@ -450,12 +516,14 @@ export function endSeason(state: SeasonState): Offseason {
 
   const year = state.year + 1
   const format = state.draftFormat
-  const roleOf = roles(state.clubs, (player) => usageOf(state, player))
-  const departures = leaving(state.clubs, roleOf, (player) =>
+  // Between Seasons a Club's active Roster and farm are held as one (ADR-036).
+  const held = state.clubs.map(pooled)
+  const roleOf = roles(held, (player) => usageOf(state, player))
+  const departures = leaving(held, roleOf, (player) =>
     createRng(state.seed).fork(`leave:y${state.year}:${player.id}`),
   )
   const gone = new Set(departures.map((departure) => departure.playerId))
-  const grownClubs = state.clubs.map((club) => {
+  const grownClubs = held.map((club) => {
     const grown = <P extends Player>(player: P) => olderAndRested(developed(state, club.id, player))
     const stays = (player: Player) => !gone.has(player.id)
     return {
@@ -465,7 +533,7 @@ export function endSeason(state: SeasonState): Offseason {
     }
   })
   const clubs = tickedContracts(grownClubs)
-  const places = placesOf(state.clubs, (player) => roleOf.get(player.id) ?? 0)
+  const places = placesOf(held, (player) => roleOf.get(player.id) ?? 0)
   const expiring = Object.fromEntries(
     clubs
       .flatMap((club) => [...club.skaters, ...club.goalies])
@@ -849,10 +917,14 @@ export function proposedOffers(off: Offseason, clubId: ClubId): Offer[] {
       1,
     )
   }
+  // Not a Player the Club has just bought out.
+  const released = new Set(off.rosterMoves[clubId]?.released ?? [])
   for (const natural of needs) {
     // At the natural position of the gap only, so the Club keeps its balance of
     // centres, wings and sides and can dress a Lineup.
-    const candidates = best.filter((a) => naturalOf(a.player) === natural)
+    const candidates = best.filter(
+      (a) => naturalOf(a.player) === natural && !released.has(a.player.id),
+    )
     for (const agent of candidates) {
       if (taken.has(agent.player.id)) continue
       const ask = freeAgentAsk(off, agent.player.id)
@@ -1088,7 +1160,7 @@ export function runRosterMoves(offseason: Offseason): Offseason {
  * natural position for every Player who has joined it since.
  */
 function missingFrom(off: Offseason, club: Club): Player[] {
-  const ended = new Set(rosterIds(clubOf(off.ended, club.id)))
+  const ended = new Set(heldIds(clubOf(off.ended, club.id)))
   const joined = [...club.skaters, ...club.goalies].filter((p) => !ended.has(p.id))
   return stillMissing(leaversOf(off, club.id), joined)
 }
@@ -1102,16 +1174,6 @@ function shortOf(club: Club): Natural[] {
       () => natural,
     ),
   )
-}
-
-/** The fewest a Club needs at each natural position to dress a Lineup (FR-20). */
-const DRESSING_MINIMUM: Readonly<Record<Natural, number>> = {
-  LW: 4,
-  C: 4,
-  RW: 4,
-  LD: 3,
-  RD: 3,
-  G: 2,
 }
 
 /** The natural positions of a Club's open places: what it needs to dress, then whom it lost. */
@@ -1159,8 +1221,9 @@ export function startNextSeason(offseason: Offseason): SeasonState {
       filledRosterAt(club, needsAtOpening(off, club), fillStream(off, club.id), year),
       new Set(),
     )
-    // The floor binds as the Season starts (ADR-031).
-    return atFloor(state.capRules, full, deadCharge(off.deadMoney[club.id]))
+    // The assistant picks the active Roster, the rest go to the farm (ADR-036),
+    // and the floor binds as the Season starts (ADR-031).
+    return atFloor(state.capRules, assignedClub(full), deadCharge(off.deadMoney[club.id]))
   })
   const gone = new Set(off.departures.map((departure) => departure.playerId))
   const absent = Object.fromEntries(
@@ -1168,6 +1231,12 @@ export function startNextSeason(offseason: Offseason): SeasonState {
       .filter(([id]) => !gone.has(id))
       .map(([id, back]) => [id, back - daysPerYear] as const)
       .filter(([, back]) => back > firstDay),
+  )
+  // Whoever is still out on the first day stays on Injured Reserve.
+  const injuredReserve = Object.fromEntries(
+    Object.keys(absent)
+      .filter((id) => id in state.injuredReserve)
+      .map((id) => [id, true] as const),
   )
   const lineups = Object.fromEntries(
     clubs.map((club) => {
@@ -1182,6 +1251,7 @@ export function startNextSeason(offseason: Offseason): SeasonState {
     clubs,
     lineups,
     absent,
+    injuredReserve,
     departures: off.departures,
     prospects: off.prospects,
     draft: off.picks,
@@ -1210,7 +1280,7 @@ function signed(rules: CapRules, club: Club, calledUp: ReadonlySet<PlayerId>): C
 /** The Players of a Club in a Season whose contracts ran out with it, in Roster order. */
 function expiringIn(state: SeasonState, off: Offseason, clubId: ClubId): PlayerId[] {
   const club = state.clubs.find((candidate) => candidate.id === clubId)
-  return club ? rosterIds(club).filter((id) => id in off.expiring) : []
+  return club ? heldIds(club).filter((id) => id in off.expiring) : []
 }
 
 /** A Club's Players whose contracts ran out, still on its Roster until the window closes. */
@@ -1338,17 +1408,25 @@ export function runReSigning(offseason: Offseason): Offseason {
   return { ...off, phase: 'roster', clubs, freeAgents, reSignings: made }
 }
 
-/** Players whose contracts count for a Club's payroll in the Season ahead. */
-const contracted = (players: readonly Player[]) =>
-  players.reduce((sum, player) => sum + (player.contract?.capHit ?? 0), 0)
-
 /**
  * A Club's payroll for the Season ahead (ADR-031): the contracts it holds, its
  * dead money, and every place its Roster still has open at the minimum, since
  * the fill will take them at that.
  */
 function payrollAhead(rules: CapRules, players: readonly Player[], dead: number): number {
-  return contracted(players) + Math.max(0, ROSTER_SIZE - players.length) * rules.minimum + dead
+  // The Players the assistant would put on the active Roster count in full, the
+  // farm only above the buried allowance (ADR-036), and each active place still
+  // open at the minimum. A place on the farm at the minimum counts nothing.
+  const club = assignedClub({
+    id: '',
+    code: '',
+    name: '',
+    skaters: players.filter((p): p is Skater => !isGoalie(p)),
+    goalies: players.filter((p): p is Goalie => isGoalie(p)),
+  })
+  const active = club.skaters.length + club.goalies.length
+  const open = Math.max(0, ACTIVE_SIZE - active)
+  return payroll(club, rules.buried) + open * Math.max(0, rules.minimum) + dead
 }
 
 /** Within rounding of a share of the cap. */
@@ -1443,7 +1521,7 @@ const GROUP_SHAPE: Readonly<Record<PositionGroup, number>> = {
 function leaversOf(off: Offseason, clubId: ClubId): Player[] {
   const now = new Set(rosterIds(offseasonClub(off, clubId)))
   const ended = off.ended.clubs.find((club) => club.id === clubId)
-  return ended ? [...ended.skaters, ...ended.goalies].filter((p) => !now.has(p.id)) : []
+  return ended ? contractedOf(ended).filter((p) => !now.has(p.id)) : []
 }
 
 /** A Club's gaps, at the natural positions of those who left them. */
@@ -1502,7 +1580,7 @@ export function recordOf(state: SeasonState): SeasonRecord {
     draft: state.draft,
     departures: state.departures,
     roster: state.clubs.flatMap((club) =>
-      [...club.skaters, ...club.goalies].map((player) => ({
+      contractedOf(club).map((player) => ({
         playerId: player.id,
         clubId: club.id,
         age: player.age,
@@ -1603,8 +1681,19 @@ export function replaceInjured(
   day = nextDay(state),
 ): Lineup {
   const club = clubOf(state, clubId)
-  const out = new Set(rosterIds(club).filter((id) => daysOut(state, id, day) > 0))
-  return withoutInjured(club, lineup, out)
+  return withoutInjured(club, lineup, unavailable(state, club, lineup, day))
+}
+
+/**
+ * Who cannot play for a Club on `day`: those hurt, and those in its Lineup no
+ * longer on its active Roster, sent down since it was declared (ADR-036).
+ */
+function unavailable(state: SeasonState, club: Club, lineup: Lineup, day: number): Set<PlayerId> {
+  const active = new Set(rosterIds(club))
+  return new Set([
+    ...rosterIds(club).filter((id) => daysOut(state, id, day) > 0),
+    ...dressed(lineup).filter((id) => !active.has(id)),
+  ])
 }
 
 /** Calendar days a Player is still out from `day`, by default the next day with Fixtures; 0 if fit. */
@@ -1780,7 +1869,10 @@ export function noticesOf(before: SeasonState, played: PlayedDay, clubId: ClubId
     .flatMap(({ match }) => match.injuries)
     .filter((injury) => injury.clubId === clubId)
     .map(({ playerId, days }): ClubNotice => ({ kind: 'injury', day, playerId, days }))
-  return [...recovered, ...injured]
+  const moved = played.moves
+    .filter((move) => move.clubId === clubId)
+    .map(({ kind, playerId }): ClubNotice => ({ kind, day, playerId }))
+  return [...recovered, ...moved, ...injured]
 }
 
 /**
@@ -1851,7 +1943,7 @@ export function startNoticesOf(
   // The next Season closes every window nobody closed.
   const off = runMarket(offseason)
   const day = next.fixtures[0]!.day
-  const before = new Set(rosterIds(clubOf(off.ended, clubId)))
+  const before = new Set(heldIds(clubOf(off.ended, clubId)))
   const moves = off.rosterMoves[clubId] ?? { calledUp: [], released: [] }
   const calledUp = new Set(moves.calledUp)
   const released = moves.released.map((playerId): ClubNotice => ({
@@ -1859,7 +1951,7 @@ export function startNoticesOf(
     day,
     playerId,
   }))
-  const arrived = rosterIds(clubOf(next, clubId))
+  const arrived = heldIds(clubOf(next, clubId))
     .filter((id) => !before.has(id))
     .map((id): ClubNotice => ({
       kind: calledUp.has(id) ? 'calledUp' : 'joined',
@@ -1901,7 +1993,8 @@ export function advanceDay(state: SeasonState): PlayedDay {
   if (!next) throw new Error(`Season s${state.seed} has no Fixtures left`)
 
   const played: PlayedFixture[] = []
-  let current = recovered(state, next.day)
+  const { state: moved, moves } = withFarmMoves(recovered(state, next.day), next.day)
+  let current = moved
   for (;;) {
     const fixture = current.fixtures[current.nextFixture]
     if (fixture?.day !== next.day) break
@@ -1909,7 +2002,24 @@ export function advanceDay(state: SeasonState): PlayedDay {
     current = step.state
     played.push(step.played)
   }
-  return { state: afterDay(current, next.day, played), day: next.day, played }
+  return { state: afterDay(current, next.day, played), day: next.day, played, moves }
+}
+
+/**
+ * Every Club's call-ups and send-downs before a day's Fixtures (ADR-036): the
+ * assistant's, the same call for every Club (D-04).
+ */
+function withFarmMoves(state: SeasonState, day: number): { state: SeasonState; moves: FarmMove[] } {
+  const moves: FarmMove[] = []
+  const clubs = state.clubs.map((club) => {
+    const made = farmMoves(club, state.farmRules, {
+      out: (id) => daysOut(state, id, day) > 0,
+      injuredReserve: (id) => id in state.injuredReserve,
+    })
+    moves.push(...made)
+    return afterFarmMoves(club, made)
+  })
+  return moves.length === 0 ? { state, moves } : { state: { ...state, clubs }, moves }
 }
 
 /**
@@ -1987,9 +2097,13 @@ function nextDay(state: SeasonState): number {
 /** The state with everyone back by `day` no longer absent. */
 function recovered(state: SeasonState, day: number): SeasonState {
   const absent = Object.fromEntries(Object.entries(state.absent).filter(([, back]) => back > day))
-  return Object.keys(absent).length === Object.keys(state.absent).length
-    ? state
-    : { ...state, absent }
+  if (Object.keys(absent).length === Object.keys(state.absent).length) return state
+  const injuredReserve = Object.fromEntries(
+    Object.keys(state.injuredReserve)
+      .filter((id) => id in absent)
+      .map((id) => [id, true] as const),
+  )
+  return { ...state, absent, injuredReserve }
 }
 
 function fixtureOf(state: SeasonState, fixtureId: FixtureId): Fixture {
@@ -2026,6 +2140,11 @@ function rosterIds(club: Club): PlayerId[] {
   return [...club.skaters, ...club.goalies].map((player) => player.id)
 }
 
+/** Everyone a Club holds under contract, active Roster and farm (ADR-036). */
+function heldIds(club: Club): PlayerId[] {
+  return contractedOf(club).map((player) => player.id)
+}
+
 function rested(state: SeasonState, clubId: ClubId, day: number): Club {
   const club = clubOf(state, clubId)
   const last = state.lastPlayed[clubId]
@@ -2034,7 +2153,7 @@ function rested(state: SeasonState, clubId: ClubId, day: number): Club {
     ...club,
     skaters: club.skaters.map((skater) => ({
       ...skater,
-      fatigue: afterRest(state.fatigue[skater.id]!, day - last, skater.attributes.stamina),
+      fatigue: afterRest(state.fatigue[skater.id] ?? 0, day - last, skater.attributes.stamina),
     })),
   }
 }
@@ -2062,9 +2181,9 @@ const playoffCapBinds = (state: SeasonState) =>
  * until it fits or nobody left makes it cheaper.
  */
 function withinPlayoffCap(state: SeasonState, clubId: ClubId, lineup: Lineup, day: number): Lineup {
-  if (!playoffCapBinds(state)) return lineup
+  if (!playoffCapBinds(state)) return replaceInjured(state, clubId, lineup, day)
   const club = clubOf(state, clubId)
-  const injured = rosterIds(club).filter((id) => daysOut(state, id, day) > 0)
+  const injured = [...unavailable(state, club, lineup, day)]
   const hit = new Map(
     [...club.skaters, ...club.goalies].map((p) => [p.id, p.contract?.capHit ?? 0]),
   )
@@ -2112,7 +2231,11 @@ function playFixture(
   const match = foldMatch(fixture, events)
 
   const absent = { ...state.absent }
-  for (const { playerId, days } of match.injuries) absent[playerId] = day + days
+  const injuredReserve = { ...state.injuredReserve }
+  for (const { playerId, days } of match.injuries) {
+    absent[playerId] = day + days
+    if (days >= state.farmRules.injuredReserveDays) injuredReserve[playerId] = true
+  }
   const live = { ...state.live }
   delete live[fixture.id]
 
@@ -2137,6 +2260,7 @@ function playFixture(
         ),
       },
       absent,
+      injuredReserve,
       live,
       standings:
         state.playoffs === null

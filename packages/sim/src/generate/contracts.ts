@@ -1,4 +1,4 @@
-import type { Club } from '../domain/club.js'
+import { farmOf, type Club } from '../domain/club.js'
 import {
   entryLevelYears,
   statusOnExpiry,
@@ -45,7 +45,7 @@ export function placesOf(
   score: (player: Player) => number = playerLevel,
 ): Map<PlayerId, Place> {
   const places = new Map<PlayerId, Place>()
-  const players = clubs.flatMap((club) => [...club.skaters, ...club.goalies])
+  const players = clubs.flatMap((club) => [...club.skaters, ...club.goalies, ...farmOf(club)])
   for (const group of ['forward', 'defence', 'goalie'] as const) {
     const regulars = Math.round(NHL_CAP_SHARES.regularsPerClub[group] * clubs.length)
     players
@@ -186,15 +186,30 @@ function openingContract(rules: CapRules, player: Player, place: Place, rng: Rng
   )
 }
 
-/** A Club's cap hits in all, as a share of the cap. */
-export function payroll(club: Club): number {
-  return [...club.skaters, ...club.goalies].reduce(
-    (sum, player) => sum + (player.contract?.capHit ?? 0),
-    0,
+/**
+ * A Club's cap hits in all, as a share of the cap: its active Roster, and its
+ * farm only above `buried` (ADR-036).
+ */
+export function payroll(club: Club, buried = 0): number {
+  const hit = (player: Player) => player.contract?.capHit ?? 0
+  return (
+    [...club.skaters, ...club.goalies].reduce((sum, player) => sum + hit(player), 0) +
+    farmOf(club).reduce((sum, player) => sum + Math.max(0, hit(player) - buried), 0)
   )
 }
 
+/** Every Player of a Club changed alike, on its farm too. */
 function mapPlayers(club: Club, f: <P extends Player>(player: P) => P): Club {
+  return {
+    ...club,
+    skaters: club.skaters.map(f),
+    goalies: club.goalies.map(f),
+    ...(club.farm ? { farm: club.farm.map(f) } : {}),
+  }
+}
+
+/** A Club's active Roster changed, its farm left as it is. */
+function mapActive(club: Club, f: <P extends Player>(player: P) => P): Club {
   return { ...club, skaters: club.skaters.map(f), goalies: club.goalies.map(f) }
 }
 
@@ -203,15 +218,17 @@ function mapPlayers(club: Club, f: <P extends Player>(player: P) => P): Club {
  * proportion to what it pays above it, so that it opens at the cap (ADR-030).
  */
 export function withinCap(rules: CapRules, club: Club): Club {
-  const total = payroll(club)
+  const total = payroll(club, rules.buried)
   if (total <= 1) return club
   const players = [...club.skaters, ...club.goalies]
   const floor = players.reduce(
     (sum, player) => sum + Math.min(player.contract?.capHit ?? 0, rules.minimum),
     0,
   )
-  const k = (1 - floor) / (total - floor)
-  return mapPlayers(club, (player) => {
+  // What the farm counts above the allowance stays as it is.
+  const farm = total - payroll(mapFarmOut(club))
+  const k = (1 - farm - floor) / (total - farm - floor)
+  return mapActive(club, (player) => {
     const contract = player.contract
     if (!contract || contract.capHit <= rules.minimum) return player
     return {
@@ -306,11 +323,12 @@ export function tickedDeadMoney(
  * short.
  */
 export function atFloor(rules: CapRules, club: Club, dead: number): Club {
+  // The active Roster is raised: on the farm a raise below the allowance would count nothing.
   const players = [...club.skaters, ...club.goalies]
-  const total = payroll(club) + dead
+  const total = payroll(club, rules.buried) + dead
   if (total >= rules.lowerLimit || players.length === 0) return club
   const hits = players.map((p) => p.contract?.capHit ?? 0).sort((a, b) => a - b)
-  const target = rules.lowerLimit - dead
+  const target = rules.lowerLimit - dead - (payroll(club, rules.buried) - payroll(mapFarmOut(club)))
   // The level L at which the sum of max(hit, L) reaches the target.
   let level = target / hits.length
   for (let k = hits.length; k > 0; k--) {
@@ -322,9 +340,14 @@ export function atFloor(rules: CapRules, club: Club, dead: number): Club {
     }
   }
   const lifted = Math.ceil(level * rules.upperLimit) / rules.upperLimit
-  return mapPlayers(club, (player) =>
+  return mapActive(club, (player) =>
     player.contract && player.contract.capHit < lifted
       ? { ...player, contract: { ...player.contract, capHit: lifted } }
       : player,
   )
+}
+
+/** A Club without its farm, so its active Roster's payroll can be read alone. */
+function mapFarmOut(club: Club): Club {
+  return { ...club, farm: [] }
 }

@@ -298,10 +298,15 @@ describe('following a Fixture (ADR-018)', () => {
     const state = opened()
     const lineup = fixtureSoFar(state, fixtureId).lineups[clubId]!
     const club = state.clubs.find((candidate) => candidate.id === clubId)!
-    const third = club.goalies.find((g) => g.id !== lineup.starter && g.id !== lineup.backup)!
+    // A spare on the active Roster, not dressed for this Fixture (ADR-036 keeps no third Goalie there).
+    const onLines = new Set(lineup.lines.flatMap((l) => [l.leftWing, l.centre, l.rightWing]))
+    const onPairings = new Set(lineup.pairings.flatMap((p) => [p.leftDefence, p.rightDefence]))
+    const spare = club.skaters.find((s) => !onLines.has(s.id) && !onPairings.has(s.id))!
+    const [fourth, ...upper] = [...lineup.lines].reverse()
+    const lines = [...upper.reverse(), { ...fourth!, leftWing: spare.id }] as unknown as typeof lineup.lines
 
     expect(() =>
-      continueFixture(state, fixtureId, [{ clubId, lineup: { ...lineup, backup: third.id } }]),
+      continueFixture(state, fixtureId, [{ clubId, lineup: { ...lineup, lines } }]),
     ).toThrow(InvalidLineupError)
   })
 

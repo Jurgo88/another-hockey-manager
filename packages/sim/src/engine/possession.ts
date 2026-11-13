@@ -136,9 +136,13 @@ const PASS_FIRST = 0.75
 /**
  * Exponent on the assist draw: above 1, the best passers on the ice are credited
  * more than their attributes alone would say. Calibrated on the league scoring
- * leader and the split of goals and assists at the top (#15, #74).
+ * leader and the split of goals and assists at the top (#15, #74). FITTED
+ * again in #133 from 4 to 3: with the farm, the forwards who play include the
+ * call-ups, as the measured league's do, and the forward tier-1 to tier-4
+ * points-per-minute ratio rose from 3.16 to 3.24, above its band of 2.71 ±0.50.
+ * At 3 it is 3.03, the scoring leader 123 and the top ten's assists 67.
  */
-const ASSIST_PULL = 4
+const ASSIST_PULL = 3
 /** A defenceman's pull on the assist draw relative to a forward. */
 const DEFENCE_ASSIST_WEIGHT = 0.5
 

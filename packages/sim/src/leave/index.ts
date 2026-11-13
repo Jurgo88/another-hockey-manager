@@ -207,10 +207,14 @@ export function filledRosterAt(
   if (skaterGaps.length + goalieGaps === 0) return club
 
   const names = generateDistinctNames(rng, skaterGaps.length + goalieGaps)
+  // An id the Club already holds is skipped: a roster file may carry a fill of its own.
+  const taken = new Set([...club.skaters, ...club.goalies, ...(club.farm ?? [])].map((p) => p.id))
   let n = 0
+  let k = 0
   const next = () => {
-    const k = n++
-    return { id: `${club.id}-y${year}-u${k}`, clubId: club.id, person: names[k]! }
+    const person = names[n++]!
+    while (taken.has(`${club.id}-y${year}-u${k}`)) k++
+    return { id: `${club.id}-y${year}-u${k++}`, clubId: club.id, person }
   }
 
   const skaters: Skater[] = skaterGaps.map((natural) => {

@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { NHL_2026_27, NHL_CAP_RULES } from '../src/data/nhl-2026-27.js'
-import type { CompetitionRosters } from '../src/domain/roster.js'
+import { ACTIVE_SIZE, ROSTER_SIZE, type CompetitionRosters } from '../src/domain/roster.js'
 import {
   createFileRosterProvider,
   readRosterFile,
@@ -38,6 +38,30 @@ function problemsOf(file: unknown): readonly string[] {
     throw error
   }
   return []
+}
+
+/**
+ * The file with each Club's NHL Roster alone, 16-10-3 and no farm, as versions 1
+ * and 2 hold it: the active Roster and the best of the farm (ADR-036).
+ */
+function nhlRostersOnly(file: ReturnType<typeof exported>): ReturnType<typeof exported> {
+  type Entry = { positions?: string[] }
+  const defence = (p: Entry) => ['LD', 'RD'].includes(p.positions![0]!)
+  for (const club of file.clubs) {
+    const farm = (club.farmSkaters ?? []) as Entry[]
+    const active = club.skaters as Entry[]
+    const forwards = 16 - active.filter((p) => !defence(p)).length
+    const backs = 10 - active.filter(defence).length
+    club.skaters = [
+      ...active,
+      ...farm.filter((p) => !defence(p)).slice(0, forwards),
+      ...farm.filter(defence).slice(0, backs),
+    ]
+    club.goalies = [...(club.goalies as unknown[]), ...((club.farmGoalies ?? []) as unknown[]).slice(0, 1)]
+    delete club.farmSkaters
+    delete club.farmGoalies
+  }
+  return file
 }
 
 const skaterOf = (file: ReturnType<typeof exported>, club: number, skater: number) =>
@@ -147,8 +171,8 @@ describe('roster file validation', () => {
   })
 
   it('refuses a newer version', () => {
-    expect(problemsOf({ ...exported(), formatVersion: 3 })).toEqual([
-      'formatVersion: 3 is newer than this version of the game reads (2)',
+    expect(problemsOf({ ...exported(), formatVersion: 4 })).toEqual([
+      'formatVersion: 4 is newer than this version of the game reads (3)',
     ])
   })
 
@@ -172,15 +196,36 @@ describe('roster file validation', () => {
     expect(problemsOf(file)).toEqual([`clubs[5].skaters[2].id: "${firstId}" is used by another Player`])
   })
 
-  it('holds a Club to the Roster shape (ADR-012)', () => {
+  it('holds a Club with a farm to the shape of its contracts (ADR-036)', () => {
     const file = exported()
     const club = file.clubs[0]!
-    club.goalies = (club.goalies as unknown[]).slice(0, 2)
+    club.farmGoalies = (club.farmGoalies as unknown[]).slice(0, 1)
     skaterOf(file, 0, 0).positions = ['LD']
     expect(problemsOf(file)).toEqual([
-      'clubs[0].skaters: must hold 16 forwards and 10 defencemen by natural position, has 15 and 11',
-      'clubs[0].goalies: must hold 3, has 2',
+      'clubs[0]: must hold 20 forwards, 10 defencemen and 4 Goalies by natural position, active Roster and farm together, has 19, 11 and 3',
     ])
+  })
+
+  it('lets a Club without a farm hold the NHL Roster alone, and a Season complete it (ADR-020, ADR-036)', async () => {
+    const file = nhlRostersOnly(exported())
+    expect(problemsOf(file)).toEqual([])
+    const opened = await startSeason(SEED, createFileRosterProvider(JSON.stringify(file), NHL_2026_27))
+    for (const club of opened.clubs) {
+      const all = [...club.skaters, ...club.goalies, ...(club.farm ?? [])]
+      expect(all).toHaveLength(ROSTER_SIZE)
+      expect(club.skaters.length + club.goalies.length).toBe(ACTIVE_SIZE)
+      expect(all.every((p) => p.contract !== undefined)).toBe(true)
+    }
+    file.clubs[1]!.goalies = (file.clubs[1]!.goalies as unknown[]).slice(0, 2)
+    expect(problemsOf(file)).toEqual([
+      'clubs[1]: must hold 16 forwards, 10 defencemen and 3 Goalies, or 20 forwards, 10 defencemen and 4 Goalies by natural position, has 16, 10 and 2',
+    ])
+  })
+
+  it('reads a farm only from version 3', () => {
+    expect(problemsOf({ ...exported(), formatVersion: 2 })).toContain(
+      'clubs[0].farmSkaters: is not a field of format version 2',
+    )
   })
 
   it('wants the Competition the Season is for', () => {
@@ -208,7 +253,7 @@ describe('roster file validation', () => {
 describe('contracts in the file (ADR-030, #125)', () => {
   it('writes each cap hit in whole currency against the cap it names', () => {
     const file = exported()
-    expect(file.formatVersion).toBe(2)
+    expect(file.formatVersion).toBe(3)
     expect(file.capUpperLimit).toBe(CAP)
     const contract = skaterOf(file, 0, 0).contract as { capHit: number }
     expect(Number.isInteger(contract.capHit)).toBe(true)
@@ -234,7 +279,7 @@ describe('contracts in the file (ADR-030, #125)', () => {
   })
 
   it('reads version 1, and the league opens every Player under contract', async () => {
-    const file = exported()
+    const file = nhlRostersOnly(exported())
     file.formatVersion = 1
     delete file.capUpperLimit
     for (const club of file.clubs)
@@ -245,7 +290,14 @@ describe('contracts in the file (ADR-030, #125)', () => {
         delete player.contract
     const provider = createFileRosterProvider(JSON.stringify(file), NHL_2026_27)
     const opened = await startSeason(SEED, provider)
-    expect(opened.clubs).toEqual(generated.clubs)
+    const named = new Set(
+      file.clubs.flatMap((club) =>
+        [...(club.skaters as { id: string }[]), ...(club.goalies as { id: string }[])].map((p) => p.id),
+      ),
+    )
+    const players = opened.clubs.flatMap((club) => [...club.skaters, ...club.goalies, ...(club.farm ?? [])])
+    expect(players.filter((p) => named.has(p.id))).toHaveLength(named.size)
+    expect(players.every((p) => p.contract !== undefined)).toBe(true)
   })
 
   it('wants the cap a contract is in, and no contract in version 1', () => {

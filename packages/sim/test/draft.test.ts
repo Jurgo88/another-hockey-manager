@@ -57,7 +57,8 @@ function playToChampion(state: SeasonState): SeasonState {
 /** Through stored JSON, as the application keeps state between requests (ADR-014). */
 const stored = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T
 
-const everyone = (club: Club): Player[] => [...club.skaters, ...club.goalies]
+/** Everyone a Club holds, active Roster and farm (ADR-036). */
+const everyone = (club: Club): Player[] => [...club.skaters, ...club.goalies, ...(club.farm ?? [])]
 
 /** A Player with every attribute at one value, so his level is that value. */
 function withLevel<P extends Player>(player: P, level: number): P {
@@ -396,12 +397,15 @@ describe('the phase between Seasons', () => {
     expect(next.prospects.some((p) => p.player.id === prospect.id)).toBe(false)
   })
 
-  it('keeps every Club at 16-10-3, able to dress, its prospects off the Lineup', () => {
+  it('keeps every Club at its shape, able to dress, its prospects off the Lineup (ADR-036)', () => {
     const next = startNextSeason(drafted)
     const held = new Set(next.prospects.map((p) => p.player.id))
     for (const club of next.clubs) {
       const forwards = club.skaters.filter((s) => positionGroup(s) === 'forward').length
-      expect([forwards, club.skaters.length - forwards, club.goalies.length]).toEqual([16, 10, 3])
+      expect([forwards, club.skaters.length - forwards, club.goalies.length]).toEqual([14, 7, 2])
+      const all = everyone(club)
+      const count = (group: string) => all.filter((p) => positionGroup(p) === group).length
+      expect([count('forward'), count('defence'), count('goalie')]).toEqual([20, 10, 4])
       expect(everyone(club).some((p) => held.has(p.id))).toBe(false)
       const lineup = next.lineups[club.id]!
       const dressed = [
