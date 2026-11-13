@@ -166,7 +166,9 @@ export function waiverExempt(player: Player, rules: FarmRules, gamesThisSeason: 
  * the farm.
  */
 export type FarmMove =
-  | { kind: 'calledUp' | 'sentDown' | 'waived' | 'cleared'; clubId: ClubId; playerId: PlayerId }
+  | { kind: 'sentDown' | 'waived' | 'cleared'; clubId: ClubId; playerId: PlayerId }
+  /** `emergency`: called up in a roster emergency, off the cap while it lasts (CBA 50.10(e)). */
+  | { kind: 'calledUp'; clubId: ClubId; playerId: PlayerId; emergency?: true }
   | { kind: 'claimed'; clubId: ClubId; playerId: PlayerId; fromClubId: ClubId }
 
 /**
@@ -177,6 +179,10 @@ export interface FarmDay {
   out: (playerId: PlayerId) => boolean
   injuredReserve: (playerId: PlayerId) => boolean
   free: (playerId: PlayerId) => boolean
+  /** Whether the cap allows the active Roster with these called up and these sent down (ADR-031). */
+  affords: (calledUp: readonly Player[], sentDown: readonly Player[]) => boolean
+  /** The most a Player called up in a roster emergency may be paid, as a share of the cap. */
+  emergencyCapHit: number
 }
 
 /**
@@ -188,6 +194,9 @@ export interface FarmDay {
  * shape calls up the best of its farm while the Roster has room, or whatever
  * it holds when fewer are fit than the emergency rule names (CBA 13.12(m)).
  * A Player on Injured Reserve does not count against the limit (CBA 16.11).
+ * A call-up must fit under the cap; in an emergency a Club that cannot afford
+ * one calls up the best Player paid little enough to come off the cap while it
+ * lasts (CBA 50.10(e)).
  */
 export function farmMoves(club: Club, rules: FarmRules, day: FarmDay): FarmMove[] {
   const moves: FarmMove[] = []
@@ -225,11 +234,30 @@ export function farmMoves(club: Club, rules: FarmRules, day: FarmDay): FarmMove[
           )
           .map(([natural]) => natural),
       )
-      const best = candidates.find((p) => lacking.has(naturalPosition(p))) ?? candidates[0]
-      if (!best) break
-      moves.push({ clubId: club.id, playerId: best.id, kind: 'calledUp' })
-      farm = farm.filter((p) => p.id !== best.id)
-      active = [...active, best]
+      const calledUp = () =>
+        moves
+          .filter((m) => m.kind === 'calledUp' && !m.emergency)
+          .map((m) => contractedOf(club).find((p) => p.id === m.playerId)!)
+      const sentDown = () =>
+        moves
+          .filter((m) => m.kind === 'sentDown')
+          .map((m) => contractedOf(club).find((p) => p.id === m.playerId)!)
+      const affordable = candidates.filter((p) => day.affords([...calledUp(), p], sentDown()))
+      const pick = (from: readonly Player[]) =>
+        from.find((p) => lacking.has(naturalPosition(p))) ?? from[0]
+      const best = pick(affordable)
+      const cheap = emergency
+        ? pick(candidates.filter((p) => (p.contract?.capHit ?? 0) <= day.emergencyCapHit))
+        : undefined
+      const chosen = best ?? cheap
+      if (!chosen) break
+      moves.push(
+        best
+          ? { clubId: club.id, playerId: chosen.id, kind: 'calledUp' }
+          : { clubId: club.id, playerId: chosen.id, kind: 'calledUp', emergency: true },
+      )
+      farm = farm.filter((p) => p.id !== chosen.id)
+      active = [...active, chosen]
     }
   }
   return moves

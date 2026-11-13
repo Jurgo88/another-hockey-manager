@@ -18,6 +18,7 @@ import {
 import {
   advanceDay,
   contractedSeason,
+  countedPayroll,
   goesDownFree,
   isSeasonOver,
   nextSeason,
@@ -101,11 +102,19 @@ describe('the active Roster', () => {
 })
 
 describe('call-ups for injuries (CBA 13.12, 16.11)', () => {
-  const none: FarmDay = { out: () => false, injuredReserve: () => false, free: () => true }
+  const none: FarmDay = {
+    out: () => false,
+    injuredReserve: () => false,
+    free: () => true,
+    affords: () => true,
+    emergencyCapHit: 0,
+  }
   const day = (out: readonly PlayerId[], reserve: readonly PlayerId[] = []): FarmDay => ({
     out: (id) => out.includes(id),
     injuredReserve: (id) => reserve.includes(id),
     free: () => true,
+    affords: () => true,
+    emergencyCapHit: 0,
   })
 
   it('moves nobody when everyone is fit', () => {
@@ -545,5 +554,91 @@ describe('camp, as the next Season starts', () => {
     }
     expect(next.waivers).toEqual([])
     expect(next.priorStandings).toEqual(ended.standings)
+  })
+})
+
+describe('the cap by the day and long-term injury relief (ADR-031)', () => {
+  let regularEnd: SeasonState
+  let injuries: { playerId: PlayerId; clubId: string; days: number; day: number }[]
+
+  beforeAll(() => {
+    let state = start
+    injuries = []
+    while (state.playoffs === null) {
+      const played = advanceDay(state)
+      for (const p of played.played) {
+        for (const i of p.match.injuries) injuries.push({ ...i, day: played.day })
+      }
+      state = played.state
+    }
+    regularEnd = state
+  })
+
+  it('charges every Club for each day of the regular Season, and none above the cap', () => {
+    expect(regularEnd.capChargedTo).toBe(regularEnd.regularSeason.last)
+    for (const club of regularEnd.clubs) {
+      const charged = regularEnd.capCharged[club.id]!
+      expect(charged).toBeGreaterThan(start.capRules.lowerLimit * 0.8)
+      expect(charged).toBeLessThanOrEqual(1 + 1e-9)
+    }
+  })
+
+  it('charges a Club that changes nothing its payroll, day for day', () => {
+    const club = start.clubs[0]!
+    // One day charged at the opening payroll: a share of it by the days of the regular Season.
+    const one = advanceDay(start).state
+    const { first, last } = start.regularSeason
+    const days = one.capChargedTo - first + 1
+    const payroll = countedPayroll(start, club)
+    if (activeOf(one.clubs[0]!).length === activeOf(club).length) {
+      expect(one.capCharged[club.id]).toBeCloseTo((payroll * days) / (last - first + 1), 9)
+    }
+  })
+
+  it('relieves a Player out 24 days and 10 of his Club’s Fixtures while he is out', () => {
+    const rules = start.capRules.longTermInjury
+    const long = injuries.find((i) => {
+      const missed = start.fixtures.filter(
+        (f) =>
+          f.day > i.day &&
+          f.day < i.day + i.days &&
+          (f.homeClubId === i.clubId || f.awayClubId === i.clubId),
+      ).length
+      return i.days >= rules.days && missed >= rules.fixtures
+    })
+    if (!long) return
+    // On the day after he was hurt he counts nothing.
+    let state = start
+    while (state.fixtures[state.nextFixture]!.day <= long.day) state = advanceDay(state).state
+    expect(state.longTermInjured[long.playerId]).toBe(true)
+    const club = state.clubs.find((c) => c.id === long.clubId)!
+    const relieved = countedPayroll(state, club)
+    const counted = countedPayroll({ ...state, longTermInjured: {} }, club)
+    const hit = contractedOf(club).find((p) => p.id === long.playerId)?.contract?.capHit ?? 0
+    expect(counted - relieved).toBeCloseTo(hit, 9)
+  })
+})
+
+describe('a roster emergency (CBA 50.10(e))', () => {
+  it('calls up a Player paid little enough when the cap allows no call-up, off the cap', () => {
+    const club = start.clubs[0]!
+    const hurt = club.goalies.map((g) => g.id)
+    const cheapest = Math.min(
+      ...(club.farm ?? []).filter((p) => p.kind === 'goalie').map((p) => p.contract!.capHit),
+    )
+    const day: FarmDay = {
+      out: (id) => hurt.includes(id),
+      injuredReserve: () => false,
+      free: () => true,
+      affords: () => false,
+      emergencyCapHit: cheapest,
+    }
+    const moves = farmMoves(club, rules, day)
+    expect(moves.length).toBeGreaterThan(0)
+    for (const move of moves) expect(move).toMatchObject({ kind: 'calledUp', emergency: true })
+    // Nobody paid more, and nobody without an emergency.
+    expect(farmMoves(club, rules, { ...day, emergencyCapHit: 0 })).toEqual([])
+    const fine: FarmDay = { ...day, out: () => false }
+    expect(farmMoves(club, rules, fine)).toEqual([])
   })
 })

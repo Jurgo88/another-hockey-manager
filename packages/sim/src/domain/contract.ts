@@ -120,6 +120,17 @@ export interface CapRules {
    * only by how much its cap hit exceeds this (ADR-036, CBA 50.5).
    */
   buried: number
+  /**
+   * A Player out at least `days` calendar days and `fixtures` of his Club's
+   * Fixtures counts nothing against the cap while he is out (ADR-031, CBA 50.10).
+   */
+  longTermInjury: { days: number; fixtures: number }
+  /**
+   * A Club that cannot dress a Lineup for injuries and cannot afford a call-up
+   * may call up a Player paid at most this, who counts nothing while the
+   * emergency lasts (CBA 50.10(e)).
+   */
+  rosterEmergency: { maxCapHit: number }
 }
 
 /** The length of an entry-level contract signed at `age`. */

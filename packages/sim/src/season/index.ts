@@ -1,5 +1,9 @@
 import { farmOf, type Club, type Lineup, type Tactics } from '../domain/club.js'
-import type { CompetitionStructure, SeasonFormat } from '../domain/competition.js'
+import {
+  gamesPerClub,
+  type CompetitionStructure,
+  type SeasonFormat,
+} from '../domain/competition.js'
 import type {
   CapRules,
   Contract,
@@ -39,6 +43,7 @@ import { NHL_2026_27_CLUB_SEEDS, NHL_2026_27_SEASON } from '../data/nhl-2026-27.
 import {
   afterFarmMoves,
   assignedClub,
+  withActive,
   claimOrder,
   contractedOf,
   firstService,
@@ -173,6 +178,16 @@ export interface SeasonState {
   claims: Readonly<Record<ClubId, readonly PlayerId[]>>
   /** The last Season's final table, which claims go by early in this one; empty in the first. */
   priorStandings: readonly StandingsRow[]
+  /** The first and last days of the regular Season, which the cap is charged over (ADR-031). */
+  regularSeason: { first: number; last: number }
+  /** What each Club has been charged against the cap so far this regular Season, as a share of it. */
+  capCharged: Readonly<Record<ClubId, number>>
+  /** The last day charged. */
+  capChargedTo: number
+  /** Those out long enough for long-term injury relief: they count nothing while out (ADR-031). */
+  longTermInjured: Readonly<Record<PlayerId, true>>
+  /** Called up in a roster emergency: off the cap while it lasts (CBA 50.10(e)). */
+  capExempt: Readonly<Record<PlayerId, true>>
   /** The regular-Season table. */
   standings: readonly StandingsRow[]
   /** Player counts so far, the playoffs kept apart. */
@@ -420,6 +435,7 @@ export async function startSeason(
     lineups: {},
     absent: {},
     injuredReserve: {},
+    longTermInjured: {},
     // A league opens with its Rosters as its source gives them: no camp.
     waivers: [],
     cleared: {},
@@ -477,6 +493,11 @@ export type UncontractedSeason = Omit<
   | 'cleared'
   | 'claims'
   | 'priorStandings'
+  | 'regularSeason'
+  | 'capCharged'
+  | 'capChargedTo'
+  | 'longTermInjured'
+  | 'capExempt'
 > & {
   capRules?: Partial<CapRules>
   deadMoney?: SeasonState['deadMoney']
@@ -486,6 +507,11 @@ export type UncontractedSeason = Omit<
   cleared?: SeasonState['cleared']
   claims?: SeasonState['claims']
   priorStandings?: SeasonState['priorStandings']
+  regularSeason?: SeasonState['regularSeason']
+  capCharged?: SeasonState['capCharged']
+  capChargedTo?: number
+  longTermInjured?: SeasonState['longTermInjured']
+  capExempt?: SeasonState['capExempt']
 }
 
 /** A phase between Seasons as stored before contracts (#125). */
@@ -508,7 +534,8 @@ export function contractedSeason(state: UncontractedSeason): SeasonState {
     state.capRules?.buried !== undefined &&
     state.deadMoney !== undefined &&
     state.farmRules !== undefined &&
-    state.waivers !== undefined
+    state.waivers !== undefined &&
+    state.capCharged !== undefined
   if (current && !unsigned(state.clubs) && !unserviced(state.clubs)) return state as SeasonState
   // Rules stored before #129 lack the floor, buyouts and the playoff regime,
   // and before #133 the buried allowance and the waivers.
@@ -529,6 +556,13 @@ export function contractedSeason(state: UncontractedSeason): SeasonState {
     cleared: state.cleared ?? {},
     claims: state.claims ?? {},
     priorStandings: state.priorStandings ?? [],
+    // Stored before the daily charge: what has been played is charged at the
+    // payroll as it stands, on the next day played.
+    regularSeason: state.regularSeason ?? regularSeasonOf(state),
+    capCharged: state.capCharged ?? {},
+    capChargedTo: state.capChargedTo ?? state.fixtures[0]!.day - 1,
+    longTermInjured: state.longTermInjured ?? {},
+    capExempt: state.capExempt ?? {},
     deadMoney: state.deadMoney ?? {},
     clubs: (unsigned(farmed)
       ? openingContracts(capRules, farmed, createRng(state.seed).fork('contracts')).map((club) =>
@@ -537,6 +571,20 @@ export function contractedSeason(state: UncontractedSeason): SeasonState {
       : farmed
     ).map((club) => serviced(club, openingService)),
   }
+}
+
+/**
+ * The first and last days of a stored Season's regular Season: its first
+ * Fixtures, as many as its schedule key gives every Club, before any playoffs.
+ */
+function regularSeasonOf(state: UncontractedSeason): SeasonState['regularSeason'] {
+  const { structure } = state
+  const clubs = structure.divisions.reduce((sum, d) => sum + d.clubIds.length, 0)
+  const divisionSize = structure.divisions[0]!.clubIds.length
+  const conferenceSize = clubs / structure.conferences.length
+  const regular = (gamesPerClub(structure.scheduleKey, divisionSize, conferenceSize) * clubs) / 2
+  const days = state.fixtures.slice(0, regular).map((f) => f.day)
+  return { first: days[0]!, last: days.at(-1)! }
 }
 
 /** Whether any Player under contract lacks service for waivers (stored before #133). */
@@ -1345,10 +1393,16 @@ export function startNextSeason(offseason: Offseason): SeasonState {
       .map(([id, back]) => [id, back - daysPerYear] as const)
       .filter(([, back]) => back > firstDay),
   )
-  // Whoever is still out on the first day stays on Injured Reserve.
+  // Whoever is still out on the first day stays on Injured Reserve, and on
+  // long-term injury relief.
   const injuredReserve = Object.fromEntries(
     Object.keys(absent)
       .filter((id) => id in state.injuredReserve)
+      .map((id) => [id, true] as const),
+  )
+  const longTermInjured = Object.fromEntries(
+    Object.keys(absent)
+      .filter((id) => id in state.longTermInjured)
       .map((id) => [id, true] as const),
   )
   const lineups = Object.fromEntries(
@@ -1365,6 +1419,7 @@ export function startNextSeason(offseason: Offseason): SeasonState {
     lineups,
     absent,
     injuredReserve,
+    longTermInjured,
     waivers: [],
     cleared: camp.cleared,
     claims: {},
@@ -1720,10 +1775,15 @@ function freshSeason(seed: number, structure: CompetitionStructure, year: number
     seasonId,
     rng: createRng(seed).fork(year === 1 ? 'schedule' : `schedule:y${year}`),
   }).sort((a, b) => a.day - b.day || a.round - b.round)
+  const first = fixtures[0]!.day
   return {
     structure,
     year,
     fixtures,
+    regularSeason: { first, last: fixtures.at(-1)!.day },
+    capCharged: {},
+    capChargedTo: first - 1,
+    capExempt: {},
     nextFixture: 0,
     fatigue: {},
     lastPlayed: {},
@@ -2121,9 +2181,12 @@ export function advanceDay(state: SeasonState): PlayedDay {
   if (!next) throw new Error(`Season s${state.seed} has no Fixtures left`)
 
   const played: PlayedFixture[] = []
-  const settled = settledWaivers(recovered(state, next.day), next.day)
+  // The days since the last charged at the payroll they ran at, then the moves,
+  // then today at the payroll they leave (ADR-031).
+  const before = chargedThrough(recovered(state, next.day), next.day - 1)
+  const settled = settledWaivers(before, next.day)
   const farmed = withFarmMoves(settled.state, next.day)
-  const moved = farmed.state
+  const moved = chargedThrough(farmed.state, next.day)
   const moves = [...settled.moves, ...farmed.moves]
   let current = moved
   for (;;) {
@@ -2144,11 +2207,24 @@ function withFarmMoves(state: SeasonState, day: number): { state: SeasonState; m
   const moves: FarmMove[] = []
   const waivers: OnWaivers[] = [...state.waivers]
   const cleared: Record<PlayerId, Cleared> = { ...state.cleared }
+  const capExempt: Record<PlayerId, true> = { ...state.capExempt }
   const clubs = state.clubs.map((club) => {
     const made = farmMoves(club, state.farmRules, {
       out: (id) => daysOut(state, id, day) > 0,
       injuredReserve: (id) => id in state.injuredReserve,
       free: (id) => goesDownFree(state, playerOf(club, id), day),
+      affords: (calledUp, sentDown) => {
+        const ids = (ps: readonly Player[]) => new Set(ps.map((p) => p.id))
+        const up = ids(calledUp)
+        const down = ids(sentDown)
+        const active = new Set(
+          [...club.skaters, ...club.goalies, ...calledUp]
+            .map((p) => p.id)
+            .filter((id) => !down.has(id) || up.has(id)),
+        )
+        return fitsToday(state, club, withActive(club, active), day)
+      },
+      emergencyCapHit: state.capRules.rosterEmergency.maxCapHit,
     })
     if (made.length === 0) return club
     // A Player who needs waivers to go down goes on them instead (CBA 13.2).
@@ -2158,6 +2234,8 @@ function withFarmMoves(state: SeasonState, day: number): { state: SeasonState; m
       return goesDownFree(state, player, day) ? move : { ...move, kind: 'waived' }
     })
     for (const move of settled) {
+      if (move.kind === 'calledUp' && move.emergency) capExempt[move.playerId] = true
+      if (move.kind === 'sentDown' || move.kind === 'waived') delete capExempt[move.playerId]
       const entry = cleared[move.playerId]
       if (move.kind === 'calledUp' && entry) cleared[move.playerId] = { ...entry, upSince: day }
       if (move.kind === 'sentDown' && entry?.upSince != null) {
@@ -2176,9 +2254,70 @@ function withFarmMoves(state: SeasonState, day: number): { state: SeasonState; m
     const after = afterFarmMoves(club, settled)
     return waived.size === 0 ? after : withoutPlayers(after, waived)
   })
-  return moves.length === 0
+  // A roster emergency lasts while a Club is short of the line; then its call-up counts.
+  for (const club of clubs) {
+    const short = (['forward', 'defence', 'goalie'] as const).some(
+      (group) =>
+        [...club.skaters, ...club.goalies].filter(
+          (p) => positionGroup(p) === group && daysOut(state, p.id, day) === 0,
+        ).length < state.farmRules.emergency[group],
+    )
+    if (short) continue
+    for (const p of [...club.skaters, ...club.goalies]) delete capExempt[p.id]
+  }
+  const exemptChanged = Object.keys(capExempt).length !== Object.keys(state.capExempt).length
+  return moves.length === 0 && !exemptChanged
     ? { state, moves }
-    : { state: { ...state, clubs, waivers, cleared }, moves }
+    : { state: { ...state, clubs, waivers, cleared, capExempt }, moves }
+}
+
+/**
+ * What a Club's payroll counts against the cap on a day of the regular Season
+ * (ADR-031, ADR-036): its active Roster but those on long-term injury relief or
+ * called up in an emergency, its farm above the buried allowance, the Players it
+ * has on waivers, and its dead money.
+ */
+export function countedPayroll(state: SeasonState, club: Club): number {
+  const hit = (p: Player) => p.contract?.capHit ?? 0
+  const active = [...club.skaters, ...club.goalies]
+    .filter((p) => !(p.id in state.longTermInjured) && !(p.id in state.capExempt))
+    .reduce((sum, p) => sum + hit(p), 0)
+  const farm = farmOf(club).reduce((sum, p) => sum + Math.max(0, hit(p) - state.capRules.buried), 0)
+  const waived = state.waivers
+    .filter((w) => w.clubId === club.id)
+    .reduce((sum, w) => sum + hit(w.player), 0)
+  return active + farm + waived + deadCharge(state.deadMoney[club.id])
+}
+
+/** The state with every Club charged its counted payroll for each day of the regular Season up to `day`. */
+function chargedThrough(state: SeasonState, day: number): SeasonState {
+  const { first, last } = state.regularSeason
+  const to = Math.min(day, last)
+  if (to <= state.capChargedTo || state.playoffs !== null) return state
+  const days = last - first + 1
+  const span = to - Math.max(state.capChargedTo, first - 1)
+  const capCharged = Object.fromEntries(
+    state.clubs.map((club) => [
+      club.id,
+      (state.capCharged[club.id] ?? 0) + (countedPayroll(state, club) * span) / days,
+    ]),
+  )
+  return { ...state, capCharged, capChargedTo: to }
+}
+
+/**
+ * Whether a change to a Club on `day` stands under the cap as it is charged by
+ * the day (ADR-031): what it has been charged, plus its payroll after the change
+ * for the days left, stays under the cap, or the change adds nothing.
+ */
+function fitsToday(state: SeasonState, club: Club, after: Club, day: number): boolean {
+  const { first, last } = state.regularSeason
+  const days = last - first + 1
+  const left = Math.max(0, last - Math.max(day, first) + 1) / days
+  const charged = chargedThrough(state, day - 1).capCharged[club.id] ?? 0
+  const before = countedPayroll(state, club)
+  const then = countedPayroll(state, after)
+  return charged + then * left <= 1 + CAP_EPSILON || then <= before + CAP_EPSILON
 }
 
 /** A Player a Club holds, active or on its farm. */
@@ -2266,7 +2405,7 @@ function settledWaivers(
       const club = clubs.find((c) => c.id === id)!
       const declared = state.claims[id]
       const wants = declared ? declared.includes(player.id) : wantsClaim(club, player)
-      return wants && canTakeOn(state, club, player)
+      return wants && canTakeOn(state, club, player, day)
     })
     if (claimer) {
       moves.push({ kind: 'claimed', clubId: claimer, playerId: player.id, fromClubId: clubId })
@@ -2299,12 +2438,9 @@ function settledWaivers(
  * Whether a Club can take on a Player's contract during a Season: a contract to
  * spare, and room under the cap with him on its active Roster (ADR-031).
  */
-function canTakeOn(state: SeasonState, club: Club, player: Player): boolean {
+function canTakeOn(state: SeasonState, club: Club, player: Player, day: number): boolean {
   if (contractedOf(club).length >= state.farmRules.contractsMax) return false
-  const dead = deadCharge(state.deadMoney[club.id])
-  const before = payroll(club, state.capRules.buried) + dead
-  const after = payroll(withPlayers(club, [player]), state.capRules.buried) + dead
-  return withinCap(after, before)
+  return fitsToday(state, club, withPlayers(club, [player]), day)
 }
 
 /**
@@ -2451,12 +2587,18 @@ function nextDay(state: SeasonState): number {
 function recovered(state: SeasonState, day: number): SeasonState {
   const absent = Object.fromEntries(Object.entries(state.absent).filter(([, back]) => back > day))
   if (Object.keys(absent).length === Object.keys(state.absent).length) return state
-  const injuredReserve = Object.fromEntries(
-    Object.keys(state.injuredReserve)
-      .filter((id) => id in absent)
-      .map((id) => [id, true] as const),
-  )
-  return { ...state, absent, injuredReserve }
+  const still = (list: Readonly<Record<PlayerId, true>>) =>
+    Object.fromEntries(
+      Object.keys(list)
+        .filter((id) => id in absent)
+        .map((id) => [id, true] as const),
+    )
+  return {
+    ...state,
+    absent,
+    injuredReserve: still(state.injuredReserve),
+    longTermInjured: still(state.longTermInjured),
+  }
 }
 
 function fixtureOf(state: SeasonState, fixtureId: FixtureId): Fixture {
@@ -2585,9 +2727,19 @@ function playFixture(
 
   const absent = { ...state.absent }
   const injuredReserve = { ...state.injuredReserve }
-  for (const { playerId, days } of match.injuries) {
+  const longTermInjured = { ...state.longTermInjured }
+  const { longTermInjury } = state.capRules
+  for (const { playerId, clubId, days } of match.injuries) {
     absent[playerId] = day + days
     if (days >= state.farmRules.injuredReserveDays) injuredReserve[playerId] = true
+    // Out 24 days and 10 of his Club's Fixtures: relief while he is out (ADR-031).
+    const missed = state.fixtures.filter(
+      (f) =>
+        f.day > day && f.day < day + days && (f.homeClubId === clubId || f.awayClubId === clubId),
+    ).length
+    if (days >= longTermInjury.days && missed >= longTermInjury.fixtures) {
+      longTermInjured[playerId] = true
+    }
   }
   const live = { ...state.live }
   delete live[fixture.id]
@@ -2614,6 +2766,7 @@ function playFixture(
       },
       absent,
       injuredReserve,
+      longTermInjured,
       live,
       standings:
         state.playoffs === null
