@@ -167,8 +167,12 @@ export function waiverExempt(player: Player, rules: FarmRules, gamesThisSeason: 
  */
 export type FarmMove =
   | { kind: 'sentDown' | 'waived' | 'cleared'; clubId: ClubId; playerId: PlayerId }
-  /** `emergency`: called up in a roster emergency, off the cap while it lasts (CBA 50.10(e)). */
-  | { kind: 'calledUp'; clubId: ClubId; playerId: PlayerId; emergency?: true }
+  /**
+   * `emergency`: called up below the emergency line (CBA 13.12(m)), which no
+   * limit after the deadline counts. `offCap`: called up in a roster emergency,
+   * off the cap while it lasts (CBA 50.10(e)).
+   */
+  | { kind: 'calledUp'; clubId: ClubId; playerId: PlayerId; emergency?: true; offCap?: true }
   | { kind: 'claimed'; clubId: ClubId; playerId: PlayerId; fromClubId: ClubId }
 
 /**
@@ -183,6 +187,18 @@ export interface FarmDay {
   affords: (calledUp: readonly Player[], sentDown: readonly Player[]) => boolean
   /** The most a Player called up in a roster emergency may be paid, as a share of the cap. */
   emergencyCapHit: number
+  /** From the trade deadline on (CBA 13.12(j)-(n)): what is left of the Club's regular call-ups. */
+  deadline?: DeadlineDay
+}
+
+/** What the deadline leaves a Club on a day after it. */
+export interface DeadlineDay {
+  /** Regular call-ups left. */
+  recalls: number
+  /** How many more regular call-ups may be up at once. */
+  onRoster: number
+  /** Whether a Player may go down: only one called up since the deadline. */
+  mayGoDown: (playerId: PlayerId) => boolean
 }
 
 /**
@@ -197,6 +213,11 @@ export interface FarmDay {
  * A call-up must fit under the cap; in an emergency a Club that cannot afford
  * one calls up the best Player paid little enough to come off the cap while it
  * lasts (CBA 50.10(e)).
+ *
+ * From the trade deadline the active Roster has no limit (CBA 16.4(a)): only a
+ * Player called up since it goes back down, when the Roster is above the limit
+ * it had, and a call-up other than an emergency one takes one of the regular
+ * call-ups left (13.12(l)).
  */
 export function farmMoves(club: Club, rules: FarmRules, day: FarmDay): FarmMove[] {
   const moves: FarmMove[] = []
@@ -209,7 +230,10 @@ export function farmMoves(club: Club, rules: FarmRules, day: FarmDay): FarmMove[
   // Back from Injured Reserve: the active Roster down to its limit.
   while (counted() > rules.activeMax) {
     const surplus = GROUPS.filter((g) => fit(g).length > ACTIVE_GROUPS[g])
-    const candidates = surplus.flatMap((g) => fit(g)).sort(byLevel)
+    const candidates = surplus
+      .flatMap((g) => fit(g))
+      .filter((p) => !day.deadline || day.deadline.mayGoDown(p.id))
+      .sort(byLevel)
     const weakest = candidates.filter((p) => day.free(p.id)).at(-1) ?? candidates.at(-1)
     if (!weakest) break
     moves.push({ clubId: club.id, playerId: weakest.id, kind: 'sentDown' })
@@ -222,7 +246,12 @@ export function farmMoves(club: Club, rules: FarmRules, day: FarmDay): FarmMove[
   for (const group of ['goalie', 'defence', 'forward'] as const) {
     while (fit(group).length < ACTIVE_GROUPS[group]) {
       const emergency = fit(group).length < rules.emergency[group]
-      if (counted() >= rules.activeMax && !emergency) break
+      const regulars = moves.filter((m) => m.kind === 'calledUp' && !m.emergency).length
+      if (day.deadline) {
+        // No limit, but the regular call-ups left (13.12(l)).
+        const left = Math.min(day.deadline.recalls, day.deadline.onRoster) - regulars
+        if (!emergency && left <= 0) break
+      } else if (counted() >= rules.activeMax && !emergency) break
       const candidates = farm
         .filter((p) => positionGroup(p) === group && !day.out(p.id))
         .sort(byLevel)
@@ -236,7 +265,7 @@ export function farmMoves(club: Club, rules: FarmRules, day: FarmDay): FarmMove[
       )
       const calledUp = () =>
         moves
-          .filter((m) => m.kind === 'calledUp' && !m.emergency)
+          .filter((m) => m.kind === 'calledUp' && !m.offCap)
           .map((m) => contractedOf(club).find((p) => p.id === m.playerId)!)
       const sentDown = () =>
         moves
@@ -251,11 +280,13 @@ export function farmMoves(club: Club, rules: FarmRules, day: FarmDay): FarmMove[
         : undefined
       const chosen = best ?? cheap
       if (!chosen) break
-      moves.push(
-        best
-          ? { clubId: club.id, playerId: chosen.id, kind: 'calledUp' }
-          : { clubId: club.id, playerId: chosen.id, kind: 'calledUp', emergency: true },
-      )
+      moves.push({
+        clubId: club.id,
+        playerId: chosen.id,
+        kind: 'calledUp',
+        ...(emergency ? { emergency: true as const } : {}),
+        ...(best ? {} : { offCap: true as const }),
+      })
       farm = farm.filter((p) => p.id !== chosen.id)
       active = [...active, chosen]
     }

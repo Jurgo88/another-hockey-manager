@@ -19,6 +19,7 @@ import {
   advanceDay,
   contractedSeason,
   countedPayroll,
+  deadlineOf,
   goesDownFree,
   isSeasonOver,
   nextSeason,
@@ -196,7 +197,9 @@ describe('the farm through a Season', () => {
       before = d.state
       return told
     })
-    const ofClub = moves.filter((m) => m.clubId === club)
+    const ofClub = moves.filter(
+      (m) => m.clubId === club && (m.kind === 'calledUp' || m.kind === 'sentDown'),
+    )
     expect(notices.filter((n) => n.kind === 'calledUp' || n.kind === 'sentDown')).toHaveLength(
       ofClub.length,
     )
@@ -635,10 +638,76 @@ describe('a roster emergency (CBA 50.10(e))', () => {
     }
     const moves = farmMoves(club, rules, day)
     expect(moves.length).toBeGreaterThan(0)
-    for (const move of moves) expect(move).toMatchObject({ kind: 'calledUp', emergency: true })
+    for (const move of moves) expect(move).toMatchObject({ kind: 'calledUp', offCap: true })
     // Nobody paid more, and nobody without an emergency.
     expect(farmMoves(club, rules, { ...day, emergencyCapHit: 0 })).toEqual([])
     const fine: FarmDay = { ...day, out: () => false }
     expect(farmMoves(club, rules, fine)).toEqual([])
+  })
+})
+
+describe('after the trade deadline (CBA 13.12(j)-(n), 16.4(a))', () => {
+  const day = (
+    out: readonly PlayerId[],
+    reserve: readonly PlayerId[],
+    deadline: FarmDay['deadline'],
+  ): FarmDay => ({
+    out: (id) => out.includes(id),
+    injuredReserve: (id) => reserve.includes(id),
+    free: () => true,
+    affords: () => true,
+    emergencyCapHit: 0,
+    ...(deadline ? { deadline } : {}),
+  })
+
+  it('sends nobody down but a Player called up since, however full the Roster', () => {
+    const club = start.clubs[0]!
+    const hurt = club.skaters.find((s) => positionGroup(s) === 'forward')!.id
+    const up = afterFarmMoves(club, farmMoves(club, rules, day([hurt], [hurt], undefined)))
+    const called = activeOf(up).find((p) => !activeOf(club).some((q) => q.id === p.id))!
+    // Back, and the Roster at 24: before the deadline one goes down.
+    expect(farmMoves(up, rules, day([], [], undefined))).toHaveLength(1)
+    const none = { recalls: 5, onRoster: 4, mayGoDown: () => false }
+    expect(farmMoves(up, rules, day([], [], none))).toEqual([])
+    const since = { ...none, mayGoDown: (id: PlayerId) => id === called.id }
+    expect(farmMoves(up, rules, day([], [], since))).toEqual([
+      { kind: 'sentDown', clubId: club.id, playerId: called.id },
+    ])
+  })
+
+  it('takes a regular call-up from those left, and an emergency one from none', () => {
+    const club = start.clubs[0]!
+    const forwards = club.skaters.filter((s) => positionGroup(s) === 'forward').map((s) => s.id)
+    const spent = { recalls: 0, onRoster: 4, mayGoDown: () => false }
+    // One forward on Injured Reserve: a regular call-up, and none left.
+    expect(farmMoves(club, rules, day(forwards.slice(0, 1), forwards.slice(0, 1), spent))).toEqual(
+      [],
+    )
+    const left = { ...spent, recalls: 1 }
+    expect(
+      farmMoves(club, rules, day(forwards.slice(0, 1), forwards.slice(0, 1), left)),
+    ).toHaveLength(1)
+    // Three out: below the line, an emergency call-up whatever is left.
+    const moves = farmMoves(club, rules, day(forwards.slice(0, 3), [], spent))
+    expect(moves).toHaveLength(1)
+    expect(moves[0]).toMatchObject({ kind: 'calledUp', emergency: true })
+  })
+
+  it('keeps every Club within its regular call-ups through a Season', () => {
+    let state = start
+    const deadline = deadlineOf(start)
+    while (!isSeasonOver(state)) {
+      const played = advanceDay(state)
+      if (played.day >= deadline) {
+        for (const club of played.state.clubs) {
+          expect(played.state.deadlineRecalls[club.id] ?? 0).toBeLessThanOrEqual(
+            rules.deadline.recalls,
+          )
+          const up = activeOf(club).filter((p) => played.state.recalled[p.id] === 'regular').length
+          expect(up).toBeLessThanOrEqual(rules.deadline.onRoster)
+        }
+      }
+      state = played.state
+    }
   })
 })

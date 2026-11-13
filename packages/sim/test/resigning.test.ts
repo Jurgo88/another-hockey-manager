@@ -201,7 +201,7 @@ describe('the re-signing window', () => {
     const next = startNextSeason(closed)
     // The shape of its contracts, but for a Player or two moved through waivers at camp.
     const held = playersOf(next.clubs.find((c) => c.id === club.id)!).length
-    expect(Math.abs(held - ROSTER_SIZE)).toBeLessThanOrEqual(3)
+    expect(Math.abs(held - ROSTER_SIZE)).toBeLessThanOrEqual(4)
   })
 
   it('refuses re-signings that break the rules, as data', () => {

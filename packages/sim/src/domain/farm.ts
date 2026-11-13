@@ -20,6 +20,23 @@ export interface FarmRules {
    */
   emergency: { forward: number; defence: number; goalie: number }
   waivers: WaiverRules
+  deadline: DeadlineRules
+}
+
+/**
+ * The trade deadline and what it closes (CBA 13.12(j)-(n), 16.4(a)): from it to
+ * the end of a Club's Season, the active Roster has no limit, nobody goes down
+ * but a Player called up since, and a Club has a number of regular call-ups,
+ * with a cap on how many of them are up at once. Emergency call-ups, below the
+ * line of `FarmRules.emergency`, are not counted.
+ */
+export interface DeadlineRules {
+  /** The deadline is this many days before the last day of the regular Season. */
+  daysBeforeEnd: number
+  /** Regular call-ups a Club has from the deadline on. */
+  recalls: number
+  /** How many of them may be on its active Roster at once. */
+  onRoster: number
 }
 
 /** Who goes down to the farm without waivers, and how a claim is made (CBA Article 13). */

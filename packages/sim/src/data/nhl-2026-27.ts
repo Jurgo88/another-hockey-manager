@@ -267,6 +267,9 @@ export const NHL_FARM_RULES: FarmRules = {
     priorTableDays: 25,
     reWaiver: { days: 30, games: 10 },
   },
+  // The 40th day before the last of the regular Season (13.12(j)); five regular
+  // call-ups from it, at most four up at once (the memorandum of 2025, item 16).
+  deadline: { daysBeforeEnd: 40, recalls: 5, onRoster: 4 },
 }
 
 /** A Season of the NHL 2026-27: its alignment, bracket, draft, contracts and farm. */

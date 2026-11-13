@@ -47,6 +47,7 @@ import {
   claimOrder,
   contractedOf,
   firstService,
+  type DeadlineDay,
   openingService,
   serviceAfter,
   waiverExempt,
@@ -188,6 +189,14 @@ export interface SeasonState {
   longTermInjured: Readonly<Record<PlayerId, true>>
   /** Called up in a roster emergency: off the cap while it lasts (CBA 50.10(e)). */
   capExempt: Readonly<Record<PlayerId, true>>
+  /**
+   * Those called up since the trade deadline, and how (CBA 13.12(l), (m)): only
+   * they go back down before the Season ends, and the regular ones count
+   * against the Club's call-ups.
+   */
+  recalled: Readonly<Record<PlayerId, 'regular' | 'emergency'>>
+  /** Each Club's regular call-ups since the deadline. */
+  deadlineRecalls: Readonly<Record<ClubId, number>>
   /** The regular-Season table. */
   standings: readonly StandingsRow[]
   /** Player counts so far, the playoffs kept apart. */
@@ -498,6 +507,8 @@ export type UncontractedSeason = Omit<
   | 'capChargedTo'
   | 'longTermInjured'
   | 'capExempt'
+  | 'recalled'
+  | 'deadlineRecalls'
 > & {
   capRules?: Partial<CapRules>
   deadMoney?: SeasonState['deadMoney']
@@ -512,6 +523,8 @@ export type UncontractedSeason = Omit<
   capChargedTo?: number
   longTermInjured?: SeasonState['longTermInjured']
   capExempt?: SeasonState['capExempt']
+  recalled?: SeasonState['recalled']
+  deadlineRecalls?: SeasonState['deadlineRecalls']
 }
 
 /** A phase between Seasons as stored before contracts (#125). */
@@ -535,14 +548,13 @@ export function contractedSeason(state: UncontractedSeason): SeasonState {
     state.deadMoney !== undefined &&
     state.farmRules !== undefined &&
     state.waivers !== undefined &&
-    state.capCharged !== undefined
+    state.capCharged !== undefined &&
+    state.recalled !== undefined
   if (current && !unsigned(state.clubs) && !unserviced(state.clubs)) return state as SeasonState
   // Rules stored before #129 lack the floor, buyouts and the playoff regime,
   // and before #133 the buried allowance and the waivers.
   const capRules: CapRules = { ...NHL_2026_27_SEASON.cap, ...state.capRules }
-  const farmRules: FarmRules = state.farmRules?.waivers?.claimDays
-    ? state.farmRules
-    : NHL_2026_27_SEASON.farm
+  const farmRules: FarmRules = state.farmRules?.deadline ? state.farmRules : NHL_2026_27_SEASON.farm
   // Stored before the farm (#133): every Club gets one, the same each time it is read.
   const farmed = state.farmRules
     ? state.clubs
@@ -563,6 +575,8 @@ export function contractedSeason(state: UncontractedSeason): SeasonState {
     capChargedTo: state.capChargedTo ?? state.fixtures[0]!.day - 1,
     longTermInjured: state.longTermInjured ?? {},
     capExempt: state.capExempt ?? {},
+    recalled: state.recalled ?? {},
+    deadlineRecalls: state.deadlineRecalls ?? {},
     deadMoney: state.deadMoney ?? {},
     clubs: (unsigned(farmed)
       ? openingContracts(capRules, farmed, createRng(state.seed).fork('contracts')).map((club) =>
@@ -1784,6 +1798,8 @@ function freshSeason(seed: number, structure: CompetitionStructure, year: number
     capCharged: {},
     capChargedTo: first - 1,
     capExempt: {},
+    recalled: {},
+    deadlineRecalls: {},
     nextFixture: 0,
     fatigue: {},
     lastPlayed: {},
@@ -2208,6 +2224,9 @@ function withFarmMoves(state: SeasonState, day: number): { state: SeasonState; m
   const waivers: OnWaivers[] = [...state.waivers]
   const cleared: Record<PlayerId, Cleared> = { ...state.cleared }
   const capExempt: Record<PlayerId, true> = { ...state.capExempt }
+  const recalled: Record<PlayerId, 'regular' | 'emergency'> = { ...state.recalled }
+  const deadlineRecalls: Record<ClubId, number> = { ...state.deadlineRecalls }
+  const closed = afterDeadline(state, day)
   const clubs = state.clubs.map((club) => {
     const made = farmMoves(club, state.farmRules, {
       out: (id) => daysOut(state, id, day) > 0,
@@ -2225,6 +2244,7 @@ function withFarmMoves(state: SeasonState, day: number): { state: SeasonState; m
         return fitsToday(state, club, withActive(club, active), day)
       },
       emergencyCapHit: state.capRules.rosterEmergency.maxCapHit,
+      ...(afterDeadline(state, day) ? { deadline: deadlineDay(state, club) } : {}),
     })
     if (made.length === 0) return club
     // A Player who needs waivers to go down goes on them instead (CBA 13.2).
@@ -2234,8 +2254,15 @@ function withFarmMoves(state: SeasonState, day: number): { state: SeasonState; m
       return goesDownFree(state, player, day) ? move : { ...move, kind: 'waived' }
     })
     for (const move of settled) {
-      if (move.kind === 'calledUp' && move.emergency) capExempt[move.playerId] = true
-      if (move.kind === 'sentDown' || move.kind === 'waived') delete capExempt[move.playerId]
+      if (move.kind === 'calledUp' && move.offCap) capExempt[move.playerId] = true
+      if (move.kind === 'sentDown' || move.kind === 'waived') {
+        delete capExempt[move.playerId]
+        delete recalled[move.playerId]
+      }
+      if (move.kind === 'calledUp' && closed) {
+        recalled[move.playerId] = move.emergency ? 'emergency' : 'regular'
+        if (!move.emergency) deadlineRecalls[club.id] = (deadlineRecalls[club.id] ?? 0) + 1
+      }
       const entry = cleared[move.playerId]
       if (move.kind === 'calledUp' && entry) cleared[move.playerId] = { ...entry, upSince: day }
       if (move.kind === 'sentDown' && entry?.upSince != null) {
@@ -2268,7 +2295,30 @@ function withFarmMoves(state: SeasonState, day: number): { state: SeasonState; m
   const exemptChanged = Object.keys(capExempt).length !== Object.keys(state.capExempt).length
   return moves.length === 0 && !exemptChanged
     ? { state, moves }
-    : { state: { ...state, clubs, waivers, cleared, capExempt }, moves }
+    : { state: { ...state, clubs, waivers, cleared, capExempt, recalled, deadlineRecalls }, moves }
+}
+
+/** The first day after the trade deadline: its day counts as after it, the deadline falling at 3 p.m. */
+export function deadlineOf(state: SeasonState): number {
+  return state.regularSeason.last - state.farmRules.deadline.daysBeforeEnd
+}
+
+/** Whether `day` falls from the trade deadline to the Season's end (CBA 13.12(j)). */
+function afterDeadline(state: SeasonState, day: number): boolean {
+  return state.playoffs !== null || day >= deadlineOf(state)
+}
+
+/** What the deadline leaves a Club: its regular call-ups, and who may go back down. */
+function deadlineDay(state: SeasonState, club: Club): DeadlineDay {
+  const { recalls, onRoster } = state.farmRules.deadline
+  const up = [...club.skaters, ...club.goalies].filter(
+    (p) => state.recalled[p.id] === 'regular',
+  ).length
+  return {
+    recalls: recalls - (state.deadlineRecalls[club.id] ?? 0),
+    onRoster: onRoster - up,
+    mayGoDown: (id) => id in state.recalled,
+  }
 }
 
 /**
@@ -2497,10 +2547,11 @@ function campWaivers(
       })
     }
   }
-  // Anyone still waiting after the last round goes down as cleared.
+  // Anyone on a farm still waiting, or claimed and then pushed down by a later
+  // claim, goes down as cleared.
   for (const club of clubs) {
     for (const player of farmOf(club)) {
-      if (!done.has(player.id) && !waiverExempt(player, rules, 0)) {
+      if (!(player.id in cleared) && !waiverExempt(player, rules, 0)) {
         cleared[player.id] = { gamesAt: 0, days: 0, upSince: null }
       }
     }
