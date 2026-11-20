@@ -21,6 +21,12 @@ import {
   type SeasonState,
 } from '../src/season/index.js'
 import { SMALL_SEASON } from './support/league.js'
+
+/** What the moves between Seasons are kept to (ADR-036). */
+const LIMITS = {
+  contractsMax: SMALL_SEASON.farm.contractsMax,
+  loanedUntil: SMALL_SEASON.farm.loanedUntil,
+}
 import { contractedOf } from '../src/farm/index.js'
 
 /** The draft room and the notices between Seasons (ADR-028 amendment, #92). */
@@ -91,14 +97,24 @@ describe('moves that break the rules, as data', () => {
     const club = drafted.clubs[0]!
     const stranger = drafted.prospects.find((p) => p.player.clubId !== club.id)!.player.id
     expect(
-      movesViolations(club, drafted.prospects, { callUps: [stranger], releases: ['nobody'] }),
+      movesViolations(
+        club,
+        drafted.prospects,
+        { callUps: [stranger], releases: ['nobody'] },
+        LIMITS,
+      ),
     ).toEqual([
       { kind: 'notProspect', playerId: stranger },
       { kind: 'notOnRoster', playerId: 'nobody' },
     ])
     const someone = club.skaters[0]!.id
     expect(
-      movesViolations(club, drafted.prospects, { callUps: [], releases: [someone, someone] }),
+      movesViolations(
+        club,
+        drafted.prospects,
+        { callUps: [], releases: [someone, someone] },
+        LIMITS,
+      ),
     ).toContainEqual({
       kind: 'releasedTwice',
       playerId: someone,

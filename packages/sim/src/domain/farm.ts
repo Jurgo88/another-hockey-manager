@@ -1,10 +1,17 @@
 /**
  * The rules a Club's active Roster and farm are kept to, as data (D-10, ADR-036).
- * A league without a farm is a value of these, not a branch. What is read today:
- * the claims and the deadline join it where they are read (#133). What a
- * contract on the farm costs is a cap rule (`CapRules.buried`).
+ * A league without a farm is a value of these, not a branch. What a contract on
+ * the farm costs is a cap rule (`CapRules.buried`), and so is the slide of an
+ * entry-level contract (`CapRules.entryLevel.slide`).
  */
 export interface FarmRules {
+  /**
+   * A prospect who signs younger than this, and is not on his Club's active
+   * Roster, plays on loan in the junior leagues or in Europe, not on the farm,
+   * and counts against neither the contracts nor the cap (CBA 9.1(d)(iv),
+   * Article 10). He joins his Club's farm the Season he reaches it (ADR-036).
+   */
+  loanedUntil: number
   /** The most Players on a Club's active Roster, Injured Reserve not counted. */
   activeMax: number
   /** The most contracts a Club may hold, active Roster and farm together. */

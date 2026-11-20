@@ -307,6 +307,12 @@
     "drafted": "vydraftovaný, pick {pick} v {round}. kole.",
     "released": "bol uvoľnený.",
     "calledUp": "bol povolaný na súpisku.",
+    "sentDown": "bol poslaný na farmu.",
+    "waived": "bol zaradený na waivery.",
+    "cleared": "prešiel waivermi a odišiel na farmu.",
+    "claimed": "prišiel z waiverov z iného klubu.",
+    "claimedBy": "si z waiverov vzal iný klub.",
+    "signed": "podpísal nováčikovskú zmluvu a hrá na hosťovaní.",
     "joined": "prišiel do klubu.",
     "reSigned": "podpísal novú zmluvu za svoju požiadavku, počet sezón: {years}.",
     "letGo": "nedostal ponuku novej zmluvy a odišiel z ligy."
@@ -354,7 +360,9 @@
       "releasedTwice": "{name} je uvoľnený dvakrát.",
       "notProspect": "{name} nie je tvoj prospekt.",
       "notOnRoster": "{name} nie je na tvojej súpiske.",
-      "aboveShape": "{count} – {group}, viac než {shape}, koľko súpiska unesie.",
+      "signedTwice": "{name} je podpísaný dvakrát.",
+      "alreadySigned": "{name} už podpísal.",
+      "tooManyContracts": "Klub by mal zmlúv: {count}, viac než povolených {max}.",
       "cannotDress": "S týmito presunmi by klub nezložil zostavu.",
       "overCap": "S týmito presunmi by klub platil {payroll} % platového stropu, nad strop."
     },

@@ -69,6 +69,13 @@ export type OfferViolation =
   /** With every offer taken, the Club could not dress a Lineup. */
   | { kind: 'cannotDress' }
 
+/** How many of his first Seasons may slide, by the Player's age at signing. */
+export interface SlideSeasons {
+  /** The oldest age at signing this holds; older Players' contracts do not slide. */
+  upToAge: number
+  seasons: number
+}
+
 /** An entry-level contract's length by the Player's age when he signs it. */
 export interface EntryLevelTerm {
   /** The oldest age at signing this length applies to. */
@@ -110,6 +117,12 @@ export interface CapRules {
     capHit: number
     /** By age at signing, youngest first; past the last, the last applies. */
     terms: readonly EntryLevelTerm[]
+    /**
+     * The slide (CBA 9.1(d)): a Player who signed young and plays fewer than
+     * `games` NHL games in one of his first Seasons under the contract has it
+     * extended a year, for as many Seasons as his age at signing allows.
+     */
+    slide: { games: number; seasons: readonly SlideSeasons[] }
   }
   /** A contract running out before this age leaves its Player restricted. */
   restrictedUntil: number

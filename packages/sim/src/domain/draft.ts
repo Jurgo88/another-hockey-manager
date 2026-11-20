@@ -1,4 +1,4 @@
-import type { ClubId, Player, PlayerId, PositionGroup } from './player.js'
+import type { ClubId, Player, PlayerId } from './player.js'
 
 /**
  * The entry draft as data (D-10, ADR-024, ADR-028). A league with another
@@ -62,11 +62,15 @@ export interface Prospect {
 
 /**
  * What a Club does between Seasons with its prospects and its Roster
- * (ADR-028): prospects it calls up, and Players it releases.
+ * (ADR-028): prospects it calls up, Players it releases, and prospects it signs
+ * to an entry-level contract who stay on loan, under the farm's age, until they
+ * reach it (ADR-036). A prospect signed at that age or older joins the Club as
+ * one called up does.
  */
 export interface RosterMoves {
   callUps: readonly PlayerId[]
   releases: readonly PlayerId[]
+  signings?: readonly PlayerId[]
 }
 
 /**
@@ -78,7 +82,10 @@ export type MovesViolation =
   | { kind: 'releasedTwice'; playerId: PlayerId }
   | { kind: 'notProspect'; playerId: PlayerId }
   | { kind: 'notOnRoster'; playerId: PlayerId }
-  | { kind: 'aboveShape'; group: PositionGroup; count: number; shape: number }
+  | { kind: 'signedTwice'; playerId: PlayerId }
+  | { kind: 'alreadySigned'; playerId: PlayerId }
+  /** The Club would hold more contracts than the rules allow (ADR-036), a loan not counted. */
+  | { kind: 'tooManyContracts'; count: number; max: number }
   | { kind: 'cannotDress' }
   /** The moves add cap hit and leave the Club over the cap, at this payroll for the Season ahead (ADR-031). */
   | { kind: 'overCap'; payroll: number }

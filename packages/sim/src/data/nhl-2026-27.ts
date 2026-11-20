@@ -207,6 +207,14 @@ export const NHL_CAP_RULES: CapRules = {
       { upToAge: 23, years: 2 },
       { upToAge: 99, years: 1 },
     ],
+    // Signed at 18, two Seasons may slide, at 19 one (CBA 9.1(d)).
+    slide: {
+      games: 10,
+      seasons: [
+        { upToAge: 18, seasons: 2 },
+        { upToAge: 19, seasons: 1 },
+      ],
+    },
   },
   restrictedUntil: 27,
   maxTerm: { ownClub: 7, otherClub: 6 },
@@ -233,6 +241,8 @@ export const NHL_CAP_RULES: CapRules = {
  */
 export const NHL_FARM_RULES: FarmRules = {
   activeMax: 23,
+  // Players under 20 play in the junior leagues, not the minors (CBA 9.1(d)(iv)).
+  loanedUntil: 20,
   contractsMax: 50,
   injuredReserveDays: 7,
   emergency: { forward: 12, defence: 6, goalie: 2 },

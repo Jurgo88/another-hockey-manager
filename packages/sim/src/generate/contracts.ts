@@ -270,12 +270,16 @@ export function openingContracts(rules: CapRules, clubs: readonly Club[], rng: R
 /**
  * The Clubs a Season on: every contract has one Season fewer. One at 0 has run
  * out, and its Player waits on his Club's decision in the re-signing window
- * (ADR-032, #127).
+ * (ADR-032, #127). A contract in `slid` keeps its Seasons: it slides (CBA
+ * 9.1(d), ADR-036).
  */
-export function tickedContracts(clubs: readonly Club[]): Club[] {
+export function tickedContracts(
+  clubs: readonly Club[],
+  slid: ReadonlySet<PlayerId> = new Set(),
+): Club[] {
   return clubs.map((club) =>
     mapPlayers(club, (player) =>
-      player.contract
+      player.contract && !slid.has(player.id)
         ? { ...player, contract: { ...player.contract, years: player.contract.years - 1 } }
         : player,
     ),

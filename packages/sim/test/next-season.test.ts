@@ -3,7 +3,7 @@ import { develop } from '../src/develop/index.js'
 import { validateLineup } from '../src/engine/lineup.js'
 import { playerLevel } from '../src/domain/player.js'
 import { ACTIVE_SHAPE, ROSTER_SHAPE } from '../src/domain/roster.js'
-import { contractedOf } from '../src/farm/index.js'
+import { contractedOf, regularOnFarm } from '../src/farm/index.js'
 import { createRng } from '../src/rng/index.js'
 import {
   advanceDay,
@@ -94,8 +94,9 @@ describe('nextSeason', () => {
     for (const player of contractedOf(club).filter((p) => after.has(p.id))) {
       const { skaters, goalies } = ended.totals.regular
       const dressed = (skaters[player.id] ?? goalies[player.id])?.gamesPlayed ?? 0
+      // A regular for his affiliate develops as one (ADR-036).
       const expected = develop(player, createRng(SEED).fork(`develop:y1:${player.id}`), {
-        regular: dressed * 2 >= games,
+        regular: dressed * 2 >= games || regularOnFarm(club, player),
       })
       const developed = after.get(player.id)!
       expect(developed.attributes).toEqual(expected.attributes)

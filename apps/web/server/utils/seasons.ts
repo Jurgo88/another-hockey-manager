@@ -14,6 +14,8 @@ import type {
 import type { RosterSource } from './rosters'
 import {
   clubHistory,
+  clubsHolding,
+  contractedOf,
   contractedOffseason,
   contractedSeason,
   daysOut,
@@ -320,8 +322,9 @@ export async function loadRecord(careerId: string, year: number): Promise<Season
 
 /** Everyone a Season knows by name: its Rosters and the prospects whose rights are held. */
 function playersOf(state: SeasonState): Player[] {
+  // Everyone a Club holds, its farm and those on waivers too (ADR-036).
   return [
-    ...state.clubs.flatMap((club) => [...club.skaters, ...club.goalies]),
+    ...clubsHolding(state).flatMap(contractedOf),
     ...state.prospects.map((prospect) => prospect.player),
   ]
 }
@@ -425,9 +428,7 @@ export function clubName(state: SeasonState, clubId: ClubId): string {
 
 export function playerNames(clubs: readonly Club[]): ReadonlyMap<PlayerId, string> {
   return new Map(
-    clubs.flatMap((club) =>
-      [...club.skaters, ...club.goalies].map((player) => [player.id, displayName(player)]),
-    ),
+    clubs.flatMap((club) => contractedOf(club).map((player) => [player.id, displayName(player)])),
   )
 }
 

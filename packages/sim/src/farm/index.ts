@@ -358,3 +358,31 @@ export function claimOrder(table: readonly ClaimRow[], clubIds: readonly ClubId[
       share(a) - share(b) || (at.get(b) ?? -1) - (at.get(a) ?? -1) || (a < b ? -1 : a > b ? 1 : 0),
   )
 }
+
+// ---------------------------------------------------------------------------
+// Development on the farm (ADR-022, ADR-036)
+
+/**
+ * How many of each group a farm dresses for its affiliate's games: a Lineup's
+ * 12 forwards and 6 defencemen, and the Goalie who starts most. The affiliate
+ * fills the rest with Players on minor-league contracts (ADR-036).
+ */
+export const AFFILIATE_DRESSED: Readonly<Record<PositionGroup, number>> = {
+  forward: 12,
+  defence: 6,
+  goalie: 1,
+}
+
+/**
+ * Whether a Player on a Club's farm plays as a regular for its affiliate, in a
+ * run that does not play the farm's games (ADR-036): his rank by level among
+ * the farm's Players of his group stands in for the ice time he would get.
+ */
+export function regularOnFarm(club: Club, player: Player): boolean {
+  const group = positionGroup(player)
+  const rank = farmOf(club)
+    .filter((p) => positionGroup(p) === group)
+    .sort(byLevel)
+    .findIndex((p) => p.id === player.id)
+  return rank >= 0 && rank < AFFILIATE_DRESSED[group]
+}

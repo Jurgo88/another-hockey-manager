@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { expectedLevel } from '../src/develop/index.js'
-import { NHL_DRAFT_FORMAT } from '../src/data/nhl-2026-27.js'
+import { NHL_DRAFT_FORMAT, NHL_FARM_RULES } from '../src/data/nhl-2026-27.js'
 import type { Club } from '../src/domain/club.js'
 import type { Prospect } from '../src/domain/draft.js'
 import {
@@ -17,6 +17,7 @@ import {
   assistantMoves,
   assistantRanking,
   drawLottery,
+  fillLevel,
   generateClass,
   isReady,
   makePicks,
@@ -43,6 +44,10 @@ import {
   type SeasonState,
 } from '../src/season/index.js'
 import { draftOutcomes, type SeasonRecord } from '../src/stats/history.js'
+import { SMALL_SEASON } from './support/league.js'
+
+/** What the moves between Seasons are kept to in the NHL (ADR-036). */
+const LIMITS = { contractsMax: NHL_FARM_RULES.contractsMax, loanedUntil: NHL_FARM_RULES.loanedUntil }
 
 /** The entry draft and the phase between Seasons (ADR-024, ADR-028, #89). */
 
@@ -306,8 +311,8 @@ describe('the phase between Seasons', () => {
     let releases = 0
     for (const club of drafted.clubs) {
       const moves = proposedMoves(drafted, club.id)
-      expect(movesViolations(club, drafted.prospects, moves)).toEqual([])
-      const { joined, released } = applyMoves(club, drafted.prospects, moves)
+      expect(movesViolations(club, drafted.prospects, moves, LIMITS)).toEqual([])
+      const { joined, released } = applyMoves(club, drafted.prospects, moves, LIMITS.loanedUntil)
       callUps += joined.length
       releases += released.length
       // Every release makes room for a prospect expected to be at least as good, at the same natural position.
@@ -325,10 +330,16 @@ describe('the phase between Seasons', () => {
       const gaps = everyone(ended.clubs.find((c) => c.id === club.id)!)
         .filter((p) => !now.has(p.id))
         .map(naturalOf)
+      // Or sign at the farm's age once they reach a fill's level (ADR-036).
       for (const player of unmatched) {
         const at = gaps.indexOf(naturalOf(player))
-        expect(at).toBeGreaterThanOrEqual(0)
-        gaps.splice(at, 1)
+        if (at >= 0) gaps.splice(at, 1)
+        else expect(expectedLevel(player)).toBeGreaterThanOrEqual(fillLevel(positionGroup(player)))
+      }
+      for (const id of moves.signings ?? []) {
+        const player = drafted.prospects.find((p) => p.player.id === id)!.player
+        expect(player.age).toBeLessThan(LIMITS.loanedUntil)
+        expect(expectedLevel(player)).toBeGreaterThanOrEqual(fillLevel(positionGroup(player)))
       }
     }
     expect(callUps).toBeGreaterThan(5)
@@ -338,7 +349,7 @@ describe('the phase between Seasons', () => {
   it('never proposes a prospect below the weakest at his position', () => {
     for (const club of drafted.clubs) {
       // Before the cap trims it (ADR-031).
-      const { callUps, releases } = assistantMoves(club, drafted.prospects, rosterGaps(drafted, club.id))
+      const { callUps, releases } = assistantMoves(club, drafted.prospects, rosterGaps(drafted, club.id), LIMITS)
       if (releases.length > 0 || callUps.length > 0) continue
       for (const prospect of drafted.prospects.filter((p) => p.player.clubId === club.id)) {
         const now = new Set(everyone(club).map((p) => p.id))
@@ -350,12 +361,9 @@ describe('the phase between Seasons', () => {
     }
   })
 
-  it('refuses moves that break the shape or name a stranger, before the draft too', () => {
+  it('refuses moves that name a stranger, before the draft too', () => {
     const club = drafted.clubs[0]!
-    const theirs = drafted.prospects.filter((p) => p.player.clubId === club.id).map((p) => p.player)
     const others = drafted.prospects.find((p) => p.player.clubId !== club.id)!.player
-    const full = theirs.filter((p) => positionGroup(p) === 'forward')
-    const gapsAtForward = 16 - club.skaters.filter((p) => positionGroup(p) === 'forward').length
     expect(() => setRosterMoves(off, club.id, { callUps: [], releases: [] })).toThrow(
       /not been made/,
     )
@@ -365,11 +373,6 @@ describe('the phase between Seasons', () => {
     expect(() => setRosterMoves(drafted, club.id, { callUps: [], releases: ['nobody'] })).toThrow(
       InvalidMovesError,
     )
-    if (full.length > gapsAtForward) {
-      expect(() =>
-        setRosterMoves(drafted, club.id, { callUps: full.map((p) => p.id), releases: [] }),
-      ).toThrow(/above the shape/)
-    }
   })
 
   it('makes a Manager’s own moves: an early call-up, and a release of his choosing (D-04)', () => {
@@ -470,16 +473,72 @@ describe('the assistant’s moves', () => {
     })
     const club: Club = { id: 'x', code: 'X', name: 'X', skaters: [at(a, 8)], goalies: [] }
     const prospect = (player: Skater): Prospect => ({ player, year: 2, round: 1, pick: 1 })
-    expect(assistantMoves(club, [prospect(at(b, 3))], ['C'])).toEqual({ callUps: [], releases: [] })
-    expect(assistantMoves(club, [prospect(at(b, 9))], ['C'])).toEqual({
+    // As if old enough for the farm: a prospect not ready for a gap or a swap
+    // signs and joins once he reaches the level of a fill (ADR-036).
+    const adult = { ...LIMITS, loanedUntil: 0 }
+    expect(assistantMoves(club, [prospect(at(b, 3))], ['C'], adult)).toEqual({
+      callUps: [],
+      releases: [],
+      signings: [],
+    })
+    expect(assistantMoves(club, [prospect(at(b, 9))], ['C'], adult)).toEqual({
       callUps: [b.id],
       releases: [],
+      signings: [],
     })
-    expect(assistantMoves(club, [prospect(at(b, 9))], [])).toEqual({
+    expect(assistantMoves(club, [prospect(at(b, 9))], [], adult)).toEqual({
       callUps: [b.id],
       releases: [a.id],
+      signings: [],
     })
-    expect(assistantMoves(club, [prospect(at(c, 7))], [])).toEqual({ callUps: [], releases: [] })
+    expect(assistantMoves(club, [prospect(at(c, 7))], [], adult)).toEqual({
+      callUps: [c.id],
+      releases: [],
+      signings: [],
+    })
+  })
+
+  it('sign a prospect too young for the farm to stay on loan, and call him up only when ready for the Roster', () => {
+    const [a, b, c] = generateClass(createRng(4), 2, 40).filter(
+      (p): p is Skater => !isGoalie(p) && naturalOf(p) === 'C',
+    ) as [Skater, Skater, Skater]
+    const at = (player: Skater, level: number): Skater => ({
+      ...withLevel(player, level),
+      clubId: 'x',
+      age: 18,
+    })
+    const club: Club = { id: 'x', code: 'X', name: 'X', skaters: [at(a, 8)], goalies: [] }
+    const prospect = (player: Skater): Prospect => ({ player, year: 2, round: 1, pick: 1 })
+    // Ready for a gap on the farm's terms, not for the active Roster: he signs and stays on loan.
+    expect(assistantMoves(club, [prospect(at(c, 7))], ['C'], LIMITS)).toEqual({
+      callUps: [],
+      releases: [],
+      signings: [c.id],
+    })
+    // Below the level of a fill: he waits on his rights.
+    expect(assistantMoves(club, [prospect(at(b, 3))], [], LIMITS).signings).toEqual([])
+    // Better than the Roster's weakest: called up.
+    expect(assistantMoves(club, [prospect(at(b, 9))], ['C'], LIMITS).callUps).toEqual([b.id])
+  })
+
+  it('hold a Club to its contracts, a loan not counted', async () => {
+    const ended = playToChampion(await startSeason(3, undefined, SMALL_SEASON))
+    const drafted = runReSigning(runDraft(endSeason(ended)))
+    const club = drafted.clubs[0]!
+    const mine = drafted.prospects.filter((p) => p.player.clubId === club.id && !p.player.contract)
+    const tight = { contractsMax: club.skaters.length + club.goalies.length, loanedUntil: 0 }
+    expect(
+      movesViolations(club, drafted.prospects, { callUps: [mine[0]!.player.id], releases: [] }, tight),
+    ).toEqual([{ kind: 'tooManyContracts', count: tight.contractsMax + 1, max: tight.contractsMax }])
+    const loaning = { ...tight, loanedUntil: 99 }
+    expect(
+      movesViolations(
+        club,
+        drafted.prospects,
+        { callUps: [], releases: [], signings: [mine[0]!.player.id] },
+        loaning,
+      ),
+    ).toEqual([])
   })
 })
 

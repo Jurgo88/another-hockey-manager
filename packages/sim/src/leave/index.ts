@@ -179,13 +179,15 @@ export function filledRoster(club: Club, left: readonly Player[], rng: Rng, year
 /**
  * The Club with each gap in its Roster shape filled as `filledRoster` does, a
  * gap at forward or on defence taking the first natural position of its group
- * still in `naturals`, in order.
+ * still in `naturals`, in order. The shape filled to is the Roster's unless
+ * another is given.
  */
 export function filledRosterAt(
   club: Club,
   naturals: readonly (SkaterPosition | 'G')[],
   rng: Rng,
   year: number,
+  shape: { forwards: number; defence: number; goalies: number } = ROSTER_SHAPE,
 ): Club {
   const forwards = club.skaters.filter((skater) => positionGroup(skater) === 'forward').length
   const defence = club.skaters.length - forwards
@@ -200,10 +202,10 @@ export function filledRosterAt(
     )
   }
   const skaterGaps = [
-    ...wanted('forward', forwards, ROSTER_SHAPE.forwards),
-    ...wanted('defence', defence, ROSTER_SHAPE.defence),
+    ...wanted('forward', forwards, shape.forwards),
+    ...wanted('defence', defence, shape.defence),
   ]
-  const goalieGaps = Math.max(0, ROSTER_SHAPE.goalies - club.goalies.length)
+  const goalieGaps = Math.max(0, shape.goalies - club.goalies.length)
   if (skaterGaps.length + goalieGaps === 0) return club
 
   const names = generateDistinctNames(rng, skaterGaps.length + goalieGaps)

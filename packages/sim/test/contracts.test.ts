@@ -170,9 +170,11 @@ describe('contracts from one Season to the next', () => {
     for (const player of next.clubs.flatMap(playersOf)) {
       const was = before.get(player.id)
       if (!was) continue
-      if (was.years > 1) {
+      // An entry-level contract may slide a Season instead (CBA 9.1(d), ADR-036).
+      const slid = was.kind === 'entry-level' && player.contract!.years === was.years
+      if (was.years > 1 || slid) {
         ran++
-        expect(player.contract).toEqual({ ...was, years: was.years - 1 })
+        if (!slid) expect(player.contract).toEqual({ ...was, years: was.years - 1 })
       } else {
         renewed++
         expect(player.contract!.kind).toBe('standard')
@@ -202,8 +204,12 @@ describe('contracts from one Season to the next', () => {
     }
   })
 
-  it('leaves prospects without a contract', () => {
-    for (const prospect of next.prospects) expect(prospect.player.contract).toBeUndefined()
+  it('leaves a prospect without a contract until he signs, and one who signs on loan too young for the farm', () => {
+    for (const { player } of next.prospects) {
+      if (!player.contract) continue
+      expect(player.contract.kind).toBe('entry-level')
+      expect(player.age).toBeLessThan(next.farmRules.loanedUntil)
+    }
   })
 })
 

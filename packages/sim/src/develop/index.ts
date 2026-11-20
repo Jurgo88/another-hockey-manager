@@ -95,7 +95,15 @@ export const CONFIDENCE_LOSS_PER_SEASON = 0.1
 export interface SeasonPlayed {
   /** Dressed in at least half of his Club's regular-Season Fixtures. */
   regular: boolean
+  /** A regular for his Club's farm, in a run whose farm does not play (ADR-036). */
+  farm?: boolean
 }
+
+/**
+ * The growth a regular of a farm gets, standing in for the ice time the farm's
+ * games would give him (ADR-036), as `ICE_TIME_BONUS` is for the NHL.
+ */
+export const FARM_DEVELOPMENT = { bonus: 0.03 }
 
 /**
  * The curve each attribute ages along (ADR-026), or null for one that does not
@@ -223,7 +231,8 @@ function moved<K extends string>(
   shared: number,
 ): Record<K, number> {
   const keys = Object.keys(curves) as K[]
-  const bonus = season.regular && player.age < ICE_TIME_BONUS_BEFORE ? ICE_TIME_BONUS : 0
+  const young = player.age < ICE_TIME_BONUS_BEFORE
+  const bonus = !young ? 0 : season.regular ? ICE_TIME_BONUS : season.farm ? FARM_DEVELOPMENT.bonus : 0
 
   const deltas = {} as Record<K, number>
   for (const key of keys) {
