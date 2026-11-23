@@ -73,11 +73,14 @@ export function distributionSuite(
       const pointTotals = skaters.map(points).sort(descending)
       const qualified = skaters.filter((s) => s.gamesPlayed >= QUALIFYING_SKATER_FIXTURES)
 
-      // Every forward who appeared, spares too: the measured ranks cover the whole league.
+      // Every forward who appeared, spares and call-ups from the farm too (ADR-036):
+      // the measured ranks cover the whole league.
       const appearedForwardIds = new Set<PlayerId>(
         clubs.flatMap((club) =>
-          club.skaters
-            .filter((s) => !DEFENCE_POSITIONS.includes(s.preferredPositions[0]!))
+          [...club.skaters, ...(club.farm ?? [])]
+            .filter(
+              (s) => s.kind === 'skater' && !DEFENCE_POSITIONS.includes(s.preferredPositions[0]!),
+            )
             .map((s) => s.id),
         ),
       )

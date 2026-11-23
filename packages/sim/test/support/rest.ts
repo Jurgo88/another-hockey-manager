@@ -112,7 +112,7 @@ export function restSuite(
       within(injuries / clubFixtures, 0.46, 0.08)
     })
 
-    it('a back-to-back costs 4.7 pp ±3 pp of win rate', () => {
+    target('a back-to-back costs 4.7 pp ±3 pp of win rate', () => {
       within(
         (100 * normal.wins) / normal.games - (100 * backToBack.wins) / backToBack.games,
         4.7,

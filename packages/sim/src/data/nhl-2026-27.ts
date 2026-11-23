@@ -13,6 +13,7 @@
 
 import type { CapRules } from '../domain/contract.js'
 import type { DraftFormat } from '../domain/draft.js'
+import type { FarmRules } from '../domain/farm.js'
 import type {
   Conference,
   CompetitionStructure,
@@ -189,7 +190,8 @@ const NHL_CAP_2026_27 = 104_000_000
  * since September 2026: 7 Seasons with the Player's own Club, 6 with another.
  * The floor of $76.9M, buyouts at two thirds of what is left (one third under
  * 26) over twice the Seasons left, and the playoff cap on the dressed Lineup
- * from the 2026 playoffs (ADR-031).
+ * from the 2026 playoffs (ADR-031). A contract on the farm counts only above
+ * the minimum plus $375,000 (CBA 50.5, ADR-036).
  */
 export const NHL_CAP_RULES: CapRules = {
   upperLimit: NHL_CAP_2026_27,
@@ -205,15 +207,86 @@ export const NHL_CAP_RULES: CapRules = {
       { upToAge: 23, years: 2 },
       { upToAge: 99, years: 1 },
     ],
+    // Signed at 18, two Seasons may slide, at 19 one (CBA 9.1(d)).
+    slide: {
+      games: 10,
+      seasons: [
+        { upToAge: 18, seasons: 2 },
+        { upToAge: 19, seasons: 1 },
+      ],
+    },
   },
   restrictedUntil: 27,
   maxTerm: { ownClub: 7, otherClub: 6 },
+  buried: (850_000 + 375_000) / NHL_CAP_2026_27,
+  longTermInjury: { days: 24, fixtures: 10 },
+  // The minimum plus $100,000 as the CBA of 2013 has it; the memorandum of 2025
+  // revises the threshold in an attachment not read (#133).
+  rosterEmergency: { maxCapHit: (850_000 + 100_000) / NHL_CAP_2026_27 },
 }
 
-/** A Season of the NHL 2026-27: its alignment, bracket, draft and contracts. */
+/**
+ * The NHL's farm rules for 2026-27 (ADR-036), from the CBA of 2013 as the
+ * memoranda of 2020 and 2025 left it: an active Roster of 23 (16.4), 50
+ * contracts (Article 10), Injured Reserve from 7 days (16.11), emergency
+ * call-ups below 2 Goalies, 6 defencemen and 12 forwards fit (13.12(m)).
+ *
+ * The exemption from waivers as 13.4 tables it, Skaters and Goalies apart, NHL
+ * games counting the playoffs. A Player who signs at 18 or 19 has his Seasons
+ * cut to 3, a Goalie to 4, from the first Season in which he plays 11 NHL games
+ * or more. 13.4 counts a young Player's Seasons from his signing and an older
+ * one's from his first professional game; in a league whose farm plays, every
+ * Season under contract is professional, so both count from the first Season
+ * under contract.
+ */
+export const NHL_FARM_RULES: FarmRules = {
+  activeMax: 23,
+  // Players under 20 play in the junior leagues, not the minors (CBA 9.1(d)(iv)).
+  loanedUntil: 20,
+  contractsMax: 50,
+  injuredReserveDays: 7,
+  emergency: { forward: 12, defence: 6, goalie: 2 },
+  waivers: {
+    exemption: {
+      skaters: [
+        { age: 18, seasons: 5, games: 160 },
+        { age: 19, seasons: 4, games: 160 },
+        { age: 20, seasons: 3, games: 160 },
+        { age: 21, seasons: 3, games: 80 },
+        { age: 22, seasons: 3, games: 70 },
+        { age: 23, seasons: 3, games: 60 },
+        { age: 24, seasons: 2, games: 60 },
+        { age: 25, seasons: 1, games: null },
+      ],
+      goalies: [
+        { age: 18, seasons: 6, games: 80 },
+        { age: 19, seasons: 5, games: 80 },
+        { age: 20, seasons: 4, games: 80 },
+        { age: 21, seasons: 4, games: 60 },
+        { age: 22, seasons: 4, games: 60 },
+        { age: 23, seasons: 3, games: 60 },
+        { age: 24, seasons: 2, games: 60 },
+        { age: 25, seasons: 1, games: null },
+      ],
+      youngUpTo: 19,
+      shortenAfter: 11,
+      shortened: { skaters: 3, goalies: 4 },
+    },
+    claimDays: 1,
+    // Until 1 November, about 25 days into a regular Season that opens in October.
+    priorTableDays: 25,
+    reWaiver: { days: 30, games: 10 },
+  },
+  // The 40th day before the last of the regular Season (13.12(j)); five regular
+  // call-ups from it, at most four up at once (the memorandum of 2025, item 16).
+  deadline: { daysBeforeEnd: 40, recalls: 5, onRoster: 4 },
+}
+
+/** A Season of the NHL 2026-27: its alignment, bracket, draft, contracts and farm. */
 export const NHL_2026_27_SEASON: SeasonFormat = {
   structure: NHL_2026_27,
   playoffs: NHL_PLAYOFF_FORMAT,
   draft: NHL_DRAFT_FORMAT,
   cap: NHL_CAP_RULES,
+  farm: NHL_FARM_RULES,
 }

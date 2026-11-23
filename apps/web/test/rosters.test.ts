@@ -14,7 +14,11 @@ describe('a career on a roster file (ADR-003 amendment)', () => {
     expect(provider).not.toBeNull()
     const state = await startSeason(5, provider!)
     const boston = state.clubs.find((club) => club.id === 'bos')!
-    expect(boston.skaters.every((skater) => skater.id.startsWith('nhl-'))).toBe(true)
+    // The file's Players, and a fill completing the farm where one beats them (ADR-036).
+    expect(
+      boston.skaters.every((s) => s.id.startsWith('nhl-') || s.id.startsWith('bos-y1-u')),
+    ).toBe(true)
+    expect(boston.skaters.filter((s) => s.id.startsWith('nhl-')).length).toBeGreaterThanOrEqual(18)
   })
 
   it('offers no file it cannot read, and says why', () => {

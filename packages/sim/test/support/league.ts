@@ -1,5 +1,5 @@
 import type { CompetitionStructure, SeasonFormat } from '../../src/domain/competition.js'
-import { NHL_CAP_RULES } from '../../src/data/nhl-2026-27.js'
+import { NHL_CAP_RULES, NHL_FARM_RULES } from '../../src/data/nhl-2026-27.js'
 
 /**
  * A small Competition for tests that need a Season only as an input (ADR-014
@@ -58,4 +58,5 @@ export const SMALL_SEASON: SeasonFormat = {
     deepRunsLast: 1,
   },
   cap: NHL_CAP_RULES,
+  farm: NHL_FARM_RULES,
 }

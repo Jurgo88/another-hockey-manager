@@ -39,7 +39,7 @@ interface Violation {
   playerId?: string
   group?: string
   count?: number
-  shape?: number
+  max?: number
   payroll?: number
 }
 
@@ -59,7 +59,7 @@ async function save(moves: { callUps: string[]; releases: string[] }) {
           name: v.playerId ? (names.value.get(v.playerId) ?? v.playerId) : '',
           group: v.group ? t(`moves.group.${v.group}`) : '',
           count: v.count ?? 0,
-          shape: v.shape ?? 0,
+          max: v.max ?? 0,
           payroll: ((v.payroll ?? 0) * 100).toFixed(1),
         }),
       )

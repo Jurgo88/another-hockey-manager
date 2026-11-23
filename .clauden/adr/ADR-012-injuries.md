@@ -1,6 +1,6 @@
 # ADR-012 - Injuries are events in the stream, and a Lineup answers them by moving up
 
-- **Status:** Accepted; its Roster depth amended by ADR-036 (call-ups from the farm)
+- **Status:** Accepted; its Roster depth amended by ADR-036 (call-ups from the farm, built in #133: an active Roster of 23 and call-ups for the injuries its spares cannot cover)
 - **Date:** 2026-10-31
 - **Relates to:** FR-20, FR-26, FR-27, D-03, D-04, ADR-010, ADR-011, issue #34
 

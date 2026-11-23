@@ -307,6 +307,12 @@
     "drafted": "drafted, pick {pick} in round {round}.",
     "released": "was released.",
     "calledUp": "was called up to the Roster.",
+    "sentDown": "was sent down to the farm.",
+    "waived": "was put on waivers.",
+    "cleared": "cleared waivers and went down to the farm.",
+    "claimed": "was claimed off waivers from another Club.",
+    "claimedBy": "was claimed off waivers by another Club.",
+    "signed": "signed his entry-level contract and plays on loan.",
     "joined": "joined the Club.",
     "reSigned": "signed again at his ask, for {years} Seasons.",
     "letGo": "was not offered a new contract and left the league."
@@ -354,7 +360,9 @@
       "releasedTwice": "{name} is released twice.",
       "notProspect": "{name} is not your prospect.",
       "notOnRoster": "{name} is not on your Roster.",
-      "aboveShape": "{count} {group} is more than the {shape} a Roster holds.",
+      "signedTwice": "{name} is signed twice.",
+      "alreadySigned": "{name} has signed already.",
+      "tooManyContracts": "The Club would hold {count} contracts, more than the {max} allowed.",
       "cannotDress": "With these moves the Club could not dress a Lineup.",
       "overCap": "With these moves the Club would pay {payroll}% of the cap, above it."
     },

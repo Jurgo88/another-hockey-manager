@@ -2,6 +2,8 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { NHL_CAP_RULES } from '../src/data/nhl-2026-27.js'
 import type { Club } from '../src/domain/club.js'
 import type { Player } from '../src/domain/player.js'
+import { ACTIVE_SIZE } from '../src/domain/roster.js'
+import { assignedClub } from '../src/farm/index.js'
 import { atFloor, buyout, payroll, tickedDeadMoney } from '../src/generate/contracts.js'
 import {
   advanceDay,
@@ -59,6 +61,7 @@ describe('the floor', () => {
     const club = start.clubs[0]!
     const low: Club = {
       ...club,
+      farm: [],
       skaters: club.skaters.map((s) => ({
         ...s,
         contract: { ...s.contract!, capHit: rules.minimum },
@@ -69,13 +72,15 @@ describe('the floor', () => {
     expect(payroll(raised) + 0.05).toBeGreaterThanOrEqual(rules.lowerLimit)
     expect(payroll(raised) + 0.05).toBeLessThan(rules.lowerLimit + 0.001)
     // Those paid more than the level are left as they were.
-    expect(raised.goalies.map((g) => g.contract!.capHit)).toEqual([0.03, 0.03, 0.03])
+    expect(raised.goalies.map((g) => g.contract!.capHit)).toEqual([0.03, 0.03])
     const skaterHits = new Set(raised.skaters.map((s) => s.contract!.capHit))
     expect(skaterHits.size).toBe(1)
   })
 
   it('binds when a league opens', () => {
-    for (const club of start.clubs) expect(payroll(club)).toBeGreaterThanOrEqual(rules.lowerLimit)
+    for (const club of start.clubs) {
+      expect(payroll(club, rules.buried)).toBeGreaterThanOrEqual(rules.lowerLimit)
+    }
   })
 })
 
@@ -112,22 +117,45 @@ describe('between Seasons', () => {
       ),
     )
     const target = club ?? roster.clubs[0]!
-    const prospect = roster.prospects.find((p) => p.player.clubId === target.id)!.player
-    const running = target.skaters[0]!
+    // A prospect good enough for the active Roster: on the farm his entry-level
+    // contract would sit under the buried allowance and count nothing (ADR-036).
+    const held = roster.prospects.find((p) => p.player.clubId === target.id)!
+    const prospect = {
+      ...held.player,
+      attributes: Object.fromEntries(
+        Object.keys(held.player.attributes).map((key) => [key, 20]),
+      ) as unknown as typeof held.player.attributes,
+    } as Player
+    // On the active Roster, where his cap hit counts in full.
+    const running = assignedClub(target).skaters[0]!
+    // Exactly at the cap, as the payroll ahead counts it.
+    const ahead = (c: Club) => {
+      const assigned = assignedClub(c)
+      const open = ACTIVE_SIZE - assigned.skaters.length - assigned.goalies.length
+      return payroll(assigned, rules.buried) + Math.max(0, open) * rules.minimum
+    }
+    // Everyone else at the minimum, so whoever the prospect pushes to the farm
+    // saves less than his entry-level contract costs.
+    const atMinimum = <P extends Player>(p: P): P => ({
+      ...p,
+      contract: { ...p.contract!, capHit: rules.minimum },
+    })
+    const cheap: Club = {
+      ...target,
+      skaters: target.skaters.map((p) => (p.id === running.id ? p : atMinimum(p))),
+      goalies: target.goalies.map(atMinimum),
+    }
+    const capHit = 1 - ahead(cheap) + running.contract!.capHit
     const full: Offseason = {
       ...roster,
+      prospects: roster.prospects.map((p) => (p === held ? { ...p, player: prospect } : p)),
       clubs: roster.clubs.map((c) =>
         c.id !== target.id
           ? c
           : {
-              ...c,
-              skaters: c.skaters.map((p) =>
-                p.id === running.id
-                  ? {
-                      ...p,
-                      contract: { ...p.contract!, capHit: 1 - payroll(c) + p.contract!.capHit },
-                    }
-                  : p,
+              ...cheap,
+              skaters: cheap.skaters.map((p) =>
+                p.id === running.id ? { ...p, contract: { ...p.contract!, capHit } } : p,
               ),
             },
       ),
@@ -142,7 +170,7 @@ describe('between Seasons', () => {
     const next = startNextSeason(roster)
     for (const club of next.clubs) {
       const dead = (next.deadMoney[club.id] ?? []).reduce((sum, d) => sum + d.capHit, 0)
-      expect(payroll(club) + dead).toBeGreaterThanOrEqual(rules.lowerLimit - 1e-9)
+      expect(payroll(club, rules.buried) + dead).toBeGreaterThanOrEqual(rules.lowerLimit - 1e-9)
     }
   })
 })
@@ -178,6 +206,6 @@ describe('the playoff cap', () => {
     expect(() => setLineup(state, clubId, lineup)).toThrow(InvalidLineupError)
     const fitted = assistantLineup(state, clubId, lineup.tactics)
     expect(playoffCapCharge(state, clubId, fitted)).toBeLessThanOrEqual(1 + 1e-9)
-    expect(playersOf(dear).length).toBe(29)
+    expect(playersOf(dear).length).toBe(playersOf(club).length)
   })
 })

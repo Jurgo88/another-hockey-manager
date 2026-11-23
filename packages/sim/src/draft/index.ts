@@ -22,7 +22,7 @@ import {
 } from '../domain/player.js'
 import type { PlayoffState } from '../domain/playoff.js'
 import { develop, expectedLevel } from '../develop/index.js'
-import { ROSTER_SHAPE } from '../domain/roster.js'
+import { ACTIVE_SHAPE, ROSTER_SHAPE } from '../domain/roster.js'
 import { sortStandings, type StandingsRow } from '../domain/standings.js'
 import { GOALIE_ATTRIBUTE_SPREAD, SKATER_ATTRIBUTE_SPREAD } from '../develop/index.js'
 import { generateDistinctNames } from '../generate/names.js'
@@ -392,8 +392,6 @@ const SHAPE: Readonly<Record<PositionGroup, number>> = {
   goalie: ROSTER_SHAPE.goalies,
 }
 
-const GROUPS: readonly PositionGroup[] = ['forward', 'defence', 'goalie']
-
 /**
  * The level a Club expects of a Player next Season (ADR-028 amendment): whom
  * to call up and whom to release is chosen a Season ahead, so a declining
@@ -412,9 +410,51 @@ const outlook = (player: Player) => expectedLevel(player)
  * and still take a gap. FITTED in #130 at 4 levels: without a farm a prospect
  * has nowhere else to grow, and at 0 the draft's targets and the tenth
  * Season's scoring fell out of their bands. A stand-in until the farm
- * (ADR-036), which takes it back to 0.
+ * (ADR-036), which took it back to 0 in #133: a prospect not ready for the
+ * Roster signs and grows on loan or on the farm instead.
  */
-export const SWAP = { margin: 1, gap: 4 }
+export const SWAP = { margin: 1, gap: 0 }
+
+/**
+ * When the assistant signs a prospect to his entry-level contract (ADR-036,
+ * #133): once the level expected of him next Season reaches that of an
+ * undrafted fill at his group, or `above` spreads of his group more, a bar
+ * that does not rise with the league, and
+ * while the Club holds fewer than `upTo` contracts, a loan not counted. An
+ * estimate: NHL Clubs hold 45 to 50 contracts with their juniors, fewer counted.
+ */
+export const SIGNING = { upTo: 40, above: 0 }
+
+/** What a Club's moves are kept to between Seasons (ADR-036). */
+export interface MoveLimits {
+  /** The most contracts a Club may hold, a loan not counted. */
+  contractsMax: number
+  /** Younger than this, a signed prospect off the active Roster plays on loan. */
+  loanedUntil: number
+}
+
+/**
+ * Whether a prospect too young for the farm is ready for the active Roster:
+ * the level expected of him next Season reaches the weakest at his natural
+ * position among the best of the Club's group, as many as the active Roster
+ * keeps (ADR-036). Anywhere else he would play on loan.
+ */
+function readyForRoster(roster: readonly Player[], prospect: Player): boolean {
+  const group = positionGroup(prospect)
+  const best = roster
+    .filter((p) => positionGroup(p) === group)
+    .sort(byOutlook)
+    .reverse()
+    .slice(0, ACTIVE_GROUP[group])
+  const weakest = atNatural(best, naturalOf(prospect))[0] ?? best.at(-1)
+  return !weakest || outlook(prospect) >= outlook(weakest)
+}
+
+const ACTIVE_GROUP: Readonly<Record<PositionGroup, number>> = {
+  forward: ACTIVE_SHAPE.forwards,
+  defence: ACTIVE_SHAPE.defence,
+  goalie: ACTIVE_SHAPE.goalies,
+}
 
 const byOutlook = (a: Player, b: Player) =>
   outlook(a) - outlook(b) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
@@ -449,26 +489,34 @@ export function isReady(club: Club, prospect: Player, tolerance = 0): boolean {
 }
 
 /**
- * The assistant's call-ups and releases for a Club (ADR-028). A gap, at the
- * natural position of whoever left it, goes to the best ready prospect at that
- * position. Then, position by position, while the best prospect left is ready,
- * he is called up and the weakest at his position released, each judged by the
- * level expected of him next Season. A Club keeps its
- * shape and its balance of centres, wings and sides.
+ * The assistant's call-ups, releases and signings for a Club (ADR-028,
+ * ADR-036). A gap, at the natural position of whoever left it, goes to the best
+ * ready prospect at that position. Then, position by position, while the best
+ * prospect left is ready, he is called up and the weakest at his position
+ * released, each judged by the level expected of him next Season. A prospect
+ * too young for the farm is called up only when he is ready for the active
+ * Roster. Last, every prospect left who has reached the signing bar signs, while
+ * the Club holds contracts to spare: one too young for the farm stays on loan,
+ * an older one joins the Club. A Club keeps its balance of centres, wings and
+ * sides.
  */
 export function assistantMoves(
   club: Club,
   prospects: readonly Prospect[],
   gaps: readonly Natural[],
+  limits: MoveLimits,
 ): RosterMoves {
   const callUps: PlayerId[] = []
   const releases: PlayerId[] = []
+  const signings: PlayerId[] = []
   let roster: Player[] = [...club.skaters, ...club.goalies]
   const waiting = prospects
     .map((prospect) => prospect.player)
     .filter((player) => player.clubId === club.id)
     .sort(byOutlook)
     .reverse()
+  const young = (p: Player) => p.age < limits.loanedUntil
+  const callable = (p: Player) => !young(p) || readyForRoster(roster, p)
   const call = (prospect: Player) => {
     callUps.push(prospect.id)
     roster = [...roster, prospect]
@@ -476,12 +524,16 @@ export function assistantMoves(
   }
 
   for (const natural of gaps) {
-    const best = waiting.find((p) => naturalOf(p) === natural)
-    if (best && isReady(withRoster(club, roster), best, SWAP.gap)) call(best)
+    const best = waiting.find((p) => naturalOf(p) === natural && callable(p))
+    // Only into room: a Club that claimed a Player off waivers may be full (ADR-036).
+    const group = best ? positionGroup(best) : null
+    const room =
+      group !== null && roster.filter((p) => positionGroup(p) === group).length < SHAPE[group]
+    if (best && room && isReady(withRoster(club, roster), best, SWAP.gap)) call(best)
   }
   for (const natural of ['C', 'LW', 'RW', 'LD', 'RD', 'G'] as const) {
     for (;;) {
-      const best = waiting.find((p) => naturalOf(p) === natural)
+      const best = waiting.find((p) => naturalOf(p) === natural && callable(p))
       const weakest = atNatural(roster, natural)[0]
       if (!best || !weakest || outlook(best) < outlook(weakest) + SWAP.margin) break
       releases.push(weakest.id)
@@ -489,7 +541,13 @@ export function assistantMoves(
       call(best)
     }
   }
-  return { callUps, releases }
+  for (const prospect of [...waiting]) {
+    if (prospect.contract) continue
+    if (aboveFill(outlook(prospect), positionGroup(prospect)) < SIGNING.above) continue
+    if (young(prospect)) signings.push(prospect.id)
+    else if (roster.length < Math.min(SIGNING.upTo, limits.contractsMax)) call(prospect)
+  }
+  return { callUps, releases, signings }
 }
 
 function withRoster(club: Club, roster: readonly Player[]): Club {
@@ -500,11 +558,12 @@ function withRoster(club: Club, roster: readonly Player[]): Club {
   }
 }
 
-/** Why a Club's moves cannot stand, or nothing when they can (ADR-028). */
+/** Why a Club's moves cannot stand, or nothing when they can (ADR-028, ADR-036). */
 export function movesViolations(
   club: Club,
   prospects: readonly Prospect[],
   moves: RosterMoves,
+  limits: MoveLimits,
 ): MovesViolation[] {
   const out: MovesViolation[] = []
   const held = new Map(
@@ -519,16 +578,25 @@ export function movesViolations(
   for (const id of moves.callUps) {
     if (!held.has(id)) out.push({ kind: 'notProspect', playerId: id })
   }
+  const signings = moves.signings ?? []
+  const signedTwice = twice([...signings, ...moves.callUps.filter((id) => signings.includes(id))])
+  if (signedTwice) out.push({ kind: 'signedTwice', playerId: signedTwice })
+  for (const id of signings) {
+    const prospect = held.get(id)
+    if (!prospect) out.push({ kind: 'notProspect', playerId: id })
+    else if (prospect.contract) out.push({ kind: 'alreadySigned', playerId: id })
+  }
   for (const id of moves.releases) {
     if (!onRoster.has(id)) out.push({ kind: 'notOnRoster', playerId: id })
   }
   if (out.length > 0) return out
-  for (const group of GROUPS) {
-    const count =
-      groupOf(club, group).length -
-      moves.releases.filter((id) => positionGroup(onRoster.get(id)!) === group).length +
-      moves.callUps.filter((id) => positionGroup(held.get(id)!) === group).length
-    if (count > SHAPE[group]) out.push({ kind: 'aboveShape', group, count, shape: SHAPE[group] })
+  // The contracts a Club holds, a loan not counted, within the rules' limit;
+  // one already above it may stay where it is (ADR-036).
+  const before = onRoster.size
+  const joining = signings.filter((id) => held.get(id)!.age >= limits.loanedUntil).length
+  const count = before - moves.releases.length + moves.callUps.length + joining
+  if (count > Math.max(limits.contractsMax, before)) {
+    out.push({ kind: 'tooManyContracts', count, max: limits.contractsMax })
   }
   return out
 }
@@ -544,8 +612,12 @@ export function describeMovesViolation(violation: MovesViolation): string {
       return `${violation.playerId} is not a prospect of the Club`
     case 'notOnRoster':
       return `${violation.playerId} is not on the Club's Roster`
-    case 'aboveShape':
-      return `${violation.count} at ${violation.group}, above the shape of ${violation.shape}`
+    case 'signedTwice':
+      return `${violation.playerId} is signed twice`
+    case 'alreadySigned':
+      return `${violation.playerId} is signed already`
+    case 'tooManyContracts':
+      return `${violation.count} contracts, above the ${violation.max} allowed`
     case 'cannotDress':
       return 'the Club could not dress a Lineup'
     case 'overCap':
@@ -553,15 +625,26 @@ export function describeMovesViolation(violation: MovesViolation): string {
   }
 }
 
-/** A Club after its moves, with who joined and who was released. The moves are valid. */
+/**
+ * A Club after its moves, with who joined, who was released, and who signed to
+ * stay on loan. A prospect who signs at the farm's age or older joins. The moves
+ * are valid.
+ */
 export function applyMoves(
   club: Club,
   prospects: readonly Prospect[],
   moves: RosterMoves,
-): { club: Club; joined: Player[]; released: Player[] } {
+  loanedUntil: number,
+): { club: Club; joined: Player[]; released: Player[]; loaned: Player[] } {
   const releasing = new Set(moves.releases)
-  const calling = new Set(moves.callUps)
-  const joined = prospects.map((p) => p.player).filter((p) => calling.has(p.id))
+  const signing = new Set(moves.signings ?? [])
+  const players = prospects.map((p) => p.player)
+  const calling = new Set([
+    ...moves.callUps,
+    ...players.filter((p) => signing.has(p.id) && p.age >= loanedUntil).map((p) => p.id),
+  ])
+  const joined = players.filter((p) => calling.has(p.id))
+  const loaned = players.filter((p) => signing.has(p.id) && !calling.has(p.id))
   const released = [...club.skaters, ...club.goalies].filter((p) => releasing.has(p.id))
   const stays = (player: Player) => !releasing.has(player.id)
   return {
@@ -572,5 +655,6 @@ export function applyMoves(
     },
     joined,
     released,
+    loaned,
   }
 }

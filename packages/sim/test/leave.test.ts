@@ -16,13 +16,24 @@ import {
 } from '../src/leave/index.js'
 import { createRng } from '../src/rng/index.js'
 import { startSeason } from '../src/season/index.js'
+import { contractedOf } from '../src/farm/index.js'
+import type { Goalie, Skater } from '../src/domain/player.js'
 
 /** Leaving the league between Seasons (ADR-023, ADR-027, #88). */
 
 let clubs: readonly Club[]
 
 beforeAll(async () => {
-  clubs = (await startSeason(88)).clubs
+  // Between Seasons a Club's active Roster and farm are held as one (ADR-036).
+  clubs = (await startSeason(88)).clubs.map((club) => {
+    const all = contractedOf(club)
+    return {
+      ...club,
+      skaters: all.filter((p): p is Skater => p.kind === 'skater'),
+      goalies: all.filter((p): p is Goalie => p.kind === 'goalie'),
+      farm: [],
+    }
+  })
 })
 
 const everyone = () => clubs.flatMap((club) => [...club.skaters, ...club.goalies])

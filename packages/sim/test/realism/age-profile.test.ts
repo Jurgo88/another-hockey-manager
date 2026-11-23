@@ -20,7 +20,10 @@ describe('the age of a generated league', async () => {
     SEASON_SEEDS.map(async (seed) => {
       const season = await cachedSeason(seed)
       const ages = new Map(
-        season.clubs.flatMap((club) => [...club.skaters, ...club.goalies]).map((p) => [p.id, p.age]),
+        // Everyone a Club holds, so a call-up from the farm has his age too (ADR-036).
+        season.clubs
+          .flatMap((club) => [...club.skaters, ...club.goalies, ...(club.farm ?? [])])
+          .map((p) => [p.id, p.age]),
       )
       return [...season.season.skaters, ...season.season.goalies]
         .filter(([, stats]) => stats.gamesPlayed > 0)

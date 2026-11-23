@@ -27,7 +27,8 @@ import { SMALL_SEASON } from './support/league.js'
 
 const rules = NHL_CAP_RULES
 const rng = () => createRng(7).fork('test')
-const playersOf = (club: Club): Player[] => [...club.skaters, ...club.goalies]
+/** Everyone a Club holds, active Roster and farm (ADR-036). */
+const playersOf = (club: Club): Player[] => [...club.skaters, ...club.goalies, ...(club.farm ?? [])]
 
 /** A Player as a Roster without contracts holds him. */
 function unsigned<P extends Player>(player: P): P {
@@ -60,7 +61,9 @@ describe('a league opens under contract', () => {
   })
 
   it('opens no Club over the cap, and keeps the rules with the Season', () => {
-    for (const club of start.clubs) expect(payroll(club)).toBeLessThanOrEqual(1 + 1e-9)
+    for (const club of start.clubs) {
+      expect(payroll(club, rules.buried)).toBeLessThanOrEqual(1 + 1e-9)
+    }
     expect(start.capRules).toBe(rules)
   })
 
@@ -134,9 +137,9 @@ describe('the cap at opening', () => {
           : s,
       ),
     }
-    expect(payroll(doubled)).toBeGreaterThan(1)
+    expect(payroll(doubled, rules.buried)).toBeGreaterThan(1)
     const brought = withinCap(rules, doubled)
-    expect(payroll(brought)).toBeCloseTo(1, 4)
+    expect(payroll(brought, rules.buried)).toBeCloseTo(1, 4)
     const minimums = (c: Club) =>
       playersOf(c).filter((p) => p.contract!.capHit === rules.minimum).length
     expect(minimums(brought)).toBe(minimums(doubled))
@@ -167,9 +170,11 @@ describe('contracts from one Season to the next', () => {
     for (const player of next.clubs.flatMap(playersOf)) {
       const was = before.get(player.id)
       if (!was) continue
-      if (was.years > 1) {
+      // An entry-level contract may slide a Season instead (CBA 9.1(d), ADR-036).
+      const slid = was.kind === 'entry-level' && player.contract!.years === was.years
+      if (was.years > 1 || slid) {
         ran++
-        expect(player.contract).toEqual({ ...was, years: was.years - 1 })
+        if (!slid) expect(player.contract).toEqual({ ...was, years: was.years - 1 })
       } else {
         renewed++
         expect(player.contract!.kind).toBe('standard')
@@ -190,16 +195,21 @@ describe('contracts from one Season to the next', () => {
     const joined = next.clubs.flatMap(playersOf).filter((p) => !before.has(p.id))
     expect(joined.length).toBeGreaterThan(0)
     for (const player of joined) {
-      expect(player.contract).toEqual(
-        prospects.has(player.id)
-          ? entryLevelContract(rules, player)
-          : minimumContract(rules, player),
-      )
+      const signed = prospects.has(player.id)
+        ? entryLevelContract(rules, player)
+        : minimumContract(rules, player)
+      // The floor may since have raised it (ADR-031).
+      expect({ ...player.contract, capHit: signed.capHit }).toEqual(signed)
+      expect(player.contract!.capHit).toBeGreaterThanOrEqual(signed.capHit)
     }
   })
 
-  it('leaves prospects without a contract', () => {
-    for (const prospect of next.prospects) expect(prospect.player.contract).toBeUndefined()
+  it('leaves a prospect without a contract until he signs, and one who signs on loan too young for the farm', () => {
+    for (const { player } of next.prospects) {
+      if (!player.contract) continue
+      expect(player.contract.kind).toBe('entry-level')
+      expect(player.age).toBeLessThan(next.farmRules.loanedUntil)
+    }
   })
 })
 

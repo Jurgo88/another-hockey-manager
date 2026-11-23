@@ -3,6 +3,8 @@ import { NHL_CAP_RULES } from '../src/data/nhl-2026-27.js'
 import type { Club } from '../src/domain/club.js'
 import type { Player } from '../src/domain/player.js'
 import { expectedLevel } from '../src/develop/index.js'
+import { ACTIVE_SIZE, ROSTER_SIZE } from '../src/domain/roster.js'
+import { assignedClub } from '../src/farm/index.js'
 import { askingContract, payroll } from '../src/generate/contracts.js'
 import { createRng } from '../src/rng/index.js'
 import {
@@ -28,7 +30,19 @@ import { SMALL_SEASON } from './support/league.js'
 /** The ask by role, the term, and the re-signing window (ADR-030, ADR-032, #127). */
 
 const rules = NHL_CAP_RULES
-const playersOf = (club: Club): Player[] => [...club.skaters, ...club.goalies]
+/** Everyone a Club holds, active Roster and farm (ADR-036). */
+const playersOf = (club: Club): Player[] => [...club.skaters, ...club.goalies, ...(club.farm ?? [])]
+
+/**
+ * A Club's payroll for the Season ahead (ADR-031): its active Roster as the
+ * assistant would pick it, its farm above the buried allowance, and every place
+ * still open on the active Roster at the minimum (ADR-036).
+ */
+const payrollAhead = (club: Club): number => {
+  const assigned = assignedClub(club)
+  const open = ACTIVE_SIZE - assigned.skaters.length - assigned.goalies.length
+  return payroll(assigned, rules.buried) + Math.max(0, open) * rules.minimum
+}
 
 describe('the term of a new contract', () => {
   let player: Player
@@ -128,8 +142,7 @@ describe('the re-signing window', () => {
       for (const player of expiring.filter((p) => !kept.has(p.id))) {
         expect(free.has(player.id)).toBe(true)
       }
-      const open = 29 - playersOf(after).length
-      expect(payroll(after) + open * rules.minimum).toBeLessThanOrEqual(1 + 1e-9)
+      expect(payrollAhead(after)).toBeLessThanOrEqual(1 + 1e-9)
     }
   })
 
@@ -186,7 +199,9 @@ describe('the re-signing window', () => {
 
     // His place is a gap the next Season fills.
     const next = startNextSeason(closed)
-    expect(playersOf(next.clubs.find((c) => c.id === club.id)!)).toHaveLength(29)
+    // The shape of its contracts, but for a Player or two moved through waivers at camp.
+    const held = playersOf(next.clubs.find((c) => c.id === club.id)!).length
+    expect(Math.abs(held - ROSTER_SIZE)).toBeLessThanOrEqual(4)
   })
 
   it('refuses re-signings that break the rules, as data', () => {

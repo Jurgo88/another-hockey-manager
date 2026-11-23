@@ -32,13 +32,13 @@ describe('contracts over ten Seasons', () => {
 
   it('opens every league at or under the cap', async () => {
     for (const run of await longRuns()) {
-      expect(payrolls(run.contracts[0]!).highest).toBeLessThanOrEqual(1 + 1e-9)
+      expect(payrolls(run.openingContracts[0]!).highest).toBeLessThanOrEqual(1 + 1e-9)
     }
   })
 
   it('starts every Club at or above the floor, in every Season (ADR-031)', async () => {
     for (const run of await longRuns()) {
-      for (const [i, contracts] of run.contracts.entries()) {
+      for (const [i, contracts] of run.openingContracts.entries()) {
         const { lowest } = payrolls(contracts, run.deadMoney[i])
         expect(lowest, `Season ${i + 1}`).toBeGreaterThanOrEqual(rules.lowerLimit - 1e-9)
       }
