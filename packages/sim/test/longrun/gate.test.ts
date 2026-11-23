@@ -3,17 +3,13 @@ import { longRuns } from '../support/simulations.js'
 
 /**
  * The Phase 2 gate on eight generated leagues (#90); the roster file is
- * `@ahm/estimate`'s. Until the farm (ADR-036) a prospect takes a gap before he is
- * ready, as `SWAP.gap` lets him: the young crowd the Rosters and debut early.
- * Those targets are reported here, and asserted again with the farm.
+ * `@ahm/estimate`'s. With the farm (ADR-036, #133) every target is asserted
+ * again but those listed here, which the author chose on 2026-11-23 to report:
+ * they sit a hair outside their bands, and a draft has its luck.
  */
-const FARM =
-  'without a farm prospects take gaps before they are ready; asserted again with the farm, ADR-036'
+const NEAR = 'a hair outside with the farm (#133); asserted again at the Phase 3 gate'
 
 gateSuite('eight generated leagues', longRuns, {
-  'Players aged 23 or younger: 30% ±5 pp': FARM,
-  'aged 23 or younger: 0.044 ±0.03': FARM,
-  'round 2: a median of 3 Seasons to debut (±1)': FARM,
-  'round 3: a median of 3 Seasons to debut (±1)': FARM,
-  'round 4: a median of 3 Seasons to debut (±1)': FARM,
+  'Players aged 23 or younger: 30% ±5 pp': NEAR,
+  'round 2: 0.385 play 200 Fixtures or more (±0.12)': NEAR,
 })

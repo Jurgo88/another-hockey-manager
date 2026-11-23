@@ -14,6 +14,7 @@ import {
   recordOf,
   startSeason,
   type PlayedFixture,
+  type SeasonState,
 } from '../season/index.js'
 import { careerTotals, skaterCareer, type SeasonRecord } from '../stats/history.js'
 import { deadCharge } from '../generate/contracts.js'
@@ -90,6 +91,12 @@ export interface SimulatedRun {
   seasons: readonly SeasonRecord[]
   /** Each Season's contracts as it ended, oldest first (#125). */
   contracts: readonly (readonly RosterContract[])[]
+  /**
+   * Each Season's contracts as it opened, oldest first: the Rosters change during
+   * a Season with the farm (ADR-036), so the cap and the floor at the start are
+   * read here.
+   */
+  openingContracts: readonly (readonly RosterContract[])[]
   /** Each Season's dead money by Club, oldest first (#129). */
   deadMoney: readonly Readonly<Record<ClubId, number>>[]
 }
@@ -105,8 +112,10 @@ export async function simulateSeasons(
   const players = new Map<PlayerId, Player>()
   const seasons: SeasonRecord[] = []
   const contracts: RosterContract[][] = []
+  const openingContracts: RosterContract[][] = []
   const deadMoney: Record<ClubId, number>[] = []
   for (;;) {
+    openingContracts.push(contractsOf(state))
     const fixtures: Fixture[] = []
     const matches: MatchStats[] = []
     while (!isRegularSeasonOver(state)) {
@@ -131,21 +140,28 @@ export async function simulateSeasons(
         Object.entries(state.deadMoney).map(([id, entries]) => [id, deadCharge(entries)]),
       ),
     )
-    contracts.push(
-      clubsHolding(state).flatMap((club) =>
-        contractedOf(club).map((player) => ({
-          playerId: player.id,
-          clubId: club.id,
-          ...(player.contract ? { contract: player.contract } : {}),
-        })),
-      ),
-    )
+    contracts.push(contractsOf(state))
     if (state.year === count) {
       const last = { clubs, lineups, fixtures, matches, season: foldSeason(matches) }
-      return { clubs: state.clubs, last, players, seasons, contracts, deadMoney }
+      return { clubs: state.clubs, last, players, seasons, contracts, openingContracts, deadMoney }
     }
     state = nextSeason(state)
   }
+}
+
+/** Every contract the Clubs hold, a contract on the farm counting only above the buried allowance (ADR-036). */
+function contractsOf(state: SeasonState): RosterContract[] {
+  return clubsHolding(state).flatMap((club) => {
+    const farm = new Set((club.farm ?? []).map((p) => p.id))
+    return contractedOf(club).map((player) => ({
+      playerId: player.id,
+      clubId: club.id,
+      ...(player.contract ? { contract: player.contract } : {}),
+      ...(player.contract && farm.has(player.id)
+        ? { buried: Math.min(player.contract.capHit, state.capRules.buried) }
+        : {}),
+    }))
+  })
 }
 
 /** A Club of the run by its code, in any case. */

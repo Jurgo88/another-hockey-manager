@@ -30,7 +30,8 @@ export function ageProfile(record: SeasonRecord): AgeProfile {
     .map((entry) => ({ age: entry.age, fixtures: fixturesOf(record, entry.playerId) }))
     .filter((p) => p.fixtures > 0)
   const fixtures = played.reduce((sum, p) => sum + p.fixtures, 0)
-  const share = (test: (age: number) => boolean) => played.filter((p) => test(p.age)).length / played.length
+  const share = (test: (age: number) => boolean) =>
+    played.filter((p) => test(p.age)).length / played.length
   return {
     meanAge: played.reduce((sum, p) => sum + p.age * p.fixtures, 0) / fixtures,
     oldShare: share((age) => age >= 31),
@@ -55,6 +56,8 @@ export interface RosterContract {
   playerId: PlayerId
   clubId: ClubId
   contract?: Contract
+  /** What of his cap hit the farm buries, off the cap (ADR-036); none on the active Roster. */
+  buried?: number
 }
 
 /**
@@ -67,7 +70,8 @@ export function payrolls(
 ): Payrolls {
   const byClub = new Map<ClubId, number>(Object.entries(dead))
   for (const entry of contracts) {
-    byClub.set(entry.clubId, (byClub.get(entry.clubId) ?? 0) + (entry.contract?.capHit ?? 0))
+    const counted = (entry.contract?.capHit ?? 0) - (entry.buried ?? 0)
+    byClub.set(entry.clubId, (byClub.get(entry.clubId) ?? 0) + counted)
   }
   const shares = [...byClub.values()]
   const mean = shares.reduce((sum, s) => sum + s, 0) / shares.length
@@ -121,7 +125,11 @@ export interface LeavingRow {
 }
 
 const groupOf = (entry: RosterEntry) =>
-  entry.position === 'G' ? 'goalie' : entry.position === 'LD' || entry.position === 'RD' ? 'defence' : 'forward'
+  entry.position === 'G'
+    ? 'goalie'
+    : entry.position === 'LD' || entry.position === 'RD'
+      ? 'defence'
+      : 'forward'
 
 /**
  * Who of a Season's regulars left before the next, Season after Season: every
@@ -174,11 +182,17 @@ export interface TableDynamics {
 /** How the table moves across a run (`size` is 8 in the NHL's measurement). */
 export function tableDynamics(records: readonly SeasonRecord[], size = 8): TableDynamics {
   const order = records.map((record) => sortStandings(record.standings).map((row) => row.clubId))
-  const points = records.map((record) => new Map(record.standings.map((row) => [row.clubId, row.points])))
+  const points = records.map(
+    (record) => new Map(record.standings.map((row) => [row.clubId, row.points])),
+  )
   const clubs = order[0]!
   const pairs = records.slice(1).map((_, i) => i)
   const stays = (pick: (ranked: readonly ClubId[]) => readonly ClubId[]) =>
-    mean(pairs.map((i) => pick(order[i]!).filter((club) => pick(order[i + 1]!).includes(club)).length / size))
+    mean(
+      pairs.map(
+        (i) => pick(order[i]!).filter((club) => pick(order[i + 1]!).includes(club)).length / size,
+      ),
+    )
 
   let longestTopRun = 0
   for (const club of clubs) {
@@ -222,8 +236,12 @@ export const LEVEL_AGE_BANDS = [
 ] as const
 
 /** The mean level of the Skaters on the Rosters as a Season ended, by age band. */
-export function levelByAge(records: readonly SeasonRecord[]): { label: string; level: number; players: number }[] {
-  const skaters = records.flatMap((record) => record.roster.filter((entry) => entry.position !== 'G'))
+export function levelByAge(
+  records: readonly SeasonRecord[],
+): { label: string; level: number; players: number }[] {
+  const skaters = records.flatMap((record) =>
+    record.roster.filter((entry) => entry.position !== 'G'),
+  )
   return LEVEL_AGE_BANDS.map(({ label, from, to }) => {
     const members = skaters.filter((entry) => entry.age >= from && entry.age <= to)
     return { label, level: mean(members.map((entry) => entry.level)), players: members.length }

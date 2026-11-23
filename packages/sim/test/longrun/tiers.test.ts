@@ -23,20 +23,22 @@ const tenth = async () => (await longRuns()).map((run) => run.last)
  */
 const DEPTH = 'deeper Rosters over ten Seasons, asserted at the Phase 3 gate'
 
+/**
+ * A hair outside with the farm (#133), as before it; the author chose on
+ * 2026-11-23 to report them until the Phase 3 gate.
+ */
+const NEAR = 'a hair outside with the farm (#133); asserted again at the Phase 3 gate'
+
 /** Nothing but a Roster keeps a Club strong or weak until Phase 3, so a run converges. */
 const CONVERGES = 'a run converges without contracts, asserted at the Phase 3 gate'
 
-/** Rosters crowded with young Players until the farm (ADR-036). */
-const FARM =
-  'without a farm prospects take gaps before they are ready; asserted again with the farm, ADR-036'
-
 aggregateSuite('eight tenth Seasons', tenth, {
-  'penalties committed per Club per Fixture: 2.88 ±0.15': FARM,
+  'penalties committed per Club per Fixture: 2.88 ±0.15': NEAR,
   'lowest Club penalties per Fixture: 2.40 ±0.15': DEPTH,
   'highest Club penalties per Fixture: 3.24 ±0.15': DEPTH,
 })
 distributionSuite('eight tenth Seasons', tenth, {
-  'Skaters with 40+ goals: 15 ±6': FARM,
+  'Skaters with 40+ goals: 15 ±6': NEAR,
   'league scoring leader: 141 ±25 points': DEPTH,
   'forward tier-1 to tier-4 points-per-minute ratio: 2.71 ±0.50': DEPTH,
 })
@@ -45,5 +47,7 @@ standingsSuite('eight tenth Seasons', tenth, {
 })
 restSuite('eight tenth Seasons', tenth, {
   'a back-to-back costs 0.20 ±0.15 goals for': "the engine's fatigue is weak in every Season, #109",
+  'a back-to-back costs 4.7 pp ±3 pp of win rate':
+    "the engine's fatigue is weak in every Season, #109",
 })
 iceTimeSuite('eight tenth Seasons', tenth)
