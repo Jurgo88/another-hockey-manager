@@ -1,6 +1,6 @@
 # ADR-028 - Between Seasons Managers decide: the draft, call-ups and releases
 
-- **Status:** Accepted; its windows extended by ADR-032, releases become buyouts (ADR-031, ADR-032), the assistant decides on its own view (ADR-035), its readiness eased until the farm (ADR-036)
+- **Status:** Accepted; its windows extended by ADR-032, releases become buyouts (ADR-031, ADR-032), the assistant decides on its own view (ADR-035), its readiness eased until the farm (ADR-036), then back to 0 with prospects signing to a loan or the farm and the 50 contracts in place of the shape (ADR-036 amendment, #133)
 - **Date:** 2026-11-10
 - **Refines:** ADR-024 (the draft), and carries out the release of ADR-023 that
   ADR-027 moved to #89

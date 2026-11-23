@@ -1,6 +1,6 @@
 # ADR-036 - Every Club has a farm, and Players move between them through waivers as in the NHL
 
-- **Status:** Accepted
+- **Status:** Accepted; built in #133 (amendment below)
 - **Date:** 2026-11-13
 - **Amends:** ADR-012 and ADR-020 (the Roster's shape), ADR-031 (what the cap counts; the daily charge and long-term injury relief move here from trades), ADR-022 (development off the NHL Roster)
 - **Relates to:** FR-20, D-01, D-03, D-04, D-06, D-08, D-10, ADR-014, ADR-024, ADR-028, ADR-030, ADR-032, ADR-033, ADR-034, issue #130
@@ -160,3 +160,117 @@ common belief, not the rule: exemption reads age, seasons and games only.
 - A test tier plays farm games over a block of Seasons; the existing tiers stay
   at their present speed.
 - Waiver claims and call-ups become notices.
+
+## Amendment, 2026-11-23: the farm as built, and the CBA checked (#133)
+
+Item 5a of Phase 3. The author chose on 2026-11-13 and 2026-11-20 what this
+records.
+
+### The CBA against the sources above
+
+The figures were checked against the text of the CBA of 2013, the memorandum of
+2020 and the summary table of the memorandum of 2025 (its attachments were not
+read). The table for Skaters, the claim period, the order of claims, the
+re-waiver thresholds, the 23 and the 50, and the buried allowance ($1,225,000 in
+2026-27) are as above. Where the sources were wrong or silent:
+
+- **After the deadline** a Club has five regular call-ups, at most four of them
+  up at once (memorandum of 2025, item 16), not four. Only an emergency call-up,
+  below 2 Goalies, 6 defencemen or 12 forwards fit, is not counted (13.12(m));
+  a call-up for an injury that leaves the Club above that line is. From the
+  deadline nobody goes down but a Player called up since (13.12(j)), and the
+  active Roster has no limit (16.4(a)).
+- **Goalies' exemption:** 6, 5, 4, 4, 4, 3, 2 Seasons from age 18 to 24 and 1
+  from 25, with 80 NHL games to 20 and 60 after. NHL games count the playoffs.
+  A Player signed at 18 or 19 has his Seasons cut to 3, a Goalie to 4, from any
+  Season in which he plays 11 NHL games, not only his first.
+- **Injured Reserve:** a Player out at least 7 days does not count against the 23
+  (16.11).
+- **The roster emergency over the cap** (50.10(e)) allows a replacement paid at
+  most the minimum plus $100,000 under the CBA of 2013; the memorandum of 2025
+  revises the threshold in an attachment not read.
+- **The buried allowance** applies to one-way contracts; a two-way contract counts
+  only minor-league pay above it, about nothing. Entry-level contracts are two-way,
+  and their cap hits sit under the allowance anyway.
+- **Juniors:** a Player under 20 drafted from the junior leagues may not be sent
+  to the minors (9.1(d)(iv)); an 18- or 19-year-old returned to juniors with
+  fewer than 11 NHL games does not count against the 50 (Article 10); an
+  entry-level contract signed at 18 or 19 slides a Season in which its Player
+  plays fewer than 10 NHL games, two Seasons at 18 and one at 19 (9.1(d)).
+
+### What was built
+
+- **The rules are data** (D-10): `FarmRules` in the Season format (the active
+  limit, 50 contracts, Injured Reserve from 7 days, the emergency line, the loan
+  age of 20, waivers with both exemption tables, a claim period of a day, last
+  Season's table for 25 days, re-waiver after 30 days or 10 games, the deadline
+  40 days before the end with five call-ups and four up), and in `CapRules` the
+  buried allowance, long-term injury relief (24 days and 10 Fixtures), the roster
+  emergency and the slide.
+- **A Club** holds its active Roster and a farm (`Club.farm`). The assistant keeps
+  14 forwards, 7 defencemen and 2 Goalies active, the NHL's 23, and a farm of at
+  least 6, 3 and 2: 20-10-4 under contract. Between Seasons a Club's contracts are
+  held as one, as before, and the assistant picks the active Roster by level as
+  each Season starts. The generator still makes its 16-10-3 Roster, and a Season
+  completes the farm from a stream of each Club's own, so a generated league's
+  draws are unchanged.
+- **During a Season** each Club calls up from its farm for the injuries its spares
+  cannot cover, and sends the weakest down when one back from Injured Reserve
+  takes it above 23, first whoever goes down without waivers. A call-up must fit
+  under the cap as it is charged by the day; in a roster emergency a cheap one
+  comes off it. A Player sent down is out of a declared Lineup as an injured one
+  is.
+- **Waivers:** a Player neither exempt nor cleared goes on them for a day and is
+  claimed by the first Club in the order of claims that wants him, can afford
+  him and has a contract to spare, or clears to his farm. At camp, as the next
+  Season starts, everyone the assistant puts on a farm who needs waivers goes
+  through them by the table just ended; a league opens as its source gives it.
+  The assistant claims a Player one level better than its weakest at his group,
+  or one it is short of, while it holds at most two contracts above its shape
+  (`CLAIM`, estimates: no rate of claims is measured). An NHL Season of a
+  generated league puts about 100 Players on waivers, about 37 of them claimed.
+  A Manager may declare his Club's claims (`setClaims`); a standing declaration
+  that he runs his farm himself comes with the web (item 11).
+- **Service** for waivers (age at the first contract, Seasons, NHL games) is kept
+  on the Player and folded from the records each Season (D-03), estimated from age
+  as a league opens.
+- **The cap** is charged each day of the regular Season at the counted payroll:
+  the active Roster but those on long-term injury relief or called up in an
+  emergency, the farm above the buried allowance, those on waivers, dead money.
+- **Prospects** (the author's choice of 2026-11-20): a prospect signs his
+  entry-level contract once the level expected of him reaches that of an
+  undrafted fill at his group (`SIGNING`, a bar that does not rise with the
+  league), while his Club holds fewer than 40 contracts, an estimate. Under 20
+  and off the active Roster he plays on loan, in the junior leagues or in Europe,
+  counting against neither the 50 nor the cap, and joins the farm the Season he
+  turns 20; under 20 he is called up only when ready for the active Roster.
+  Signed, his rights do not run out. A Manager's moves between Seasons are held
+  to the 50 contracts, a loan not counted, instead of each group's shape.
+- **A farm's regulars**, the best 12 forwards, 6 defencemen and a Goalie of it,
+  develop with a bonus of their own (`FARM_DEVELOPMENT`), at the NHL's.
+- **Roster file version 3** carries a Club's farm and a Player's service.
+- `SWAP.gap` is back to 0. `ASSIST_PULL` is refitted from 4 to 3: with the
+  call-ups among the forwards who play, as in the measured league, the forward
+  tier-1 to tier-4 points-per-minute ratio rose from 3.16 to 3.24.
+
+### What the long run shows
+
+On eight generated leagues and the roster file, ten Seasons each, the age of the
+league, every leaving band, round 1 of the draft and the table hold. A few
+targets sit a hair outside, and the author chose on 2026-11-23 to report them
+until the Phase 3 gate rather than fit further: a draft has its luck, and a late
+pick or an undrafted Player can break out. Reported: the share of Players aged
+23 or younger (0.356 on the generated leagues, 0.363 on the roster file, against
+0.30 ±0.05) and the share of round 2 who play 200 Fixtures (0.226 and 0.219,
+against 0.385 ±0.12); on the roster file alone round 3 (0.086 against 0.199
+±0.10) and the bottom eight staying bottom eight (0.361 against 0.51 ±0.12); in
+the tenth Season the penalties per Club (3.04 against 3.03), the Skaters with
+40 goals or more (7.1 against 15 ±6) and the back-to-back's cost in win rate,
+which waits on the engine's fatigue (#109). The signing bar moves the young share
+and the draft against each other: half a spread lower brings the draft into its
+bands and the young share to 0.38-0.41; half a spread higher drops round 2 to
+0.11. Neither ranking the active Roster by the level expected next Season nor a
+larger bonus on the farm moved either.
+
+The farm's games, a test tier that plays them, and Players on minor-league
+contracts are item 5b.

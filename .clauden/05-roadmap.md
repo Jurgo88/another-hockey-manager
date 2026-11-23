@@ -303,6 +303,15 @@ which led to the farm (ADR-036, items 5a and 5b), where the daily charge and
 long-term injury relief now go. Until 5a the Phase 2 targets of age and debut
 are reported, not asserted.
 
+Item 5a is done in #133: every Club has an active Roster of 23 and a farm, with
+call-ups for injuries, Injured Reserve, waivers during a Season and at camp, the
+exemption tables of the CBA, the cap charged by the day with long-term injury
+relief, the deadline's call-ups, and prospects who sign to a loan in the junior
+leagues or Europe until 20 and to the farm after (ADR-036 amendment). The CBA
+was checked; the memorandum of 2025 changed the deadline's call-ups to five.
+`SWAP.gap` is back to 0, and the Phase 2 targets reported since #130 are
+asserted again but a few a hair outside, reported until the Phase 3 gate.
+
 **Gate:** ten simulated Seasons of AI-only roster movement, on eight generated
 leagues and the 2025-26 roster file, leave wage inflation and talent
 distribution inside defined bounds, and the table targets deferred from the

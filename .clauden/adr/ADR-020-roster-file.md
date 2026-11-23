@@ -1,6 +1,6 @@
 # ADR-020 - A roster file keeps the provenance it carries
 
-- **Status:** Accepted; its Roster shape amended by ADR-036
+- **Status:** Accepted; its Roster shape amended by ADR-036 (format version 3 in #133: a Club's farm and a Player's service; a Club without a farm may still hold the NHL Roster alone, 16-10-3)
 - **Date:** 2026-11-02
 - **Supersedes in part:** ADR-003, on every imported value arriving as `rated`
 - **Relates to:** FR-17, FR-18, FR-19, D-05, D-11, ADR-003, ADR-008, ADR-012, issue #16

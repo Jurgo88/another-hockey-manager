@@ -384,15 +384,16 @@ Seasons pooled, as on the eight first, and every table below on the eight runs
 pooled. The roster file is one run, asserted on its own
 (`test/longrun/` in `@ahm/sim` and in `@ahm/estimate`).
 
-**Reported until the farm (#130, ADR-036):** the share of Players aged 23 or younger, the leaving rate of those aged 23
-or younger, and the median Seasons to a debut of rounds 2 to 4, on the
-generated leagues and the roster file; on the roster file alone, the leaving
-rates of the top and middle thirds of ice time and the share of round 4 who
-play 200 Fixtures, each a hair outside; and in the tenth Season the penalties
-per Club (3.04 against 3.03) and the Skaters with 40 goals or more (8.4 against
-9). A prospect takes a gap
-before he is ready until the farm gives him somewhere to grow; the farm item
-asserts them again.
+**Reported until the Phase 3 gate (#133, ADR-036 amendment):** with the farm
+every target reported since #130 is asserted again but these, each a hair
+outside, which the author chose on 2026-11-23 to report: the share of Players
+aged 23 or younger (0.356 on the generated leagues, 0.363 on the roster file)
+and the share of round 2 who play 200 Fixtures (0.226 and 0.219); on the roster
+file alone round 3 (0.086) and the bottom eight staying bottom eight (0.361);
+in the tenth Season the penalties per Club (3.04 against 3.03), the Skaters
+with 40 goals or more (7.1 against 9) and the back-to-back's cost in win rate,
+which waits on #109. A draft has its luck: a late pick or an undrafted Player
+can break out.
 
 Six Tier 1 and Tier 2 targets are reported in the tenth Season, not asserted
 (#90). They stay asserted in the first.
