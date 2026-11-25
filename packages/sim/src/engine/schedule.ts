@@ -27,6 +27,13 @@ import type { Rng } from '../rng/index.js'
  * Non-conference pairs receive nothing further and stay at 2 games, 1-1.
  *
  * Per Club: 28 + 24 + 32 = 84 Fixtures, exactly 42 home and 42 away.
+ *
+ * The layers are read from the key (D-10): as many all-Club round robins as
+ * the games across Conferences, alternating venues; as many cross-division sets
+ * as the games within the Conference add to those, alternating venues; and
+ * double round robins within the Division for the divisional games left. The
+ * farm's key (ADR-036) has no games across: 2 cross-division sets and four
+ * double round robins, 16 + 56 = 72.
  */
 
 interface Meeting {
@@ -130,13 +137,24 @@ export function generateSchedule(options: GenerateScheduleOptions): Fixture[] {
   const { structure, seasonId, rng } = options
 
   const allClubIds = structure.divisions.flatMap((division) => division.clubIds)
+  const key = structure.scheduleKey
+  const across = key.interConference.games
+  const crossExtra = key.intraConference.games - across
+  const divisionalExtra = key.divisional.games - across
+  if (crossExtra < 0 || divisionalExtra < 0 || divisionalExtra % 2 !== 0) {
+    throw new Error(
+      `Schedule key ${key.divisional.games}/${key.intraConference.games}/${across} cannot be laid out in layers`,
+    )
+  }
+  const alternating = (layer: Meeting[][], times: number): Meeting[][] =>
+    Array.from({ length: times }, (_, k) => (k % 2 === 0 ? layer : reverseVenues(layer))).flat()
 
   // Layers A and B: every pair once, then again with venues reversed.
-  const layerA = singleRoundRobin(allClubIds)
-  const layerB = reverseVenues(layerA)
+  const layerAB = across > 0 ? alternating(singleRoundRobin(allClubIds), across) : []
 
-  // Layer C: one extra intra-conference, cross-division meeting.
-  const layerC = mergeParallel(
+  // Layer C: the intra-conference, cross-division meetings beyond those.
+  const crossSet = (): Meeting[][] =>
+    mergeParallel(
     structure.conferences.map((conference) => {
       const [firstId, secondId] = conference.divisionIds
       const first = structure.divisions.find((d) => d.id === firstId)
@@ -149,20 +167,21 @@ export function generateSchedule(options: GenerateScheduleOptions): Fixture[] {
       return crossDivisionLayer(first.clubIds, second.clubIds)
     }),
   )
+  const layerC = crossExtra > 0 ? alternating(crossSet(), crossExtra) : []
 
-  // Layer D: two extra divisional meetings, one at each venue.
+  // Layer D: the divisional meetings left, in pairs, one at each venue.
   const layerD = mergeParallel(
     structure.divisions.map((division) => {
       const single = singleRoundRobin(division.clubIds)
-      return [...single, ...reverseVenues(single)]
+      return alternating(single, divisionalExtra)
     }),
   )
 
-  const matchdays = rng.shuffle([...layerA, ...layerB, ...layerC, ...layerD])
+  const matchdays = rng.shuffle([...layerAB, ...layerC, ...layerD])
 
   // A Club plays once per round. A back-to-back takes the last day of one
   // round and the first of the next, so three in three days cannot happen.
-  const { daysPerRound, lastDayShare } = structure.calendar
+  const { daysPerRound, lastDayShare, firstDay = 0 } = structure.calendar
   const calendarRng = rng.fork('calendar')
 
   return matchdays.flatMap((round, roundIndex) =>
@@ -172,7 +191,10 @@ export function generateSchedule(options: GenerateScheduleOptions): Fixture[] {
         competitionId: structure.id,
         seasonId,
         round: roundIndex,
-        day: roundIndex * daysPerRound + (calendarRng.chance(lastDayShare) ? daysPerRound - 1 : 0),
+        day:
+          firstDay +
+          roundIndex * daysPerRound +
+          (calendarRng.chance(lastDayShare) ? daysPerRound - 1 : 0),
         homeClubId: meeting.home,
         awayClubId: meeting.away,
         // The regular-season regime is data on the competition (D-10, FR-09b).

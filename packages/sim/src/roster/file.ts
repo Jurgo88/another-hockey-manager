@@ -579,8 +579,6 @@ function importedClub(club: RosterFileClub, capUpperLimit: number | undefined): 
     age: entry.age,
     potential: entry.potential,
     handedness: entry.handedness,
-    // A Roster holds no Season: everyone starts rested and at even form.
-    form: 50,
     fatigue: 0,
     ...contractOf(entry),
     ...(entry.service ? { service: { ...entry.service } } : {}),

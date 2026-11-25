@@ -1,0 +1,28 @@
+name: Farm games
+
+# The `farm` tier (#135, ADR-036): the realism suites on Seasons whose
+# affiliates play their games, against the same bands. Slower than the tiers
+# of the Definition of Done and not part of it, so it runs weekly and on
+# request, not on every push.
+on:
+  schedule:
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+
+jobs:
+  farm:
+    name: Farm tier
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@v4
+        with:
+          path: packages/sim/.cache
+          key: sim-farm-${{ hashFiles('packages/sim/src/**', 'packages/sim/test/support/simulat*.ts') }}
+      - run: pnpm test:farm

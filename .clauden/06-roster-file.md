@@ -103,8 +103,9 @@ and imported again is unchanged.
 
 ## What a file does not hold
 
-Fatigue, form, injuries and Lineups belong to a Season, not to a Roster. An
-imported Player starts the Season rested, at form 50 and fit.
+Fatigue, injuries and Lineups belong to a Season, not to a Roster. An imported
+Player starts the Season rested and fit. Players on minor-league contracts are
+not in a file either: a Season with farm games generates them (ADR-036, #135).
 
 ## Errors
 

@@ -29,8 +29,6 @@ interface PlayerBase {
    */
   potential: number
   handedness: Handedness
-  /** 0-100. Short-term deviation from true ability. Reset between Seasons. */
-  form: number
   /** 0-100. Accumulated within a Match and across a congested schedule. */
   fatigue: number
   /**

@@ -5,6 +5,7 @@ import { createFileRosterProvider } from '../roster/file.js'
 import {
   renderCareer,
   renderClubHistory,
+  renderFarmSeason,
   renderPlayByPlay,
   renderRun,
   renderSeason,
@@ -30,6 +31,8 @@ const HELP = `Usage: pnpm sim:season [options]
   --player <name>   With --seasons, print this Player's career instead of the
                     leading scorer's; any part of the name will do
   --roster <path>   Play on the Rosters of a roster file instead of generated ones
+  --farm-games      Let the affiliates play their own Fixtures (ADR-036); with one
+                    Season, also print their table and leaders
   --top <n>         Rows in each leaders table (default 20)
   --fixture <id>    Also print one Fixture's play-by-play, e.g. s1-r00-00
   --json <path>     Also write the Season to a JSON file
@@ -45,6 +48,7 @@ async function main(): Promise<void> {
       club: { type: 'string' },
       player: { type: 'string' },
       roster: { type: 'string' },
+      'farm-games': { type: 'boolean', default: false },
       top: { type: 'string', default: '20' },
       fixture: { type: 'string' },
       json: { type: 'string' },
@@ -60,13 +64,14 @@ async function main(): Promise<void> {
   const seed = integerOption('--seed', values.seed, 0)
   const top = integerOption('--top', values.top, 1)
   const seasons = integerOption('--seasons', values.seasons, 1)
+  const options = { playFarm: values['farm-games'] }
 
   const provider =
     values.roster === undefined
       ? undefined
       : createFileRosterProvider(readFileSync(typedPath(values.roster), 'utf8'), NHL_2026_27)
   if (seasons > 1) {
-    const run = await simulateSeasons(seed, seasons, provider)
+    const run = await simulateSeasons(seed, seasons, provider, undefined, options)
     const playerId =
       values.player === undefined ? leadingScorer(run) : playerByName(run, values.player)
     console.log(
@@ -80,8 +85,9 @@ async function main(): Promise<void> {
     )
     return
   }
-  const season = await simulateSeason(seed, provider)
+  const season = await simulateSeason(seed, provider, undefined, options)
   console.log(renderSeason(season, NHL_2026_27, top))
+  if (season.farm) console.log(`\n\n${renderFarmSeason(season.farm, top)}`)
 
   if (values.fixture !== undefined) {
     console.log(`\n\n${renderPlayByPlay(season, values.fixture)}`)

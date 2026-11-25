@@ -101,9 +101,10 @@ scouting derives from it; the level is the mean of a Skater's attributes without
 Rosters hold 16 forwards, 10 defencemen and 3 Goalies, the last of the depth
 standing in for call-ups (ADR-012).
 
-`form` (0-100, short-term deviation, resets each Season), `fatigue` (0-100,
-Skaters only in effect: rises within a Match and falls between Fixtures,
-ADR-010).
+`fatigue` (0-100, Skaters only in effect: rises within a Match and falls
+between Fixtures, ADR-010). Form is no attribute: in a run that plays the
+farm's games it is a fold over a Player's last Fixtures, read by call-ups and
+never by the engine (ADR-036, #135).
 
 `contract` (ADR-030): its cap hit as a share of the cap, Seasons left with this
 one counted, `entry-level` or `standard`, and `restricted` or `unrestricted`

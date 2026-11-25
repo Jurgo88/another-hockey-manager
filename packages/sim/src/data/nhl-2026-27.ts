@@ -13,7 +13,7 @@
 
 import type { CapRules } from '../domain/contract.js'
 import type { DraftFormat } from '../domain/draft.js'
-import type { FarmRules } from '../domain/farm.js'
+import type { FarmLeague, FarmRules } from '../domain/farm.js'
 import type {
   Conference,
   CompetitionStructure,
@@ -226,6 +226,28 @@ export const NHL_CAP_RULES: CapRules = {
 }
 
 /**
+ * The affiliates' league of the NHL (ADR-036, #135). The AHL plays 72 Fixtures,
+ * most of them within its Division; mirrored on the NHL's alignment that is 8
+ * against each divisional opponent and 2 against each other Club of the
+ * Conference, none across. A round every second day, as the NHL's calendar has
+ * it, makes 144 days; starting on day 24 it ends as the NHL's regular Season
+ * does, 168 days from its first. An affiliate holds 14 forwards, 8 defencemen
+ * and 3 Goalies, an estimate of an AHL Roster. A Player sent down plays a farm
+ * Fixture before he is recalled (the memorandum of 2025, item 30, as the author
+ * summarised it; its text was not read).
+ */
+export const NHL_FARM_LEAGUE: FarmLeague = {
+  scheduleKey: {
+    divisional: { games: 8, home: 4 },
+    intraConference: { games: 2, homeHeavy: 0, awayHeavy: 0 },
+    interConference: { games: 0, home: 0 },
+  },
+  calendar: { daysPerRound: 2, lastDayShare: 0.21, daysPerYear: 365, firstDay: 24 },
+  roster: { forward: 14, defence: 8, goalie: 3 },
+  fixturesBeforeRecall: 1,
+}
+
+/**
  * The NHL's farm rules for 2026-27 (ADR-036), from the CBA of 2013 as the
  * memoranda of 2020 and 2025 left it: an active Roster of 23 (16.4), 50
  * contracts (Article 10), Injured Reserve from 7 days (16.11), emergency
@@ -280,6 +302,7 @@ export const NHL_FARM_RULES: FarmRules = {
   // The 40th day before the last of the regular Season (13.12(j)); five regular
   // call-ups from it, at most four up at once (the memorandum of 2025, item 16).
   deadline: { daysBeforeEnd: 40, recalls: 5, onRoster: 4 },
+  league: NHL_FARM_LEAGUE,
 }
 
 /** A Season of the NHL 2026-27: its alignment, bracket, draft, contracts and farm. */

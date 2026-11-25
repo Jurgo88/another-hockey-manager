@@ -600,7 +600,6 @@ function skaterOf(
     age,
     potential: potentialOf(levelNow, abilityOfLevel(levelNow), drawHeadroom(rng.fork('potential'), age)),
     handedness: record.shoots === 'R' ? 'right' : 'left',
-    form: 50,
     fatigue: 0,
     preferredPositions: entry.positions,
     attributes,
@@ -666,7 +665,6 @@ function estimateGoalies(
       age,
       potential: potentialOf(level, abilityOfLevel(level), drawHeadroom(rng.fork('potential'), age)),
       handedness: record.catches === 'R' ? 'right' : 'left',
-      form: 50,
       fatigue: 0,
       attributes,
       provenance: Object.fromEntries(GOALIE_ATTRIBUTE_KEYS.map((key) => [key, entry])) as Record<

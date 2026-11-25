@@ -45,6 +45,11 @@ export interface ScheduleCalendar {
   lastDayShare: number
   /** Days from the first day of one Season to the first day of the next (#85). */
   daysPerYear: number
+  /**
+   * The day of the first round, 0 when left out: a farm's shorter schedule
+   * starts later, so that it ends with its Competition's (ADR-036).
+   */
+  firstDay?: number
 }
 
 export interface CompetitionStructure {

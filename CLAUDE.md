@@ -85,8 +85,9 @@ pnpm test:unit            # unit tests only, the loop while working
 pnpm --filter @ahm/sim test:watch
 pnpm --filter @ahm/sim test:realism   # one-Season targets
 pnpm --filter @ahm/sim test:longrun   # ten-Season targets (Phase 2)
+pnpm test:farm            # realism suites with farm games (ADR-036); not in pnpm test, weekly in CI
 pnpm typecheck
-pnpm sim:season           # simulate a Season, print tables (--roster <file>, --seasons <n>, --club, --player)
+pnpm sim:season           # simulate a Season, print tables (--roster <file>, --seasons <n>, --club, --player, --farm-games)
 pnpm sim:roster           # write a generated league as a roster file
 pnpm sim:estimate         # estimate real NHL Rosters into a roster file (--season)
 pnpm sim:validate         # compare Seasons on them with the real one (Phase 0.5 gate)

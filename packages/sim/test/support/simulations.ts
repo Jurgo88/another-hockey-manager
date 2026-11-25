@@ -44,17 +44,37 @@ const WORKER = join(HERE, 'simulate-worker.ts')
 /** How often a test waiting on another's result looks for it. */
 const POLL_MS = 100
 
+/**
+ * Whether the Seasons asked for play the farm's games (ADR-036, #135): the
+ * `farm` tier sets `AHM_PLAY_FARM=1` and runs the realism suites on them, against
+ * the same bands. Kept apart in the cache under names of their own.
+ */
+export const PLAY_FARM = process.env.AHM_PLAY_FARM === '1'
+
+/** What the run is asked for, for a test that simulates a Season itself. */
+export const RUN_OPTIONS = { playFarm: PLAY_FARM }
+
+const FARM = PLAY_FARM ? 'farm-' : ''
+const FARM_ARG = PLAY_FARM ? ['farm'] : []
+
 /** One Season of the NHL on generated Rosters, as `simulateSeason(seed)` plays it. */
 export function cachedSeason(seed: number): Promise<CachedSeason> {
-  return cached<SeasonEntry>(`season-${seed}`, ['season', String(seed)]).then((entry) => ({
-    ...entry,
-    season: foldSeason(entry.matches),
-  }))
+  return cached<SeasonEntry>(`season-${FARM}${seed}`, ['season', String(seed), ...FARM_ARG]).then(
+    (entry) => ({
+      ...entry,
+      season: foldSeason(entry.matches),
+    }),
+  )
 }
 
 /** `count` Seasons in a row from one seed, as `simulateSeasons(seed, count)` plays them. */
 export function cachedRun(seed: number, count: number): Promise<SimulatedRun> {
-  return cached<SimulatedRun>(`run-${seed}-${count}`, ['run', String(seed), String(count)])
+  return cached<SimulatedRun>(`run-${FARM}${seed}-${count}`, [
+    'run',
+    String(seed),
+    String(count),
+    ...FARM_ARG,
+  ])
 }
 
 /** The generated leagues of the Phase 2 gate, as the realism suites pool eight (#90). */
@@ -74,8 +94,9 @@ export function seasonEntry({
   lineups,
   fixtures,
   matches,
+  farm,
 }: SimulatedSeason): SeasonEntry {
-  return { seed, clubs, lineups, fixtures, matches }
+  return { seed, clubs, lineups, fixtures, matches, ...(farm ? { farm } : {}) }
 }
 
 async function cached<T>(name: string, args: readonly string[]): Promise<T> {
