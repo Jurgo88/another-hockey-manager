@@ -25,6 +25,8 @@ export interface SeasonRecord {
   playoffs: PlayoffState
   /** Player counts, the playoffs kept apart. */
   totals: Readonly<{ regular: SeasonTotals; playoffs: SeasonTotals }>
+  /** The affiliates' table and counts, in a run that plays the farm's games (ADR-036, #135). */
+  farm?: Readonly<{ standings: readonly StandingsRow[]; totals: SeasonTotals }>
   /** The draft held before this Season (ADR-028), empty before the first. */
   draft: readonly DraftPick[]
   /** Who left the league between the Season before and this one, empty before the first. */

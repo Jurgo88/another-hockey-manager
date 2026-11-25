@@ -34,7 +34,8 @@ import {
   tableDynamics,
   type LeavingRow,
 } from '../stats/league.js'
-import type { SimulatedRun, SimulatedSeason } from './season.js'
+import type { FarmSeason, SimulatedRun, SimulatedSeason } from './season.js'
+import { foldSeason } from '../stats/season.js'
 
 /**
  * Plain-text rendering of a simulated Season. Pure: these functions return
@@ -571,4 +572,21 @@ export function seasonDump(season: SimulatedSeason, structure: CompetitionStruct
       ...result,
     })),
   }
+}
+
+/** The affiliates' table and leaders, in a run that plays the farm's games (ADR-036, #135). */
+export function renderFarmSeason(farm: FarmSeason, top: number): string {
+  const view: SimulatedSeason = {
+    seed: 0,
+    clubs: farm.clubs,
+    lineups: new Map(),
+    fixtures: farm.fixtures,
+    matches: farm.matches,
+    season: foldSeason(farm.matches),
+    replay: () => [],
+  }
+  return [
+    section(farm.structure.name, renderStandings(view, farm.structure)),
+    section(`Farm scoring leaders (top ${top})`, renderScoringLeaders(view, top)),
+  ].join('\n\n\n')
 }

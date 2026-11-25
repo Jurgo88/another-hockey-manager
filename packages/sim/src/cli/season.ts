@@ -1,5 +1,5 @@
 import type { Club, Lineup } from '../domain/club.js'
-import type { SeasonFormat } from '../domain/competition.js'
+import type { CompetitionStructure, SeasonFormat } from '../domain/competition.js'
 import type { MatchEvent } from '../domain/event.js'
 import type { Fixture, FixtureId } from '../domain/fixture.js'
 import type { ClubId, Player, PlayerId } from '../domain/player.js'
@@ -14,11 +14,12 @@ import {
   recordOf,
   startSeason,
   type PlayedFixture,
+  type SeasonOptions,
   type SeasonState,
 } from '../season/index.js'
 import { careerTotals, skaterCareer, type SeasonRecord } from '../stats/history.js'
 import { deadCharge } from '../generate/contracts.js'
-import { contractedOf } from '../farm/index.js'
+import { affiliateOf, contractedOf } from '../farm/index.js'
 import type { RosterContract } from '../stats/league.js'
 import { points, type MatchStats } from '../stats/match.js'
 import { foldSeason, type SeasonStats } from '../stats/season.js'
@@ -33,6 +34,17 @@ export interface SimulatedSeason {
   season: SeasonStats
   /** Re-simulates one Fixture from its input and seed, so a Season need not hold every stream (FR-02). */
   replay(fixtureId: FixtureId): readonly MatchEvent[]
+  /** The affiliates' regular Season, in a run that plays the farm's games (ADR-036, #135). */
+  farm?: FarmSeason
+}
+
+/** What the affiliates played in a Season, as the Competition's is kept (#135). */
+export interface FarmSeason {
+  structure: CompetitionStructure
+  /** Each affiliate as its Season ended, under its own id, with its Club's active Roster for their names. */
+  clubs: readonly Club[]
+  fixtures: readonly Fixture[]
+  matches: readonly MatchStats[]
 }
 
 /**
@@ -44,12 +56,15 @@ export async function simulateSeason(
   seed: number,
   provider?: RosterProvider,
   format?: SeasonFormat,
+  options?: SeasonOptions,
 ): Promise<SimulatedSeason> {
-  let state = await startSeason(seed, provider, format)
+  let state = await startSeason(seed, provider, format, options)
 
   const played = new Map<FixtureId, Omit<PlayedFixture, 'events'>>()
   const fixtures: Fixture[] = []
   const matches: MatchStats[] = []
+  const farmFixtures: Fixture[] = []
+  const farmMatches: MatchStats[] = []
   while (!isRegularSeasonOver(state)) {
     const day = advanceDay(state)
     state = day.state
@@ -57,6 +72,20 @@ export async function simulateSeason(
       played.set(fixture.id, { fixture, input, seed: fixtureSeed, match })
       fixtures.push(fixture)
       matches.push(match)
+    }
+    for (const { fixture, match } of day.farmPlayed) {
+      farmFixtures.push(fixture)
+      farmMatches.push(match)
+    }
+  }
+  const ended = state
+  // The farm's last Fixtures may fall a day after the Competition's regular Season.
+  while (farmLeft(state)) {
+    const day = advanceDay(state)
+    state = day.state
+    for (const { fixture, match } of day.farmPlayed) {
+      farmFixtures.push(fixture)
+      farmMatches.push(match)
     }
   }
 
@@ -68,12 +97,42 @@ export async function simulateSeason(
 
   return {
     seed,
-    clubs: clubsHolding(state),
-    lineups: new Map(Object.entries(state.lineups)),
+    clubs: clubsHolding(ended),
+    lineups: new Map(Object.entries(ended.lineups)),
     fixtures,
     matches,
     season: foldSeason(matches),
     replay,
+    ...(state.affiliates ? { farm: farmSeasonOf(state, farmFixtures, farmMatches) } : {}),
+  }
+}
+
+/** Whether the affiliates have Fixtures left to play. */
+function farmLeft(state: SeasonState): boolean {
+  const aff = state.affiliates
+  return aff !== null && aff.nextFixture < aff.fixtures.length
+}
+
+/** The affiliates' Season as a run keeps it (#135). */
+function farmSeasonOf(
+  state: SeasonState,
+  fixtures: readonly Fixture[],
+  matches: readonly MatchStats[],
+): FarmSeason {
+  const aff = state.affiliates!
+  return {
+    structure: aff.structure,
+    // Those called up since are named too.
+    clubs: clubsHolding(state).map((club) => {
+      const affiliate = affiliateOf(club, aff.minorLeague[club.id] ?? [])
+      return {
+        ...affiliate,
+        skaters: [...club.skaters, ...affiliate.skaters],
+        goalies: [...club.goalies, ...affiliate.goalies],
+      }
+    }),
+    fixtures,
+    matches,
   }
 }
 
@@ -107,8 +166,9 @@ export async function simulateSeasons(
   count: number,
   provider?: RosterProvider,
   format?: SeasonFormat,
+  options?: SeasonOptions,
 ): Promise<SimulatedRun> {
-  let state = await startSeason(seed, provider, format)
+  let state = await startSeason(seed, provider, format, options)
   const players = new Map<PlayerId, Player>()
   const seasons: SeasonRecord[] = []
   const contracts: RosterContract[][] = []

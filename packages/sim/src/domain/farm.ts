@@ -1,3 +1,5 @@
+import type { ScheduleCalendar, ScheduleKey } from './competition.js'
+
 /**
  * The rules a Club's active Roster and farm are kept to, as data (D-10, ADR-036).
  * A league without a farm is a value of these, not a branch. What a contract on
@@ -28,6 +30,29 @@ export interface FarmRules {
   emergency: { forward: number; defence: number; goalie: number }
   waivers: WaiverRules
   deadline: DeadlineRules
+  /** What the affiliates play, in a run that plays the farm's games (ADR-036, #135). */
+  league: FarmLeague
+}
+
+/**
+ * The affiliates' league (ADR-036, #135), as data (D-10). It mirrors its
+ * Competition's alignment, every affiliate in its Club's Division, and plays a
+ * key and a calendar of its own, with its Competition's overtime and no
+ * playoffs. Whether a run plays it is the run's choice, not a rule here.
+ */
+export interface FarmLeague {
+  scheduleKey: ScheduleKey
+  calendar: ScheduleCalendar
+  /**
+   * How many forwards, defencemen and Goalies an affiliate holds, its Club's
+   * farm and its Players on minor-league contracts together.
+   */
+  roster: { forward: number; defence: number; goalie: number }
+  /**
+   * Farm Fixtures a Player sent down plays before he may be recalled, but in an
+   * emergency (the memorandum of 2025, item 30).
+   */
+  fixturesBeforeRecall: number
 }
 
 /**

@@ -1,5 +1,6 @@
 import { farmOf, type Club } from '../domain/club.js'
-import type { FarmRules, WaiverExemption } from '../domain/farm.js'
+import type { CompetitionStructure } from '../domain/competition.js'
+import type { FarmLeague, FarmRules, WaiverExemption } from '../domain/farm.js'
 import {
   isGoalie,
   naturalPosition,
@@ -189,6 +190,12 @@ export interface FarmDay {
   emergencyCapHit: number
   /** From the trade deadline on (CBA 13.12(j)-(n)): what is left of the Club's regular call-ups. */
   deadline?: DeadlineDay
+  /**
+   * Whether a Player may be recalled other than in an emergency: in a run that
+   * plays the farm's games, one sent down must play a farm Fixture first (the
+   * memorandum of 2025, item 30). Left out, anyone may be.
+   */
+  mayRecall?: (playerId: PlayerId) => boolean
 }
 
 /** What the deadline leaves a Club on a day after it. */
@@ -253,7 +260,12 @@ export function farmMoves(club: Club, rules: FarmRules, day: FarmDay): FarmMove[
         if (!emergency && left <= 0) break
       } else if (counted() >= rules.activeMax && !emergency) break
       const candidates = farm
-        .filter((p) => positionGroup(p) === group && !day.out(p.id))
+        .filter(
+          (p) =>
+            positionGroup(p) === group &&
+            !day.out(p.id) &&
+            (emergency || !day.mayRecall || day.mayRecall(p.id)),
+        )
         .sort(byLevel)
       const lacking = new Set(
         (Object.entries(DRESSING_MINIMUM) as [NaturalPosition, number][])
@@ -385,4 +397,122 @@ export function regularOnFarm(club: Club, player: Player): boolean {
     .sort(byLevel)
     .findIndex((p) => p.id === player.id)
   return rank >= 0 && rank < AFFILIATE_DRESSED[group]
+}
+
+// ---------------------------------------------------------------------------
+// The affiliates' games (ADR-036, #135)
+
+const AFFILIATE_MARK = '-farm'
+
+/** The id a Club's affiliate plays under. */
+export function affiliateId(clubId: ClubId): ClubId {
+  return `${clubId}${AFFILIATE_MARK}`
+}
+
+/** The Club an affiliate's id belongs to. */
+export function parentOf(id: ClubId): ClubId {
+  return id.endsWith(AFFILIATE_MARK) ? id.slice(0, -AFFILIATE_MARK.length) : id
+}
+
+/**
+ * The affiliates' league as a Competition (D-10): its Competition's alignment,
+ * each affiliate in its Club's Division, with the league's key and calendar.
+ */
+export function affiliateStructure(
+  structure: CompetitionStructure,
+  league: FarmLeague,
+): CompetitionStructure {
+  return {
+    ...structure,
+    id: `${structure.id}${AFFILIATE_MARK}`,
+    name: `${structure.name} affiliates`,
+    divisions: structure.divisions.map((division) => ({
+      ...division,
+      clubIds: division.clubIds.map(affiliateId),
+    })),
+    scheduleKey: league.scheduleKey,
+    calendar: league.calendar,
+  }
+}
+
+/**
+ * A Club's affiliate as the engine plays it: the Club's farm and the Players
+ * on minor-league contracts, under the affiliate's id.
+ */
+export function affiliateOf(club: Club, minorLeague: readonly Player[]): Club {
+  const all = [...farmOf(club), ...minorLeague]
+  return {
+    id: affiliateId(club.id),
+    code: club.code,
+    name: club.name,
+    skaters: all.filter((p): p is Skater => !isGoalie(p)),
+    goalies: all.filter((p): p is Goalie => isGoalie(p)),
+  }
+}
+
+/**
+ * How far ahead in level and form together a Player must be for the assistant
+ * to swap him for another between the active Roster and the farm, in levels.
+ * An estimate: no measured target counts call-ups for form.
+ */
+export const FORM_SWAP = { margin: 1 }
+
+/** What the assistant's swaps for form read about a day (ADR-036, #135). */
+export interface FormDay {
+  /** A Player's level plus his form, or null while his form says nothing. */
+  merit: (playerId: PlayerId) => number | null
+  out: (playerId: PlayerId) => boolean
+  injuredReserve: (playerId: PlayerId) => boolean
+  /** Whether he goes down without waivers. */
+  free: (playerId: PlayerId) => boolean
+  mayRecall: (playerId: PlayerId) => boolean
+  /** Whether the cap allows these called up and these sent down, beyond the day's other moves. */
+  affords: (calledUp: readonly Player[], sentDown: readonly Player[]) => boolean
+}
+
+/**
+ * The assistant's swaps for form (ADR-036, #135), the same for every Club
+ * (D-04): at each group, the farm's best by level and form together comes up
+ * for the weakest fit Player of the active Roster who can go down without
+ * waivers, when he is `FORM_SWAP.margin` ahead and the active Roster can
+ * still dress a Lineup at every natural position. At most one a group a day.
+ */
+export function formSwaps(club: Club, day: FormDay): FarmMove[] {
+  const moves: FarmMove[] = []
+  const up: Player[] = []
+  const down: Player[] = []
+  const active = [...club.skaters, ...club.goalies]
+  for (const group of GROUPS) {
+    const ranked = (players: readonly Player[]) =>
+      players
+        .map((p) => ({ p, merit: day.merit(p.id) }))
+        .filter((m): m is { p: Player; merit: number } => m.merit !== null)
+        .sort((a, b) => a.merit - b.merit || (a.p.id < b.p.id ? -1 : a.p.id > b.p.id ? 1 : 0))
+    const fitActive = active.filter(
+      (p) => positionGroup(p) === group && !day.out(p.id) && !day.injuredReserve(p.id),
+    )
+    const weakest = ranked(fitActive.filter((p) => day.free(p.id)))[0]
+    if (!weakest) continue
+    const best = ranked(
+      farmOf(club).filter(
+        (p) => positionGroup(p) === group && !day.out(p.id) && day.mayRecall(p.id),
+      ),
+    )
+      .reverse()
+      .find(({ p }) => {
+        const natural = naturalPosition(weakest.p)
+        if (naturalPosition(p) === natural) return true
+        const left = fitActive.filter((q) => naturalPosition(q) === natural).length - 1
+        return left >= DRESSING_MINIMUM[natural]
+      })
+    if (!best || best.merit < weakest.merit + FORM_SWAP.margin) continue
+    if (!day.affords([...up, best.p], [...down, weakest.p])) continue
+    up.push(best.p)
+    down.push(weakest.p)
+    moves.push(
+      { clubId: club.id, playerId: weakest.p.id, kind: 'sentDown' },
+      { clubId: club.id, playerId: best.p.id, kind: 'calledUp' },
+    )
+  }
+  return moves
 }
