@@ -662,6 +662,26 @@ Cheap, and they catch the bugs that erode trust (D-03).
 | No Player appears in two units in the same `shift_change`. |
 | Replaying any Fixture from its stored seed reproduces the stream exactly. |
 
+## The farm tier - one Season with farm games (#135)
+
+Whether the affiliates play their games is a choice of the run (ADR-036). The
+realism and long-run tiers run without them; the `farm` tier (`pnpm test:farm`)
+runs the realism suites of a Season, Tier 1, Tier 2, rest, the age profile,
+standings and Tier 4, on first Seasons whose affiliates play, against the same
+bands. The tactics suites play no Season and are left out. It is not part of the
+Definition of Done: it runs on request and weekly in CI (`farm.yml`), and before
+a change to the farm or to call-ups is merged.
+
+The affiliates' league has no measured target. The engine is fitted to the NHL,
+and the AHL is not measured, so the tier prints what the affiliates produce
+(goals per affiliate a Fixture, the leading scorer, the share of the farm's ice
+time under NHL contract) and asserts only that every farm Fixture is played and
+folded. Whether AHL figures may be measured, and from which source, is a
+question of its terms of use, the author's to answer.
+
+A block of ten Seasons with farm games, against the Phase 2 and Phase 3 gates,
+is a later issue.
+
 ## Failure protocol
 
 A red band means calibrate engine parameters, not loosen the band. Bands move

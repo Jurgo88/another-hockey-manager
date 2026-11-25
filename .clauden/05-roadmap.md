@@ -312,6 +312,16 @@ was checked; the memorandum of 2025 changed the deadline's call-ups to five.
 `SWAP.gap` is back to 0, and the Phase 2 targets reported since #130 are
 asserted again but a few a hair outside, reported until the Phase 3 gate.
 
+Item 5b is done in #135: the affiliates play a 72-Fixture league of their own as
+data, mirroring the alignment, with the same engine on streams of their own,
+filled by Players on minor-league contracts, as a choice of the run (ADR-036
+amendment). With farm games a farm regular is one who dressed for half of his
+affiliate's Fixtures, form is a fold over the last Fixtures, and the assistant
+swaps forwards and defencemen for form; a Player sent down plays a farm Fixture
+before a recall. A run without farm games is unchanged, result for result, and
+`Player.form`, read by nothing, is gone. The `farm` tier runs the realism suites
+on Seasons with farm games, weekly in CI; ten Seasons of it are a later issue.
+
 **Gate:** ten simulated Seasons of AI-only roster movement, on eight generated
 leagues and the 2025-26 roster file, leave wage inflation and talent
 distribution inside defined bounds, and the table targets deferred from the

@@ -323,3 +323,40 @@ Item 5b of Phase 3. The author chose on 2026-11-25 what follows.
   block of ten Seasons with farm games is a later issue.
 - The roster file stays at version 3: Players on minor-league contracts are
   generated as a Season with farm games starts.
+
+### As built
+
+- **The schedule generator reads the key** (D-10): all-Club round robins for the
+  games across Conferences, cross-division sets for the Conference's games beyond
+  them, double round robins for the divisional games left. The NHL's key gives
+  the layers it had, in the same order, so every schedule is unchanged. A
+  calendar may start on a later day (`firstDay`).
+- **The choice of the run** is `startSeason(..., { playFarm })`, kept as
+  `SeasonState.affiliates`, null without farm games; `sim:season --farm-games`.
+  A Season stored before reads as a run without them. Two Seasons of one seed
+  without farm games hash the same as before this item.
+- **A day may have farm Fixtures alone**, and a Season is over only once the
+  affiliates have played theirs too: in a small Competition the farm can outlast
+  the playoffs. Farm Fixtures play after the day's moves and the Competition's
+  Fixtures. A Skater's fatigue rests from his last Fixture in either league.
+- **Form** (`stats/form.ts`) reads a Skater's points per hour of ice time, or a
+  Goalie's saves per shot, over his last 10 Fixtures, from 5, against a line in
+  level fitted to the Season so far of the league each Fixture was played in,
+  within 3 levels either way.
+- **Swaps for form** (`FORM_SWAP`) take forwards and defencemen only, at a margin
+  of 1.5 levels, on a day a Club makes no other move. Goalies are left out: a save
+  percentage over ten Fixtures is mostly noise, and swapping by it took the
+  most-used Goalie to 53.0% of the Fixtures against 59.0% ±5. At a margin of 1
+  the forward tier-1 to tier-4 points-per-minute ratio rose to 3.215 against
+  2.71 ±0.50; at 1.5 every band of the farm tier holds, with about 3 swaps a Club
+  a Season (104 in a Season of seed 1, 73 forwards and 31 defencemen).
+- **What the affiliates produce** has no target and is printed by the farm tier:
+  on eight first Seasons 1.94 goals per affiliate a Fixture, a leading scorer of
+  about 52 points, and 26% of the farm's ice time to Players under NHL contract.
+  An AHL Fixture has about three goals a side; the fill's Goalies are strong
+  against its Skaters, which the AHL being unmeasured leaves unfitted. The share
+  under NHL contract is low because a Club holds 34 contracts, 20-10-4 (#133),
+  where an NHL Club holds closer to 50: about 6 Skaters under contract on a farm.
+- **Cost:** a Season with farm games simulates in about 2.5 times the time of one
+  without, and its state is about 4.3 MB of JSON against 2.3 MB, most of it the
+  Players on minor-league contracts and the farm's schedule.
