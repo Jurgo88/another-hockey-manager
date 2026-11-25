@@ -1950,7 +1950,7 @@ function developed<P extends Player>(
   return develop(player, rng, { regular, farm: onFarm })
 }
 
-/** A Player a year on: older, rested, and back to a neutral form. */
+/** A Player a year on: older and rested. */
 /** What a Player did in the regular Season, for his role when Players leave (ADR-027). */
 function usageOf(state: SeasonState, player: Player): SeasonUsage {
   const { skaters, goalies } = state.totals.regular
@@ -1964,7 +1964,7 @@ function usageOf(state: SeasonState, player: Player): SeasonUsage {
 }
 
 function olderAndRested<P extends Player>(player: P): P {
-  return { ...player, age: player.age + 1, form: 50, fatigue: 0 }
+  return { ...player, age: player.age + 1, fatigue: 0 }
 }
 
 /** Declares a Club's Lineup and Tactics for the Fixtures to come, for any Manager (D-04). */

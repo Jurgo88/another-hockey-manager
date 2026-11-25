@@ -82,7 +82,6 @@ describe('nextSeason', () => {
     expect(stayed.length).toBeGreaterThan(before.size * 0.7)
     for (const player of stayed) {
       expect(player.age).toBe(before.get(player.id)!.age + 1)
-      expect(player.form).toBe(50)
       expect(player.fatigue).toBe(0)
     }
   })
