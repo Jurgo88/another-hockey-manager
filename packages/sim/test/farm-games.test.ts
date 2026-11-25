@@ -320,6 +320,12 @@ describe("the assistant's moves with farm games", () => {
     expect(formSwaps(club, formDay(merit, false))).toEqual([])
   })
 
+  it('swaps no Goalie, whose form over a few Fixtures is mostly noise', () => {
+    const farmGoalie = (club.farm ?? []).find((p) => positionGroup(p) === 'goalie')!
+    const merit = (id: PlayerId) => (id === farmGoalie.id ? 20 : 1)
+    expect(formSwaps(club, formDay(merit))).toEqual([])
+  })
+
   it('recalls one sent down only after a farm Fixture, but in an emergency', () => {
     const hurt = new Set(
       forwards(club.skaters)

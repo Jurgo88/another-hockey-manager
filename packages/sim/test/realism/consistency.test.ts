@@ -3,6 +3,7 @@ import type { MatchEvent, ShiftChangeEvent } from '../../src/domain/event.js'
 import { simulateSeason } from '../../src/cli/season.js'
 import { points } from '../../src/stats/match.js'
 import { endOfPlay, skatersAllowed } from '../support/events.js'
+import { RUN_OPTIONS } from '../support/simulations.js'
 
 /**
  * Tier 4 internal consistency (04-validation-targets.md), held over every
@@ -15,7 +16,7 @@ const SEASON_SEED = 4
 const REPLAY_EVERY = 10
 
 describe('Tier 4 internal consistency', async () => {
-  const season = await simulateSeason(SEASON_SEED)
+  const season = await simulateSeason(SEASON_SEED, undefined, undefined, RUN_OPTIONS)
   const played = season.fixtures.map((fixture, i) => ({
     fixture,
     match: season.matches[i]!,

@@ -452,10 +452,18 @@ export function affiliateOf(club: Club, minorLeague: readonly Player[]): Club {
 
 /**
  * How far ahead in level and form together a Player must be for the assistant
- * to swap him for another between the active Roster and the farm, in levels.
- * An estimate: no measured target counts call-ups for form.
+ * to swap him for another between the active Roster and the farm, in levels,
+ * and the groups it swaps. Estimates: no measured target counts call-ups for
+ * form. At a margin of 1 the forward tier-1 to tier-4 points-per-minute ratio
+ * of the farm tier rose to 3.215 against 2.71 ±0.50; at 1.5 every band holds,
+ * with about 3 swaps a Club a Season. Goalies are not swapped: a save
+ * percentage over ten Fixtures is mostly noise, and swapping by it took the
+ * most-used Goalie's share to 53.0% against 59.0% ±5 (#135).
  */
-export const FORM_SWAP = { margin: 1 }
+export const FORM_SWAP: { margin: number; groups: readonly PositionGroup[] } = {
+  margin: 1.5,
+  groups: ['forward', 'defence'],
+}
 
 /** What the assistant's swaps for form read about a day (ADR-036, #135). */
 export interface FormDay {
@@ -472,7 +480,7 @@ export interface FormDay {
 
 /**
  * The assistant's swaps for form (ADR-036, #135), the same for every Club
- * (D-04): at each group, the farm's best by level and form together comes up
+ * (D-04): at each group it swaps, the farm's best by level and form together comes up
  * for the weakest fit Player of the active Roster who can go down without
  * waivers, when he is `FORM_SWAP.margin` ahead and the active Roster can
  * still dress a Lineup at every natural position. At most one a group a day.
@@ -482,7 +490,7 @@ export function formSwaps(club: Club, day: FormDay): FarmMove[] {
   const up: Player[] = []
   const down: Player[] = []
   const active = [...club.skaters, ...club.goalies]
-  for (const group of GROUPS) {
+  for (const group of FORM_SWAP.groups) {
     const ranked = (players: readonly Player[]) =>
       players
         .map((p) => ({ p, merit: day.merit(p.id) }))
