@@ -274,3 +274,52 @@ larger bonus on the farm moved either.
 
 The farm's games, a test tier that plays them, and Players on minor-league
 contracts are item 5b.
+
+## Amendment, 2026-11-25: the farm's games (#135)
+
+Item 5b of Phase 3. The author chose on 2026-11-25 what follows.
+
+- **The affiliates' league is data** beside the farm rules (D-10): it mirrors
+  its Competition's alignment, each affiliate in its Club's Division, and plays
+  its own key, 72 Fixtures, 8 against each divisional opponent and 2 against
+  each other Club of the Conference, none across, every second day, ending as
+  the NHL's regular Season ends. The schedule generator reads the key, so the
+  NHL's 84 and the farm's 72 are two values of it. The affiliates have no
+  playoffs yet, a value that can be added later; overtime is the NHL's.
+- **Farm Fixtures** are played by the same engine (D-01), each on a stream of
+  its own (D-08), on the days they fall, after the day's moves; their
+  statistics and table are folded from their events (D-03). Injuries and
+  fatigue are one record for the NHL and the farm: a Player hurt on the farm is
+  not called up, and one called up brings his fatigue with him. Every
+  affiliate's Lineup is the assistant's, the same builder for every Club (D-04);
+  a Manager declares his own with the farm's screens (item 11).
+- **Players on minor-league contracts** fill an affiliate to 14 forwards,
+  8 defencemen and 3 Goalies, its Club's farm counted, as an undrafted fill is
+  generated, from a stream of the Club's own. They hold no NHL contract and count
+  against neither the cap nor the 50; they age, develop and retire as other
+  Players do; those beyond the shape as a Season starts are let go, the weakest
+  first. An affiliate short of a Lineup during a Season signs another. NHL Clubs
+  do not sign them in this item.
+- **Whether farm games are played is a choice of the run,** kept in the Season's
+  state and carried from Season to Season, off unless asked for. A run without
+  them is the same, result for result, as before this item: the call-up for form
+  that the Decision gives such a run ("level and form") is not built, and a farm
+  Player develops by his rank as in #133.
+- **With farm games:** a farm regular is one who dressed for at least half of
+  his affiliate's Fixtures, with the same bonus (`FARM_DEVELOPMENT`). Prospects on
+  loan develop as before. A Player's **form** is a fold over his last Fixtures,
+  NHL or farm, not an attribute: his points per 60 minutes, or a Goalie's save
+  percentage, read as levels against what Players of his level in the same
+  league produce this Season. The assistant swaps a farm Player for the
+  weakest of his group on the active Roster when level and form together put
+  him clearly ahead, both ways and the same for every Club (D-04), only with a
+  Player who goes down without waivers, and not after the deadline. A Player
+  sent down plays a farm Fixture before he is recalled, but in an emergency
+  (the memorandum of 2025, item 30, as the author summarised it; its text was
+  not read).
+- **`Player.form`,** which no engine code read (D-06), is removed.
+- **A test tier, `farm`,** runs the realism suites on Seasons with farm games,
+  against the same bands, on request and weekly in CI, not on every push. A
+  block of ten Seasons with farm games is a later issue.
+- The roster file stays at version 3: Players on minor-league contracts are
+  generated as a Season with farm games starts.
