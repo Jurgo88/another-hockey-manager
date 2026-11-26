@@ -10,6 +10,7 @@ import {
   isSeasonOver,
   nextSeason,
   recordOf,
+  deadlineOf,
   startSeason,
   type SeasonState,
 } from '../src/season/index.js'
@@ -59,6 +60,8 @@ describe('nextSeason', () => {
       totals: ended.totals,
       draft: [],
       departures: [],
+      transfers: ended.transfers,
+      deadline: deadlineOf(ended),
       roster: expect.any(Array) as unknown,
     })
     const [first] = recordOf(ended).roster
@@ -74,7 +77,7 @@ describe('nextSeason', () => {
     expect(() => recordOf(start)).toThrow(/no champion/)
   })
 
-  it('makes every Player who stays a year older, rested and of neutral form', () => {
+  it('makes every Player who stays a year older and rested', () => {
     const before = new Map(ended.clubs.flatMap(contractedOf).map((p) => [p.id, p]))
     const stayed = next.clubs.flatMap(contractedOf).filter((player) => before.has(player.id))
     // The market moves some Players to other Clubs (ADR-032), and the farm

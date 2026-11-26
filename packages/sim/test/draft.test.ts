@@ -293,14 +293,22 @@ describe('the phase between Seasons', () => {
     expect(() => setDraftList(drafted, club, [pick])).toThrow(/has been made/)
   })
 
-  it('gives each Club 4 prospects, one a round, held off its Roster', () => {
+  it('gives each Club a prospect for each pick it uses, one place a round, held off its Roster', () => {
     expect(drafted.phase).toBe('roster')
     expect(drafted.picks).toHaveLength(128)
+    // Every Club's place is used once a round, by it or by whom it traded the pick to (ADR-033).
+    for (let round = 1; round <= 4; round++) {
+      const places = drafted.picks
+        .filter((p) => p.round === round)
+        .map((p) => p.fromClubId ?? p.clubId)
+      expect(new Set(places).size).toBe(32)
+    }
     for (const club of drafted.clubs) {
       const held = drafted.prospects.filter(
         (p) => p.player.clubId === club.id && p.year === drafted.year,
       )
-      expect(held.map((p) => p.round).sort()).toEqual([1, 2, 3, 4])
+      const used = drafted.picks.filter((p) => p.clubId === club.id)
+      expect(held.map((p) => p.round).sort()).toEqual(used.map((p) => p.round).sort())
       const ids = new Set(everyone(club).map((p) => p.id))
       expect(held.some((p) => ids.has(p.player.id))).toBe(false)
     }

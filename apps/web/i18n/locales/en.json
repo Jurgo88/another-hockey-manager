@@ -312,6 +312,8 @@
     "cleared": "cleared waivers and went down to the farm.",
     "claimed": "was claimed off waivers from another Club.",
     "claimedBy": "was claimed off waivers by another Club.",
+    "traded": "was traded to another Club.",
+    "acquired": "joined in a trade.",
     "signed": "signed his entry-level contract and plays on loan.",
     "joined": "joined the Club.",
     "reSigned": "signed again at his ask, for {years} Seasons.",

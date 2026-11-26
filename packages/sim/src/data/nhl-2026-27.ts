@@ -223,6 +223,7 @@ export const NHL_CAP_RULES: CapRules = {
   // The minimum plus $100,000 as the CBA of 2013 has it; the memorandum of 2025
   // revises the threshold in an attachment not read (#133).
   rosterEmergency: { maxCapHit: (850_000 + 100_000) / NHL_CAP_2026_27 },
+  retention: { maxShare: 0.5, maxContracts: 3 },
 }
 
 /**

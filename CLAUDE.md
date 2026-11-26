@@ -52,9 +52,11 @@ develop/  ageing between Seasons        - may import domain, rng
 farm/     the farm and waivers (ADR-036) - may import domain ONLY
 leave/    leaving the league            - may import domain, rng, generate
 draft/    the entry draft (ADR-028)     - may import domain, rng, generate, develop
+trade/    trades (ADR-033)              - may import domain, generate, develop,
+                                          draft, farm
 season/   a Season, day by day          - may import domain, rng, generate,
                                           engine, stats, develop, farm, leave,
-                                          draft
+                                          draft, trade
 cli/      entry points                  - may import anything
 ```
 

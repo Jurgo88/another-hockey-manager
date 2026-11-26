@@ -39,6 +39,21 @@ import {
 import type { PlayoffFormat, PlayoffState } from '../domain/playoff.js'
 import { ACTIVE_SIZE, ROSTER_SHAPE, type RosterProvider } from '../domain/roster.js'
 import type { StandingsRow } from '../domain/standings.js'
+import {
+  pickKey,
+  type PickRef,
+  type Trade,
+  type TradeSide,
+  type TradeViolation,
+  type Transfer,
+} from '../domain/trade.js'
+import {
+  assistantTrades as assistantTradesOf,
+  playoffChance,
+  TradeMarket,
+  type TradablePick,
+  type TradeContext,
+} from '../trade/index.js'
 import { NHL_2026_27_CLUB_SEEDS, NHL_2026_27_SEASON } from '../data/nhl-2026-27.js'
 import {
   affiliateOf,
@@ -77,6 +92,7 @@ import {
   openingProspects,
   assistantMoves,
   type MoveLimits,
+  type PickOwner,
 } from '../draft/index.js'
 import { afterRest } from '../engine/fatigue.js'
 import {
@@ -239,6 +255,15 @@ export interface SeasonState {
    * choice is the run's, made as it starts and carried from Season to Season.
    */
   affiliates: AffiliateSeason | null
+  /**
+   * Who owns each traded pick of the drafts ahead, by `pickKey`; a pick not
+   * listed is used by the Club whose place it keeps (ADR-033).
+   */
+  pickOwners: Readonly<Record<string, ClubId>>
+  /** Every move between Clubs this Season, by trade or claim, for the movement targets (#138). */
+  transfers: readonly Transfer[]
+  /** Clubs whose Manager makes and answers trades himself: the assistant trades none of their Players (ADR-033). */
+  managedTrades: readonly ClubId[]
 }
 
 /**
@@ -336,6 +361,10 @@ export interface Offseason {
       }
     >
   >
+  /** Who owns each traded pick, the draft about to be held among them (ADR-033). */
+  pickOwners: Readonly<Record<string, ClubId>>
+  /** The trades made between these Seasons, in order. */
+  trades: readonly Trade[]
 }
 
 /** Offers that break the rules: the Manager has to change them. */
@@ -431,6 +460,8 @@ export interface PlayedDay {
   moves: readonly FarmMove[]
   /** The affiliates' Fixtures of the day, in a run that plays them (#135). */
   farmPlayed: readonly PlayedFixture[]
+  /** The assistant's trades made before the day's Fixtures (ADR-033). */
+  trades: readonly Trade[]
 }
 
 /** What a Manager is told about a day. A new kind of news is one more member here. */
@@ -456,6 +487,9 @@ export type ClubNotice =
   | { kind: 'reSigned'; day: number; playerId: PlayerId; years: number }
   | { kind: 'letGo'; day: number; playerId: PlayerId }
   | { kind: 'testsMarket'; day: number; playerId: PlayerId }
+  // Trades (ADR-033, #138).
+  | { kind: 'traded'; day: number; playerId: PlayerId; clubId: ClubId }
+  | { kind: 'acquired'; day: number; playerId: PlayerId; fromClubId: ClubId }
 
 /** A Lineup that breaks the rules of the game: the Manager has to change it. */
 export class InvalidLineupError extends Error {
@@ -526,6 +560,9 @@ export async function startSeason(
     ),
     draft: [],
     deadMoney: {},
+    pickOwners: {},
+    transfers: [],
+    managedTrades: [],
     affiliates: options.playFarm
       ? freshAffiliates(seed, structure, format.farm, 1, clubs, {})
       : null,
@@ -581,7 +618,13 @@ export type UncontractedSeason = Omit<
   | 'recalled'
   | 'deadlineRecalls'
   | 'affiliates'
+  | 'pickOwners'
+  | 'transfers'
+  | 'managedTrades'
 > & {
+  pickOwners?: SeasonState['pickOwners']
+  transfers?: SeasonState['transfers']
+  managedTrades?: SeasonState['managedTrades']
   affiliates?: SeasonState['affiliates']
   capRules?: Partial<CapRules>
   deadMoney?: SeasonState['deadMoney']
@@ -603,9 +646,11 @@ export type UncontractedSeason = Omit<
 /** A phase between Seasons as stored before contracts (#125). */
 export type UncontractedOffseason = Omit<
   Offseason,
-  'ended' | 'expiring' | 'reSignings' | 'deadMoney'
+  'ended' | 'expiring' | 'reSignings' | 'deadMoney' | 'pickOwners' | 'trades'
 > &
-  Partial<Pick<Offseason, 'expiring' | 'reSignings' | 'deadMoney'>> & { ended: UncontractedSeason }
+  Partial<Pick<Offseason, 'expiring' | 'reSignings' | 'deadMoney' | 'pickOwners' | 'trades'>> & {
+    ended: UncontractedSeason
+  }
 
 const unsigned = (clubs: readonly Club[]) =>
   clubs.some((club) => contractedOf(club).some((player) => !player.contract))
@@ -626,7 +671,9 @@ export function contractedSeason(state: UncontractedSeason): SeasonState {
     state.capRules.entryLevel?.slide !== undefined &&
     state.farmRules.loanedUntil !== undefined &&
     state.farmRules.league !== undefined &&
-    state.affiliates !== undefined
+    state.affiliates !== undefined &&
+    state.pickOwners !== undefined &&
+    state.capRules.retention !== undefined
   if (current && !unsigned(state.clubs) && !unserviced(state.clubs)) return state as SeasonState
   // Rules stored before #129 lack the floor, buyouts and the playoff regime,
   // and before #133 the buried allowance and the waivers.
@@ -664,6 +711,10 @@ export function contractedSeason(state: UncontractedSeason): SeasonState {
     deadMoney: state.deadMoney ?? {},
     // Stored before the farm's games (#135): a run without them.
     affiliates: state.affiliates ?? null,
+    // Stored before trades (#138).
+    pickOwners: state.pickOwners ?? {},
+    transfers: state.transfers ?? [],
+    managedTrades: state.managedTrades ?? [],
     clubs: (unsigned(farmed)
       ? openingContracts(capRules, farmed, createRng(state.seed).fork('contracts')).map((club) =>
           atFloor(capRules, club, 0),
@@ -745,6 +796,8 @@ export function contractedOffseason(off: UncontractedOffseason): Offseason {
     round: off.round ?? 0,
     signings: off.signings ?? [],
     rosterMoves: off.rosterMoves ?? {},
+    pickOwners: off.pickOwners ?? off.ended.pickOwners ?? {},
+    trades: off.trades ?? [],
   }
   const ended = contractedSeason(off.ended)
   if (!unsigned(off.clubs)) return { ...off, ...window, ended }
@@ -853,7 +906,7 @@ export function endSeason(state: SeasonState): Offseason {
     createRng(state.seed).fork(`lottery:y${year}`),
   )
   const size = Math.round(order.length * format.rounds * format.classSize)
-  return {
+  const off: Offseason = {
     phase: 'draft',
     ended: state,
     year,
@@ -875,7 +928,11 @@ export function endSeason(state: SeasonState): Offseason {
     round: 0,
     signings: [],
     rosterMoves: {},
+    pickOwners: state.pickOwners,
+    trades: [],
   }
+  // The assistant trades as the draft window opens, when this draft's picks can go (ADR-033).
+  return withOffseasonTrades(off)
 }
 
 /**
@@ -915,7 +972,7 @@ export function draftUntil(off: Offseason, clubId: ClubId): Offseason {
 /** The next pick of the draft, or null when no pick is left. */
 export function draftClock(off: Offseason): { pick: number; round: number; clubId: ClubId } | null {
   if (off.phase !== 'draft' || off.draftClass.length === 0) return null
-  return onTheClock(off.ended.draftFormat, off.order, off.picks.length)
+  return onTheClock(off.ended.draftFormat, off.order, off.picks.length, ownersOf(off))
 }
 
 /** Makes the next pick, which must be `clubId`'s, with a prospect still in the class. */
@@ -930,6 +987,7 @@ export function makePick(off: Offseason, clubId: ClubId, playerId: PlayerId): Of
     off.order,
     off.picks.length,
     player,
+    ownersOf(off),
   )
   return {
     ...off,
@@ -937,6 +995,11 @@ export function makePick(off: Offseason, clubId: ClubId, playerId: PlayerId): Of
     prospects: [...off.prospects, prospect],
     draftClass: off.draftClass.filter((candidate) => candidate.id !== playerId),
   }
+}
+
+/** Who uses each pick of the draft being held: its owner after any trade (ADR-033). */
+function ownersOf(off: Offseason): PickOwner {
+  return (round, clubId) => off.pickOwners[pickKey({ year: off.year, round, clubId })] ?? clubId
 }
 
 function picksUntil(off: Offseason, stop: (clubId: ClubId) => boolean): Offseason {
@@ -948,6 +1011,7 @@ function picksUntil(off: Offseason, stop: (clubId: ClubId) => boolean): Offseaso
     off.lists,
     off.picks,
     stop,
+    ownersOf(off),
   )
   return { ...off, picks, prospects: [...off.prospects, ...prospects], draftClass: available }
 }
@@ -1534,7 +1598,8 @@ function needsAtOpening(off: Offseason, club: Club): Natural[] {
  * assistant builds one with the same Tactics.
  */
 export function startNextSeason(offseason: Offseason): SeasonState {
-  const off = runMarket(offseason)
+  // The assistant trades again once the market has closed (ADR-033).
+  const off = withOffseasonTrades(runMarket(offseason))
   const state = off.ended
   const year = off.year
   const fresh = freshSeason(state.seed, state.structure, year)
@@ -1600,6 +1665,10 @@ export function startNextSeason(offseason: Offseason): SeasonState {
     prospects: off.prospects,
     draft: off.picks,
     deadMoney: off.deadMoney,
+    // Picks of the draft just held are used; those ahead stay with their owners.
+    pickOwners: Object.fromEntries(
+      Object.entries(off.pickOwners).filter(([key]) => Number(key.split(':')[0]) > year),
+    ),
     // A run that plays the farm's games goes on playing them (#135).
     affiliates: state.affiliates
       ? freshAffiliates(
@@ -1967,6 +2036,8 @@ export function recordOf(state: SeasonState): SeasonRecord {
       : {}),
     draft: state.draft,
     departures: state.departures,
+    transfers: state.transfers,
+    deadline: deadlineOf(state),
     roster: state.clubs.flatMap((club) =>
       [
         ...contractedOf(club),
@@ -2010,6 +2081,7 @@ function freshSeason(seed: number, structure: CompetitionStructure, year: number
     totals: { regular: NO_TOTALS, playoffs: NO_TOTALS },
     playoffs: null,
     live: {},
+    transfers: [],
   } satisfies Partial<SeasonState>
 }
 
@@ -2319,7 +2391,30 @@ export function noticesOf(before: SeasonState, played: PlayedDay, clubId: ClubId
     }
     return move.clubId === clubId ? [{ kind: move.kind, day, playerId: move.playerId }] : []
   })
-  return [...recovered, ...moved, ...injured]
+  return [...recovered, ...tradeNotices(played.trades, clubId, day), ...moved, ...injured]
+}
+
+/** Who a Club traded away and who it acquired, in trades it was part of (ADR-033). */
+export function tradeNotices(trades: readonly Trade[], clubId: ClubId, day: number): ClubNotice[] {
+  return trades.flatMap(({ sides: [a, b] }) => {
+    if (a.clubId !== clubId && b.clubId !== clubId) return []
+    const mine = a.clubId === clubId ? a : b
+    const theirs = a.clubId === clubId ? b : a
+    return [
+      ...[...mine.players, ...mine.prospects].map((playerId): ClubNotice => ({
+        kind: 'traded',
+        day,
+        playerId,
+        clubId: theirs.clubId,
+      })),
+      ...[...theirs.players, ...theirs.prospects].map((playerId): ClubNotice => ({
+        kind: 'acquired',
+        day,
+        playerId,
+        fromClubId: theirs.clubId,
+      })),
+    ]
+  })
 }
 
 /**
@@ -2455,7 +2550,9 @@ export function advanceDay(state: SeasonState): PlayedDay {
   const farmPlayed: PlayedFixture[] = []
   // The days since the last charged at the payroll they ran at, then the moves,
   // then today at the payroll they leave (ADR-031).
-  const before = chargedThrough(recovered(state, day), day - 1)
+  const charged = chargedThrough(recovered(state, day), day - 1)
+  // Trades fall between two days (ADR-033), before the day's waivers and moves.
+  const { state: before, trades } = withAssistantTrades(charged, day)
   const settled = settledWaivers(before, day)
   const farmed = withFarmMoves(awaitingCleared(settled.state, settled.moves), day)
   const moved = chargedThrough(farmed.state, day)
@@ -2478,7 +2575,7 @@ export function advanceDay(state: SeasonState): PlayedDay {
       farmPlayed.push(step.played)
     }
   }
-  return { state: afterDay(current, day, played), day, played, moves, farmPlayed }
+  return { state: afterDay(current, day, played), day, played, moves, farmPlayed, trades }
 }
 
 /**
@@ -2792,6 +2889,7 @@ function settledWaivers(
   const claims = Object.fromEntries(
     Object.entries(state.claims).map(([id, list]) => [id, list.filter((p) => !settled.has(p))]),
   )
+  const claimed = moves.filter((m) => m.kind === 'claimed')
   return {
     state: {
       ...state,
@@ -2799,6 +2897,19 @@ function settledWaivers(
       waivers: state.waivers.filter((w) => !settled.has(w.player.id)),
       cleared,
       claims,
+      transfers:
+        claimed.length === 0
+          ? state.transfers
+          : [
+              ...state.transfers,
+              ...claimed.map((m) => ({
+                playerId: m.playerId,
+                fromClubId: m.kind === 'claimed' ? m.fromClubId : m.clubId,
+                toClubId: m.clubId,
+                day,
+                kind: 'claim' as const,
+              })),
+            ],
     },
     moves,
   }
@@ -3537,4 +3648,593 @@ function meritOf(state: SeasonState): (playerId: PlayerId) => number | null {
     const form = formOf(aff.recent[id], player.level, player.group, rates)
     return form === null ? null : player.level + form
   }
+}
+
+// ---------------------------------------------------------------------------
+// Trades (ADR-033, #138)
+
+/** Days between the assistant's rounds of trades during a regular Season. */
+const TRADE_EVERY_DAYS = 7
+
+/** The drafts whose picks can be traded: the next three, the one about to be held among them. */
+function tradableYears(nextDraft: number): number[] {
+  return [nextDraft, nextDraft + 1, nextDraft + 2]
+}
+
+/** The next draft not yet held, seen from a Season. */
+function nextDraftOf(state: SeasonState): number {
+  return state.year + 1
+}
+
+/**
+ * Every pick of the tradable drafts with its owner and expected place in its
+ * class: the next draft's by the order its Clubs stand in now, worst first,
+ * later drafts' at the middle of each round.
+ */
+function tradablePicks(
+  format: DraftFormat,
+  clubIds: readonly ClubId[],
+  years: readonly number[],
+  owners: Readonly<Record<string, ClubId>>,
+  placeInRound: (year: number, clubId: ClubId) => number,
+): TradablePick[] {
+  const n = clubIds.length
+  const size = n * format.rounds * format.classSize
+  return years.flatMap((year) =>
+    Array.from({ length: format.rounds }, (_, r) => r + 1).flatMap((round) =>
+      clubIds.map((clubId) => {
+        const ref: PickRef = { year, round, clubId }
+        const overall = (round - 1) * n + placeInRound(year, clubId) + 1
+        return { ref, owner: owners[pickKey(ref)] ?? clubId, place: (overall - 0.5) / size }
+      }),
+    ),
+  )
+}
+
+/**
+ * Each Club's chance of the playoffs from the table (ADR-033): its points above
+ * the first Club out of its Conference's top half, or below the last Club in,
+ * against its Fixtures left.
+ */
+function playoffChances(state: SeasonState): Map<ClubId, number> {
+  const { structure } = state
+  const clubs = structure.divisions.reduce((sum, d) => sum + d.clubIds.length, 0)
+  const divisionSize = structure.divisions[0]!.clubIds.length
+  const conferenceSize = clubs / structure.conferences.length
+  const games = gamesPerClub(structure.scheduleKey, divisionSize, conferenceSize)
+  const chances = new Map<ClubId, number>()
+  for (const conference of structure.conferences) {
+    const rows = state.standings
+      .filter((row) => row.conferenceId === conference.id)
+      .sort((a, b) => b.points - a.points || (a.clubId < b.clubId ? -1 : 1))
+    const q = Math.floor(rows.length / 2)
+    rows.forEach((row, i) => {
+      const line = i < q ? rows[q]!.points : rows[q - 1]!.points
+      chances.set(row.clubId, playoffChance(row.points - line, games - row.gamesPlayed))
+    })
+  }
+  return chances
+}
+
+/** Whether the assistant trades for a Club in this Season. */
+const byAssistant = (state: SeasonState) => (clubId: ClubId) =>
+  !state.managedTrades.includes(clubId)
+
+/** What a trade is valued and searched in on a day of the regular Season. */
+function seasonTradeContext(state: SeasonState, day: number): TradeContext {
+  const { first, last } = state.regularSeason
+  const chances = playoffChances(state)
+  const order = [...state.standings]
+    .sort(
+      (a, b) =>
+        a.points / Math.max(1, a.gamesPlayed) - b.points / Math.max(1, b.gamesPlayed) ||
+        (a.clubId < b.clubId ? -1 : 1),
+    )
+    .map((row) => row.clubId)
+  const next = nextDraftOf(state)
+  const clubIds = state.clubs.map((c) => c.id)
+  return {
+    rules: state.capRules,
+    clubs: state.clubs,
+    prospects: state.prospects,
+    view: (_clubId, player) => player,
+    viewKey: () => 'truth',
+    chance: (clubId) => chances.get(clubId) ?? 0.5,
+    now: Math.max(0, last - Math.max(day, first) + 1) / (last - first + 1),
+    year: state.year,
+    picks: tradablePicks(
+      state.draftFormat,
+      clubIds,
+      tradableYears(next),
+      state.pickOwners,
+      (year, clubId) =>
+        year === next ? Math.max(0, order.indexOf(clubId)) : Math.floor(clubIds.length / 2),
+    ),
+    valid: (trade) => tradeViolations(state, trade, day).length === 0,
+    tradable: (player) => (player.contract?.years ?? 0) >= 1,
+    assistant: byAssistant(state),
+  }
+}
+
+/** What a trade is valued and searched in between Seasons. */
+function offseasonTradeContext(off: Offseason): TradeContext {
+  const held = off.phase !== 'draft' || off.picks.length > 0
+  const next = held ? off.year + 1 : off.year
+  const clubIds = off.clubs.map((c) => c.id)
+  return {
+    rules: off.ended.capRules,
+    clubs: off.clubs,
+    prospects: off.prospects,
+    view: (_clubId, player) => player,
+    viewKey: () => 'truth',
+    chance: () => 0.5,
+    now: 1,
+    year: off.year,
+    picks: tradablePicks(
+      off.ended.draftFormat,
+      clubIds,
+      tradableYears(next),
+      off.pickOwners,
+      (year, clubId) =>
+        year === off.year ? Math.max(0, off.order.indexOf(clubId)) : Math.floor(clubIds.length / 2),
+    ),
+    valid: (trade) => offseasonTradeViolations(off, trade).length === 0,
+    tradable: (player) => (player.contract?.years ?? 0) >= 1 && !(player.id in off.expiring),
+    assistant: (clubId) => !off.ended.managedTrades.includes(clubId),
+  }
+}
+
+/** What both kinds of window check alike: who holds what, the picks, retention, and the 50 contracts. */
+function heldViolations(
+  clubs: readonly Club[],
+  prospects: readonly Prospect[],
+  owners: Readonly<Record<string, ClubId>>,
+  years: readonly number[],
+  rounds: number,
+  rules: CapRules,
+  farmRules: FarmRules,
+  deadMoney: Readonly<Record<ClubId, readonly DeadMoney[]>>,
+  trade: Trade,
+): TradeViolation[] {
+  const violations: TradeViolation[] = []
+  const [a, b] = trade.sides
+  if (a.clubId === b.clubId) return [{ kind: 'sameClub' }]
+  const empty = (s: TradeSide) => s.players.length + s.prospects.length + s.picks.length === 0
+  if (empty(a) && empty(b)) return [{ kind: 'empty' }]
+  for (const s of trade.sides) {
+    const club = clubs.find((c) => c.id === s.clubId)
+    if (!club) return [{ kind: 'notHeld', clubId: s.clubId, id: s.clubId }]
+    const held = new Map(contractedOf(club).map((p) => [p.id, p]))
+    for (const id of s.players) {
+      const player = held.get(id)
+      if (!player || (player.contract?.years ?? 0) < 1) {
+        violations.push({ kind: 'notHeld', clubId: s.clubId, id })
+        continue
+      }
+      const share = s.retained?.[id] ?? 0
+      if (share > 0 && player.contract?.retained)
+        violations.push({ kind: 'retainedTwice', playerId: id })
+      if (share > rules.retention.maxShare + CAP_EPSILON) {
+        violations.push({
+          kind: 'retainedTooMuch',
+          playerId: id,
+          share,
+          max: rules.retention.maxShare,
+        })
+      }
+    }
+    for (const id of s.prospects) {
+      if (!prospects.some((p) => p.player.id === id && p.player.clubId === s.clubId)) {
+        violations.push({ kind: 'notHeld', clubId: s.clubId, id })
+      }
+    }
+    for (const pick of s.picks) {
+      if (!years.includes(pick.year) || pick.round < 1 || pick.round > rounds) {
+        violations.push({ kind: 'pickOutOfRange', pick })
+      } else if ((owners[pickKey(pick)] ?? pick.clubId) !== s.clubId) {
+        violations.push({ kind: 'pickNotOwned', clubId: s.clubId, pick })
+      }
+    }
+    const retaining = Object.values(s.retained ?? {}).filter((share) => share > 0).length
+    const already = (deadMoney[s.clubId] ?? []).filter((d) => d.retained).length
+    if (retaining > 0 && already + retaining > rules.retention.maxContracts) {
+      violations.push({
+        kind: 'tooManyRetained',
+        clubId: s.clubId,
+        max: rules.retention.maxContracts,
+      })
+    }
+  }
+  if (violations.length > 0) return violations
+  // Every Club can still dress a Lineup from what it holds (FR-20).
+  for (const [mine, theirs] of [
+    [a, b],
+    [b, a],
+  ] as const) {
+    const club = clubs.find((c) => c.id === mine.clubId)!
+    const giver = clubs.find((c) => c.id === theirs.clubId)!
+    const after = [
+      ...contractedOf(club).filter((p) => !mine.players.includes(p.id)),
+      ...contractedOf(giver).filter((p) => theirs.players.includes(p.id)),
+    ]
+    const held: Club = {
+      ...club,
+      skaters: after.filter((p): p is Skater => !isGoalie(p)),
+      goalies: after.filter((p): p is Goalie => isGoalie(p)),
+      farm: [],
+    }
+    if (shortOf(held).length > 0) violations.push({ kind: 'cannotDress', clubId: mine.clubId })
+  }
+  if (violations.length > 0) return violations
+  // Contracts: a Club may not go above the 50 by a trade (Article 10); a loan is not counted.
+  for (const [mine, theirs] of [
+    [a, b],
+    [b, a],
+  ] as const) {
+    const club = clubs.find((c) => c.id === mine.clubId)!
+    const now = contractedOf(club).length
+    const gained = theirs.players.length - mine.players.length
+    const contracts = now + gained
+    if (gained > 0 && contracts > farmRules.contractsMax) {
+      violations.push({
+        kind: 'tooManyContracts',
+        clubId: mine.clubId,
+        contracts,
+        max: farmRules.contractsMax,
+      })
+    }
+  }
+  return violations
+}
+
+/** The rules a trade on `day` breaks, during a regular Season (ADR-033). */
+export function tradeViolations(
+  state: SeasonState,
+  trade: Trade,
+  day: number = nextDay(state),
+): TradeViolation[] {
+  if (state.playoffs !== null || day >= deadlineOf(state)) return [{ kind: 'closed' }]
+  const held = heldViolations(
+    state.clubs,
+    state.prospects,
+    state.pickOwners,
+    tradableYears(nextDraftOf(state)),
+    state.draftFormat.rounds,
+    state.capRules,
+    state.farmRules,
+    state.deadMoney,
+    trade,
+  )
+  if (held.length > 0) return held
+  const after = tradedSeason(state, trade, day)
+  const violations: TradeViolation[] = []
+  for (const s of trade.sides) {
+    const before = clubOf(state, s.clubId)
+    const club = clubOf(after, s.clubId)
+    // Under the cap as charged by the day (ADR-031), dead money kept included.
+    const { first, last } = state.regularSeason
+    const left = Math.max(0, last - Math.max(day, first) + 1) / (last - first + 1)
+    const charged = chargedThrough(state, day - 1).capCharged[s.clubId] ?? 0
+    const then = countedPayroll(after, club)
+    if (
+      charged + then * left > 1 + CAP_EPSILON &&
+      then > countedPayroll(state, before) + CAP_EPSILON
+    ) {
+      violations.push({ kind: 'overCap', clubId: s.clubId })
+    }
+  }
+  return violations
+}
+
+/** The rules a trade between Seasons breaks (ADR-033): the cap on the Season ahead and the 50 contracts. */
+export function offseasonTradeViolations(off: Offseason, trade: Trade): TradeViolation[] {
+  if (off.phase === 'closed') return [{ kind: 'closed' }]
+  const held = off.phase !== 'draft' || off.picks.length > 0
+  const ended = off.ended
+  const violations = heldViolations(
+    off.clubs,
+    off.prospects,
+    off.pickOwners,
+    tradableYears(held ? off.year + 1 : off.year),
+    ended.draftFormat.rounds,
+    ended.capRules,
+    ended.farmRules,
+    off.deadMoney,
+    trade,
+  )
+  if (violations.length > 0) return violations
+  const after = tradedOffseason(off, trade)
+  for (const s of trade.sides) {
+    const ahead = (o: Offseason) =>
+      payrollAhead(
+        ended.capRules,
+        contractedOf(offseasonClub(o, s.clubId)),
+        deadCharge(o.deadMoney[s.clubId]),
+      )
+    const then = ahead(after)
+    if (then > 1 + CAP_EPSILON && then > ahead(off) + CAP_EPSILON) {
+      violations.push({ kind: 'overCap', clubId: s.clubId })
+    }
+  }
+  return violations
+}
+
+/** What a trade moves: Players with their contracts, prospects, picks, and the cap hits kept. */
+interface Traded {
+  clubs: Club[]
+  prospects: Prospect[]
+  pickOwners: Record<string, ClubId>
+  deadMoney: Record<ClubId, readonly DeadMoney[]>
+  /** Each Player moved, and the Club he joins. */
+  joined: { player: Player; clubId: ClubId; fromClubId: ClubId }[]
+}
+
+/**
+ * A trade applied to Clubs (ADR-033). A Player keeps his contract, less what
+ * the Club trading him retains, which it pays as dead money until the contract
+ * ends. `place` puts a Player on the active Roster or the farm of the Club he
+ * joins.
+ */
+function applyTrade(
+  clubs: readonly Club[],
+  prospects: readonly Prospect[],
+  owners: Readonly<Record<string, ClubId>>,
+  deadMoney: Readonly<Record<ClubId, readonly DeadMoney[]>>,
+  trade: Trade,
+  place: (club: Club, player: Player) => Club,
+): Traded {
+  const [a, b] = trade.sides
+  const next: Traded = {
+    clubs: [...clubs],
+    prospects: [...prospects],
+    pickOwners: { ...owners },
+    deadMoney: { ...deadMoney },
+    joined: [],
+  }
+  for (const [give, take] of [
+    [a, b],
+    [b, a],
+  ] as const) {
+    const giver = next.clubs.find((c) => c.id === give.clubId)!
+    const moving = contractedOf(giver).filter((p) => give.players.includes(p.id))
+    next.clubs = next.clubs.map((c) =>
+      c.id === give.clubId ? withoutPlayers(c, new Set(give.players)) : c,
+    )
+    for (const player of moving) {
+      const share = give.retained?.[player.id] ?? 0
+      const contract = player.contract!
+      const joining: Player = {
+        ...player,
+        clubId: take.clubId,
+        contract:
+          share > 0
+            ? { ...contract, capHit: contract.capHit * (1 - share), retained: true }
+            : contract,
+      }
+      if (share > 0) {
+        next.deadMoney[give.clubId] = [
+          ...(next.deadMoney[give.clubId] ?? []),
+          {
+            playerId: player.id,
+            capHit: contract.capHit * share,
+            years: contract.years,
+            retained: true,
+          },
+        ]
+      }
+      next.clubs = next.clubs.map((c) => (c.id === take.clubId ? place(c, joining) : c))
+      next.joined.push({ player: joining, clubId: take.clubId, fromClubId: give.clubId })
+    }
+    next.prospects = next.prospects.map((p) =>
+      give.prospects.includes(p.player.id)
+        ? { ...p, player: { ...p.player, clubId: take.clubId } }
+        : p,
+    )
+    for (const pick of give.picks) {
+      if (take.clubId === pick.clubId) delete next.pickOwners[pickKey(pick)]
+      else next.pickOwners[pickKey(pick)] = take.clubId
+    }
+  }
+  return next
+}
+
+/**
+ * A Season after a trade between two days: a Player joins his new Club's active
+ * Roster when he is better than its weakest at his group, its farm otherwise,
+ * and the day's moves then bring the Rosters to their limits (ADR-036). He goes
+ * into the new Club's declared Lineup in place of the weakest at his position
+ * when he is better, as an injury is answered by itself (FR-27); a Player traded
+ * away is out of his old Club's Lineup as an injured one is.
+ */
+function tradedSeason(state: SeasonState, trade: Trade, day: number): SeasonState {
+  const traded = applyTrade(
+    state.clubs,
+    state.prospects,
+    state.pickOwners,
+    state.deadMoney,
+    trade,
+    (club, player) => {
+      const group = positionGroup(player)
+      const mates = [...club.skaters, ...club.goalies].filter((p) => positionGroup(p) === group)
+      const weakest = Math.min(...mates.map(playerLevel))
+      const active = mates.length === 0 || playerLevel(player) > weakest
+      return active ? withPlayers(club, [player]) : { ...club, farm: [...farmOf(club), player] }
+    },
+  )
+  const lineups = { ...state.lineups }
+  for (const { player, clubId } of traded.joined) {
+    const club = traded.clubs.find((c) => c.id === clubId)!
+    const declared = lineups[clubId]
+    if (declared) lineups[clubId] = withNewcomer(club, declared, player)
+  }
+  const capExempt = { ...state.capExempt }
+  for (const { player } of traded.joined) delete capExempt[player.id]
+  return {
+    ...state,
+    clubs: traded.clubs,
+    prospects: traded.prospects,
+    pickOwners: traded.pickOwners,
+    deadMoney: traded.deadMoney,
+    lineups,
+    capExempt,
+    transfers: [
+      ...state.transfers,
+      ...traded.joined.map(({ player, clubId, fromClubId }) => ({
+        playerId: player.id,
+        fromClubId,
+        toClubId: clubId,
+        day,
+        kind: 'trade' as const,
+      })),
+    ],
+  }
+}
+
+/** A phase between Seasons after a trade: a Player joins his new Club's Players, held as one (ADR-036). */
+function tradedOffseason(off: Offseason, trade: Trade): Offseason {
+  const traded = applyTrade(
+    off.clubs,
+    off.prospects,
+    off.pickOwners,
+    off.deadMoney,
+    trade,
+    (club, player) => withPlayers(club, [player]),
+  )
+  return {
+    ...off,
+    clubs: traded.clubs,
+    prospects: traded.prospects,
+    pickOwners: traded.pickOwners,
+    deadMoney: traded.deadMoney,
+    trades: [...off.trades, trade],
+  }
+}
+
+/**
+ * A declared Lineup with a newcomer in place of the weakest dressed Player at
+ * his natural position, when he is better; a Goalie in place of the weaker of
+ * the two, starting when he is the better of them.
+ */
+function withNewcomer(club: Club, lineup: Lineup, player: Player): Lineup {
+  const levelOf = new Map([...club.skaters, ...club.goalies].map((p) => [p.id, playerLevel(p)]))
+  const level = playerLevel(player)
+  if (isGoalie(player)) {
+    const weaker =
+      (levelOf.get(lineup.starter) ?? 0) < (levelOf.get(lineup.backup) ?? 0) ? 'starter' : 'backup'
+    if (level <= (levelOf.get(lineup[weaker]) ?? 0)) return lineup
+    const other = weaker === 'starter' ? lineup.backup : lineup.starter
+    return level > (levelOf.get(other) ?? 0)
+      ? { ...lineup, starter: player.id, backup: other }
+      : { ...lineup, starter: other, backup: player.id }
+  }
+  const natural = naturalPosition(player)
+  const slots: PlayerId[] =
+    natural === 'LW'
+      ? lineup.lines.map((l) => l.leftWing)
+      : natural === 'C'
+        ? lineup.lines.map((l) => l.centre)
+        : natural === 'RW'
+          ? lineup.lines.map((l) => l.rightWing)
+          : natural === 'LD'
+            ? lineup.pairings.map((p) => p.leftDefence)
+            : lineup.pairings.map((p) => p.rightDefence)
+  const weakest = [...slots].sort((x, y) => (levelOf.get(x) ?? 0) - (levelOf.get(y) ?? 0))[0]
+  if (!weakest || level <= (levelOf.get(weakest) ?? 0)) return lineup
+  return replacedIn(lineup, weakest, player.id)
+}
+
+/** A Lineup with one Player in another's place, in every unit he is part of. */
+function replacedIn(lineup: Lineup, out: PlayerId, into: PlayerId): Lineup {
+  return JSON.parse(
+    JSON.stringify(lineup).split(JSON.stringify(out)).join(JSON.stringify(into)),
+  ) as Lineup
+}
+
+/**
+ * The assistant's round of trades on a day of the regular Season (ADR-033):
+ * every week until the deadline, the same for every Club (D-04).
+ */
+function withAssistantTrades(
+  state: SeasonState,
+  day: number,
+): { state: SeasonState; trades: Trade[] } {
+  const { first } = state.regularSeason
+  if (state.playoffs !== null || day <= first || day >= deadlineOf(state))
+    return { state, trades: [] }
+  if ((day - first) % TRADE_EVERY_DAYS !== 0) return { state, trades: [] }
+  const found = assistantTradesOf(new TradeMarket(seasonTradeContext(state, day)))
+  let current = state
+  const made: Trade[] = []
+  for (const trade of found) {
+    // Each was valid alone; one before it may have changed what it needs.
+    if (tradeViolations(current, trade, day).length > 0) continue
+    current = tradedSeason(current, trade, day)
+    made.push(trade)
+  }
+  return { state: current, trades: made }
+}
+
+/** The assistant's round of trades between Seasons (ADR-033). */
+function withOffseasonTrades(off: Offseason): Offseason {
+  const found = assistantTradesOf(new TradeMarket(offseasonTradeContext(off)))
+  let current = off
+  for (const trade of found) {
+    if (offseasonTradeViolations(current, trade).length > 0) continue
+    current = tradedOffseason(current, trade)
+  }
+  return current
+}
+
+/**
+ * A trade a Club proposes before the next day of the regular Season (ADR-033),
+ * any Manager alike (D-04): made when it breaks no rule and the other Club's
+ * assistant accepts it, or its Manager, who makes his own trades, declares it.
+ */
+export function proposeTrade(
+  state: SeasonState,
+  trade: Trade,
+  accepted?: boolean,
+): { state: SeasonState; made: boolean; violations: TradeViolation[] } {
+  const day = nextDay(state)
+  const violations = tradeViolations(state, trade, day)
+  if (violations.length > 0) return { state, made: false, violations }
+  const answering = trade.sides[1].clubId
+  // A Manager who makes his own trades answers for his Club; otherwise the assistant does.
+  const yes = state.managedTrades.includes(answering)
+    ? accepted === true
+    : new TradeMarket(seasonTradeContext(state, day)).accepts(trade, answering)
+  if (!yes) return { state, made: false, violations: [] }
+  const charged = chargedThrough(state, day - 1)
+  return { state: tradedSeason(charged, trade, day), made: true, violations: [] }
+}
+
+/** A trade a Club proposes between Seasons, answered as during one (ADR-033). */
+export function proposeOffseasonTrade(
+  off: Offseason,
+  trade: Trade,
+  accepted?: boolean,
+): { off: Offseason; made: boolean; violations: TradeViolation[] } {
+  const violations = offseasonTradeViolations(off, trade)
+  if (violations.length > 0) return { off, made: false, violations }
+  const answering = trade.sides[1].clubId
+  const yes = off.ended.managedTrades.includes(answering)
+    ? accepted === true
+    : new TradeMarket(offseasonTradeContext(off)).accepts(trade, answering)
+  if (!yes) return { off, made: false, violations: [] }
+  return { off: tradedOffseason(off, trade), made: true, violations: [] }
+}
+
+/** Declares that a Club's Manager makes and answers its trades himself, or leaves them to the assistant. */
+export function setManagesTrades(
+  state: SeasonState,
+  clubId: ClubId,
+  manages: boolean,
+): SeasonState {
+  const others = state.managedTrades.filter((id) => id !== clubId)
+  return { ...state, managedTrades: manages ? [...others, clubId] : others }
+}
+
+/** The trade market of a day of the regular Season, as the assistant reads it (ADR-033): for tests and tools. */
+export function tradeMarketOf(state: SeasonState, day: number = nextDay(state)): TradeMarket {
+  return new TradeMarket(seasonTradeContext(state, day))
 }

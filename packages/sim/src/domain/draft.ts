@@ -45,6 +45,8 @@ export interface DraftPick {
   pick: number
   clubId: ClubId
   playerId: PlayerId
+  /** The Club whose place in the order the pick kept, when another Club used it after a trade (ADR-033). */
+  fromClubId?: ClubId
 }
 
 /**

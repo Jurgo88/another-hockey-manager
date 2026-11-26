@@ -99,6 +99,21 @@ function capHitOf(
   return inCurrency(rules, Math.min(rules.maximum, Math.max(rules.minimum, capHit)))
 }
 
+/**
+ * What the league pays a Player of this place on average, as a share of the
+ * cap (ADR-033): the mean of the measured curve for a regular, every status
+ * together, the minimum for anyone else. What a trade values a role at.
+ */
+export function fairCapHit(rules: CapRules, group: PositionGroup, place: Place): number {
+  if (place.rank >= place.regulars) return rules.minimum
+  return NHL_CAP_SHARES.byTenth[group][tenthOf(place)]!
+}
+
+/** How many of each group a league of `clubs` pays as regulars. */
+export function regularsOf(group: PositionGroup, clubs: number): number {
+  return Math.round(NHL_CAP_SHARES.regularsPerClub[group] * clubs)
+}
+
 /** A one-year contract at the minimum: the fill, and whoever the league does not pay as a regular. */
 export function minimumContract(rules: CapRules, player: Player): Contract {
   return {

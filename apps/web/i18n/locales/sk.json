@@ -312,6 +312,8 @@
     "cleared": "prešiel waivermi a odišiel na farmu.",
     "claimed": "prišiel z waiverov z iného klubu.",
     "claimedBy": "si z waiverov vzal iný klub.",
+    "traded": "bol vymenený do iného klubu.",
+    "acquired": "prišiel výmenou.",
     "signed": "podpísal nováčikovskú zmluvu a hrá na hosťovaní.",
     "joined": "prišiel do klubu.",
     "reSigned": "podpísal novú zmluvu za svoju požiadavku, počet sezón: {years}.",
