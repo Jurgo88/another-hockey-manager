@@ -396,7 +396,12 @@ which waits on #109. A draft has its luck: a late pick or an undrafted Player
 can break out. With trades (#138) late picks change Clubs, and the author chose
 on 2026-11-26 to report rounds 3 and 4 as well: 0.096 and 0.056 on the
 generated leagues, against 0.199 and 0.165 ±0.1, and round 4 at 0.055 on the
-roster file.
+roster file; with trades the same on every machine (#140) 0.098 and 0.055,
+and round 4 of the roster file back in its band. With them the roster file's
+table is a little steadier than the league's, and the author chose on
+2026-11-26 to report two of its rows: the correlation of Club points in
+consecutive Seasons (0.641 against 0.51 ±0.12) and the top 8 staying top 8
+(0.625 against 0.46 ±0.12). One run, and a Club in the top 8 may still fall.
 
 Six Tier 1 and Tier 2 targets are reported in the tenth Season, not asserted
 (#90). They stay asserted in the first.
