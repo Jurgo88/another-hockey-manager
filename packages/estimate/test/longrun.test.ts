@@ -9,7 +9,9 @@ import { gateSuite } from '../../sim/test/support/gate.js'
  * eight generated leagues of `@ahm/sim`. With the farm (ADR-036, #133) every
  * target is asserted again but those listed, which the author chose on
  * 2026-11-23 to report: one run, a hair outside, and a draft has its luck.
- * With trades (ADR-033, #138) round 4 joins them, chosen on 2026-11-26.
+ * With trades (ADR-033, #138) round 4 joins them, chosen on 2026-11-26, and
+ * with trades the same on every machine (#140) two rows of the table: a Club in
+ * the top 8 may still fall the next Season, by poor trades, injuries or luck.
  */
 
 const NEAR = 'a hair outside with the farm (#133); asserted again at the Phase 3 gate'
@@ -26,5 +28,7 @@ gateSuite(
     'round 3: 0.199 play 200 Fixtures or more (±0.1)': NEAR,
     'round 4: 0.165 play 200 Fixtures or more (±0.1)': TRADED,
     'bottom 8 still bottom 8 the next Season: 51% ±12 pp': NEAR,
+    'correlation of Club points, consecutive Seasons: 0.51 ±0.12': TRADED,
+    'top 8 still top 8 the next Season: 46% ±12 pp': TRADED,
   },
 )
