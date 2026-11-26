@@ -9,7 +9,7 @@ import {
   type PlayerId,
   type PositionGroup,
 } from '../domain/player.js'
-import type { PickRef, Trade, TradeSide } from '../domain/trade.js'
+import { pickKey, type PickRef, type Trade, type TradeSide } from '../domain/trade.js'
 import { expectedLevel } from '../develop/index.js'
 import { DRAFT_CLASS, fillLevel, groupSpread, onLadder } from '../draft/index.js'
 import { contractedOf } from '../farm/index.js'
@@ -125,8 +125,13 @@ export class TradeMarket {
   private readonly holders = new Map<PlayerId, Club>()
   private readonly prospectOf = new Map<PlayerId, Prospect>()
   private readonly lineups = new Map<string, { id: PlayerId; level: number }[]>()
+  private readonly values = new Map<string, number>()
+  private readonly picks = new Map<string, TradablePick>()
 
   constructor(readonly ctx: TradeContext) {
+    for (const pick of ctx.picks) {
+      if (!this.picks.has(pickKey(pick.ref))) this.picks.set(pickKey(pick.ref), pick)
+    }
     this.levels = { forward: [], defence: [], goalie: [] }
     for (const club of ctx.clubs) {
       for (const player of contractedOf(club)) {
@@ -163,8 +168,8 @@ export class TradeMarket {
     if (cached && cached.length >= seasons) return cached
     const seen = this.ctx.view(clubId, player)
     const now = playerLevel(seen)
-    const path = [now]
-    for (let s = 1; s < seasons; s++) {
+    const path = cached ?? [now]
+    for (let s = path.length; s < seasons; s++) {
       path.push(path[s - 1]! + expectedLevel({ ...seen, age: seen.age + s - 1 }) - now)
     }
     this.paths.set(key, path)
@@ -214,6 +219,21 @@ export class TradeMarket {
 
   /** What a Player under contract is worth to a Club at a cap hit, joining it or leaving it. */
   playerValue(clubId: ClubId, player: Player, capHit: number, joining: boolean): number {
+    return this.memo(`p:${clubId}:${player.id}:${capHit}:${joining}`, () =>
+      this.valueOf(clubId, player, capHit, joining),
+    )
+  }
+
+  /** A value read once per market: the search asks the same of many trades. */
+  private memo(key: string, value: () => number): number {
+    const cached = this.values.get(key)
+    if (cached !== undefined) return cached
+    const computed = value()
+    this.values.set(key, computed)
+    return computed
+  }
+
+  private valueOf(clubId: ClubId, player: Player, capHit: number, joining: boolean): number {
     const years = player.contract?.years ?? 0
     if (years < 1) return 0
     const group = positionGroup(player)
@@ -239,16 +259,21 @@ export class TradeMarket {
 
   /** What a pick is worth: the level its place in the class is expected to reach, played cheaply later. */
   pickValue(pick: TradablePick): number {
-    const z =
-      onLadder(DRAFT_CLASS.level, pick.place) + TRADE.reach * onLadder(DRAFT_CLASS.room, pick.place)
-    const peak = fillLevel('forward') + z * groupSpread('forward')
-    return this.controlled('forward', peak, pick.ref.year - this.ctx.year + TRADE.pickDelay)
+    return this.memo(`k:${pickKey(pick.ref)}:${pick.place}`, () => {
+      const z =
+        onLadder(DRAFT_CLASS.level, pick.place) +
+        TRADE.reach * onLadder(DRAFT_CLASS.room, pick.place)
+      const peak = fillLevel('forward') + z * groupSpread('forward')
+      return this.controlled('forward', peak, pick.ref.year - this.ctx.year + TRADE.pickDelay)
+    })
   }
 
   /** What a prospect is worth to a Club: the level it expects of him in a few Seasons, played cheaply. */
   prospectValue(clubId: ClubId, player: Player): number {
-    const path = this.path(clubId, player, TRADE.pickDelay + 1)
-    return this.controlled(positionGroup(player), path.at(-1)!, TRADE.pickDelay)
+    return this.memo(`r:${clubId}:${player.id}`, () => {
+      const path = this.path(clubId, player, TRADE.pickDelay + 1)
+      return this.controlled(positionGroup(player), path.at(-1)!, TRADE.pickDelay)
+    })
   }
 
   /** What a Club gains by a trade, in its own view: what it receives less what it gives. */
@@ -308,9 +333,7 @@ export class TradeMarket {
   }
 
   private pick(ref: PickRef): TradablePick {
-    const found = this.ctx.picks.find(
-      (p) => p.ref.year === ref.year && p.ref.round === ref.round && p.ref.clubId === ref.clubId,
-    )
+    const found = this.picks.get(pickKey(ref))
     if (!found) throw new Error(`No tradable pick ${ref.year}:${ref.round}:${ref.clubId}`)
     return found
   }
@@ -338,6 +361,7 @@ export function assistantTrades(market: TradeMarket): Trade[] {
   const { ctx } = market
   const between = ctx.now >= 1
   const candidates: { trade: Trade; score: number }[] = []
+  const payments = new Map<string, TradeSide[]>()
   const sellers = ctx.clubs.filter(
     (club) => ctx.assistant(club.id) && (between || ctx.chance(club.id) < TRADE.sell),
   )
@@ -352,12 +376,17 @@ export function assistantTrades(market: TradeMarket): Trade[] {
       for (const buyer of ctx.clubs) {
         if (buyer.id === seller.id || !ctx.assistant(buyer.id)) continue
         if (!between && ctx.chance(buyer.id) <= TRADE.buy) continue
-        const best = bestPayment(market, seller, buyer, player)
+        const best = bestPayment(market, seller, buyer, player, payments)
         if (best) candidates.push(best)
       }
     }
   }
-  candidates.sort((a, b) => b.score - a.score || keyOf(a.trade).localeCompare(keyOf(b.trade)))
+  // Ties go by key, compared by code unit: `localeCompare` follows the host's
+  // locale, and a run on another machine came out different (D-01, #140).
+  candidates.sort((a, b) => {
+    const [p, q] = [keyOf(a.trade), keyOf(b.trade)]
+    return b.score - a.score || (p < q ? -1 : p > q ? 1 : 0)
+  })
   const busy = new Map<ClubId, number>()
   const moved = new Set<PlayerId>()
   const taken: Trade[] = []
@@ -387,18 +416,13 @@ function keyOf(trade: Trade): string {
     .join('|')
 }
 
-/** The buyer's payment for a seller's Player that both gain most by, together, or null. */
-function bestPayment(
-  market: TradeMarket,
-  seller: Club,
-  buyer: Club,
-  player: Player,
-): { trade: Trade; score: number } | null {
+/**
+ * What a buyer may pay for a Player of a group: its latest picks, its least
+ * valuable prospects and its least valuable Players of the group.
+ */
+function paymentsOf(market: TradeMarket, buyer: Club, group: PositionGroup): TradeSide[] {
   const { ctx } = market
-  // Without a place in the buyer's Lineup a Player is worth no trade to him.
-  if (market.upgrade(buyer.id, player, true) <= 0) return null
-  const group = positionGroup(player)
-  const payments: TradeSide[] = [
+  return [
     ...ctx.picks
       .filter((p) => p.owner === buyer.id)
       .sort((a, b) => b.place - a.place || a.ref.year - b.ref.year)
@@ -417,6 +441,23 @@ function bestPayment(
       .slice(0, PAYMENTS.players)
       .map(({ p }) => ({ ...side(buyer.id), players: [p.id] })),
   ]
+}
+
+/** The buyer's payment for a seller's Player that both gain most by, together, or null. */
+function bestPayment(
+  market: TradeMarket,
+  seller: Club,
+  buyer: Club,
+  player: Player,
+  known: Map<string, TradeSide[]>,
+): { trade: Trade; score: number } | null {
+  const { ctx } = market
+  // Without a place in the buyer's Lineup a Player is worth no trade to him.
+  if (market.upgrade(buyer.id, player, true) <= 0) return null
+  const group = positionGroup(player)
+  const key = `${buyer.id}:${group}`
+  const payments = known.get(key) ?? paymentsOf(market, buyer, group)
+  known.set(key, payments)
   let best: { trade: Trade; score: number } | null = null
   for (const payment of payments) {
     const most = Math.max(
