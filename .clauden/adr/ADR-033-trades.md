@@ -110,3 +110,46 @@ in form.
 - The number of trades a Season, and how many fall in the weeks before the
   deadline, are measured in #122 from the NHL's Club stints and reported in the
   long run.
+
+## Amendment, 2026-11-26: trades before scouting (#138)
+
+Item 6 of Phase 3. The author chose on 2026-11-26 what follows.
+
+- **A Club's view is a seam.** Every valuation the assistant makes reads the
+  Club's view of a Player. Until scouting (item 8, ADR-035) the view is the
+  truth, the same for every Club; scouting replaces it with each Club's
+  estimates without changing the trade rules. No human trades before the web's
+  item 11, so the truth cannot be exploited meanwhile (R-09).
+- **Budgets come with item 7.** Until then a trade is held to the cap and the 50
+  contracts; the budget joins the rules of validity there.
+- **One deadline.** The trade deadline is the farm's (ADR-036, CBA 13.12(j)):
+  40 days before the last day of the NHL's regular Season, about 0.76 of its
+  days. The share of 0.75 above gives way to it.
+- **What a Player is worth to a Club** is, for each Season left on his contract,
+  the fair price of the role he is expected to play, from his expected level
+  (ADR-028 amendment) through the price curve of ADR-030, less his cap hit, less
+  what the trading Club retains. A pick is worth the fair price of the level
+  expected at that place of the class ladder, a prospect of the level expected of
+  him, both in the Seasons after the next. A Club weighs the rest of this Season
+  against later Seasons by its chance of the playoffs, a logistic of its points
+  above or below the last playoff place against the Fixtures left. The slopes and
+  weights are estimates, fitted on the share of moves before the deadline.
+- **What the assistant looks for:** a Club out of the race offers Players whose
+  contracts end; a Club in it looks for an upgrade at its weakest group. Its
+  shapes are a Player for a Player, a Player for a pick and a Player for a
+  prospect, with 50% retained when the buyer cannot otherwise fit him. Both Clubs
+  must gain by a margin, an estimate. A Manager may declare any mix.
+- **Retention** is kept as dead money is, by the Club that retained it, until the
+  contract ends: at most 50% of a cap hit and 3 contracts at once, as cap rules
+  (D-10), and a contract retained once is not retained again.
+- **Between Seasons** the assistant trades twice, as the draft window opens,
+  when the picks of that draft can be traded, and after the market closes; a
+  Manager may trade in any window.
+- **A proposal** to a Club that has declared no answer is answered by its
+  assistant at once. Pending proposals between two Managers wait for Phase 4.
+- **The movement targets** of the Phase 3 gate (another Club the next Season,
+  more than one Club in a Season, moves in the 14 days before the deadline, and
+  continuity) are reported in the long run from this item and asserted at the
+  gate, with scouting and budgets. Without trades the generated runs give 7.6%
+  for another Club the next Season, against 19.9% ±5, and 85.1% continuity,
+  against 77.1% ±8.
