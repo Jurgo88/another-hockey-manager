@@ -393,7 +393,10 @@ file alone round 3 (0.086) and the bottom eight staying bottom eight (0.361);
 in the tenth Season the penalties per Club (3.04 against 3.03), the Skaters
 with 40 goals or more (7.1 against 9) and the back-to-back's cost in win rate,
 which waits on #109. A draft has its luck: a late pick or an undrafted Player
-can break out.
+can break out. With trades (#138) late picks change Clubs, and the author chose
+on 2026-11-26 to report rounds 3 and 4 as well: 0.096 and 0.056 on the
+generated leagues, against 0.199 and 0.165 ±0.1, and round 4 at 0.055 on the
+roster file.
 
 Six Tier 1 and Tier 2 targets are reported in the tenth Season, not asserted
 (#90). They stay asserted in the first.
@@ -615,6 +618,11 @@ converges first.
 Re-signing is read from the next season's pages: a Player traded between the
 copy of his Club and his new contract counts as another Club, and 9-17% of
 regulars had no contract yet when the next pages were copied.
+
+The first four are folded from each Season's transfers, trades and waiver
+claims (`movement()` in `stats/league.ts`), and reported in the long run from
+#138 until the gate, with scouting and budgets. With trades the eight generated
+runs give 13.9%, 3.9%, 34.1% and 77.4%.
 
 ### Scouting is honest
 

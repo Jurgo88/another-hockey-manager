@@ -153,3 +153,46 @@ Item 6 of Phase 3. The author chose on 2026-11-26 what follows.
   gate, with scouting and budgets. Without trades the generated runs give 7.6%
   for another Club the next Season, against 19.9% ±5, and 85.1% continuity,
   against 77.1% ±8.
+
+## Amendment, 2026-11-26: trades as built (#138)
+
+What #138 built, and what its calibration chose, with the author's approval of
+2026-11-26.
+
+- **Where it runs.** `trade/` values and searches; `season/` checks validity and
+  applies. The assistant trades once a week during a Season, before waivers, up
+  to the deadline, and in two rounds between Seasons: as the Season ends, when
+  the next draft's picks can be traded, and after the market. A Club whose
+  Manager trades himself (`managedTrades`) is never traded by the assistant,
+  and answers a proposal only by his declaration.
+- **Validity** adds to the decision: a Club must still be able to dress a
+  Lineup, two Goalies among them, after a trade; picks are those of the next
+  three drafts; and a retained share never takes a cap hit below the league
+  minimum.
+- **A pick traded** is held in `pickOwners`, keyed by draft, round and original
+  Club, and the draft gives the pick to its owner, recording the Club it came
+  from.
+- **Every move is recorded** as a transfer, trades and waiver claims alike, with
+  the day and the Fixtures the Player had played that Season. The movement
+  targets are folded from the Season records (D-03).
+- **Calibration** chose, each an estimate in `TRADE`:
+  - no Goalie is traded during a Season: with them the busiest Goalie's share
+    of starts fell to 52.8%, against 59% ±5;
+  - the seller takes at least 0.4 of the gain the two Clubs share, as if more
+    than one buyer wanted the Player: without it contenders bought stars for
+    late picks, and the first Season's weakest Club fell to 42 points;
+  - a seller asks more the further the deadline is, so moves gather before it;
+  - an upgrade is worth something only to a Club in the race, weighted by its
+    chance of the playoffs;
+  - a seller has a chance below 0.25, a buyer above 0.65, at most 4 trades a
+    week and 6 a window between Seasons;
+  - the margin is 0.001 of the cap, small against R-09; it is weighed again
+    with scouting, before a human trades in item 11.
+- **Reported, not asserted,** until the Phase 3 gate: the movement targets
+  (another Club the next Season 13.9%, more than one Club in a Season 3.9%,
+  14 days before the deadline 34.1%, continuity 77.4%, on the eight generated
+  runs), and the share of rounds 3 and 4 who play 200 Fixtures (0.096 and 0.056
+  on the generated runs, 0.055 for round 4 on the roster file), which fall a
+  hair below their bands now that late picks change Clubs.
+- **The web** does not mark the Manager's Club as trading itself until item 11:
+  its assistant trades for it, as it already moves its farm.
