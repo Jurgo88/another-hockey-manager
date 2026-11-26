@@ -2908,6 +2908,7 @@ function settledWaivers(
                 toClubId: m.clubId,
                 day,
                 kind: 'claim' as const,
+                gamesBefore: gamesThisSeason(state, m.playerId),
               })),
             ],
     },
@@ -3742,6 +3743,7 @@ function seasonTradeContext(state: SeasonState, day: number): TradeContext {
     chance: (clubId) => chances.get(clubId) ?? 0.5,
     now: Math.max(0, last - Math.max(day, first) + 1) / (last - first + 1),
     year: state.year,
+    toDeadline: Math.max(0, deadlineOf(state) - day) / (last - first + 1),
     picks: tradablePicks(
       state.draftFormat,
       clubIds,
@@ -3770,6 +3772,7 @@ function offseasonTradeContext(off: Offseason): TradeContext {
     chance: () => 0.5,
     now: 1,
     year: off.year,
+    toDeadline: 0,
     picks: tradablePicks(
       off.ended.draftFormat,
       clubIds,
@@ -3814,13 +3817,9 @@ function heldViolations(
       const share = s.retained?.[id] ?? 0
       if (share > 0 && player.contract?.retained)
         violations.push({ kind: 'retainedTwice', playerId: id })
-      if (share > rules.retention.maxShare + CAP_EPSILON) {
-        violations.push({
-          kind: 'retainedTooMuch',
-          playerId: id,
-          share,
-          max: rules.retention.maxShare,
-        })
+      const max = retainable(rules, player)
+      if (share > max + CAP_EPSILON) {
+        violations.push({ kind: 'retainedTooMuch', playerId: id, share, max })
       }
     }
     for (const id of s.prospects) {
@@ -3959,6 +3958,16 @@ export function offseasonTradeViolations(off: Offseason, trade: Trade): TradeVio
   return violations
 }
 
+/**
+ * The most of a Player's cap hit a Club trading him may keep: the rules' share,
+ * and never so much that what is left falls below the minimum.
+ */
+export function retainable(rules: CapRules, player: Player): number {
+  const capHit = player.contract?.capHit ?? 0
+  if (capHit <= 0) return 0
+  return Math.max(0, Math.min(rules.retention.maxShare, 1 - rules.minimum / capHit))
+}
+
 /** What a trade moves: Players with their contracts, prospects, picks, and the cap hits kept. */
 interface Traded {
   clubs: Club[]
@@ -4062,10 +4071,24 @@ function tradedSeason(state: SeasonState, trade: Trade, day: number): SeasonStat
     },
   )
   const lineups = { ...state.lineups }
+  // A Player traded away leaves his old Club's declared Lineup as an injured one would (FR-27).
+  for (const s of trade.sides) {
+    const declared = lineups[s.clubId]
+    if (!declared || s.players.length === 0) continue
+    const club = traded.clubs.find((c) => c.id === s.clubId)!
+    lineups[s.clubId] = lineupWithout(club, declared, new Set(s.players))
+  }
   for (const { player, clubId } of traded.joined) {
     const club = traded.clubs.find((c) => c.id === clubId)!
     const declared = lineups[clubId]
     if (declared) lineups[clubId] = withNewcomer(club, declared, player)
+  }
+  // A Lineup the trade left invalid is rebuilt by the assistant with the same Tactics (D-04).
+  for (const s of trade.sides) {
+    const declared = lineups[s.clubId]
+    const club = traded.clubs.find((c) => c.id === s.clubId)!
+    if (declared && hasDuplicates(declared))
+      lineups[s.clubId] = buildNaiveLineup(club, declared.tactics)
   }
   const capExempt = { ...state.capExempt }
   for (const { player } of traded.joined) delete capExempt[player.id]
@@ -4085,6 +4108,7 @@ function tradedSeason(state: SeasonState, trade: Trade, day: number): SeasonStat
         toClubId: clubId,
         day,
         kind: 'trade' as const,
+        gamesBefore: gamesThisSeason(state, player.id),
       })),
     ],
   }
@@ -4116,6 +4140,8 @@ function tradedOffseason(off: Offseason, trade: Trade): Offseason {
  * the two, starting when he is the better of them.
  */
 function withNewcomer(club: Club, lineup: Lineup, player: Player): Lineup {
+  // In a trade of one for one he may already have taken the place of the Player he replaced.
+  if (dressed(lineup).includes(player.id)) return lineup
   const levelOf = new Map([...club.skaters, ...club.goalies].map((p) => [p.id, playerLevel(p)]))
   const level = playerLevel(player)
   if (isGoalie(player)) {
@@ -4237,4 +4263,10 @@ export function setManagesTrades(
 /** The trade market of a day of the regular Season, as the assistant reads it (ADR-033): for tests and tools. */
 export function tradeMarketOf(state: SeasonState, day: number = nextDay(state)): TradeMarket {
   return new TradeMarket(seasonTradeContext(state, day))
+}
+
+/** Whether a Lineup dresses any Player twice. */
+function hasDuplicates(lineup: Lineup): boolean {
+  const ids = dressed(lineup)
+  return new Set(ids).size !== ids.length
 }

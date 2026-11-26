@@ -4,6 +4,7 @@ import { contractedOf } from '../src/farm/index.js'
 import { deadCharge } from '../src/generate/contracts.js'
 import {
   advanceDay,
+  countedPayroll,
   deadlineOf,
   draftClock,
   endSeason,
@@ -11,6 +12,7 @@ import {
   isSeasonOver,
   proposeOffseasonTrade,
   proposeTrade,
+  retainable,
   runDraft,
   setManagesTrades,
   startSeason,
@@ -90,18 +92,21 @@ describe('a trade during a Season', () => {
     })
   })
 
-  it('keeps at most half a cap hit', () => {
+  it('keeps at most half a cap hit, and never takes it below the minimum', () => {
     const [x, y] = clubs()
-    const player = someone(0)
-    const trade = {
-      sides: [side(x.id, { players: [player.id], retained: { [player.id]: 0.6 } }), side(y.id)],
+    const dearest = [...x.skaters].sort((p, q) => q.contract!.capHit - p.contract!.capHit)[0]!
+    const over: Trade = {
+      sides: [side(x.id, { players: [dearest.id], retained: { [dearest.id]: 0.6 } }), side(y.id)],
     }
-    expect(tradeViolations(mid, trade as Trade)).toContainEqual({
+    expect(tradeViolations(mid, over)).toContainEqual({
       kind: 'retainedTooMuch',
-      playerId: player.id,
+      playerId: dearest.id,
       share: 0.6,
       max: 0.5,
     })
+    expect(retainable(mid.capRules, dearest)).toBe(0.5)
+    // The cheapest is paid the minimum: nothing of it can be kept.
+    expect(retainable(mid.capRules, someone(0))).toBeCloseTo(0)
   })
 
   it('is closed from the deadline', () => {
@@ -111,8 +116,15 @@ describe('a trade during a Season', () => {
   })
 
   it('moves a Player with his contract, less what is kept, which his old Club pays as dead money', () => {
-    const [x, y] = clubs()
-    const player = someone(0)
+    // To the Club with the most room under the cap.
+    const x = mid.clubs[0]!
+    const y = [...mid.clubs.slice(1)].sort(
+      (p, q) => countedPayroll(mid, p) - countedPayroll(mid, q),
+    )[0]!
+    // The cheapest paid at least twice the minimum, so that half can be kept.
+    const player = [...x.skaters]
+      .filter((p) => p.contract!.capHit >= 2 * mid.capRules.minimum)
+      .sort((p, q) => p.contract!.capHit - q.contract!.capHit)[0]!
     const pick = { year: mid.year + 1, round: 1, clubId: y.id }
     const trade: Trade = {
       sides: [

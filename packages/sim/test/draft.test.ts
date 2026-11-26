@@ -28,6 +28,7 @@ import {
 import { createRng } from '../src/rng/index.js'
 import {
   advanceDay,
+  draftClock,
   endSeason,
   InvalidMovesError,
   isSeasonOver,
@@ -285,7 +286,8 @@ describe('the phase between Seasons', () => {
   })
 
   it('takes a declared list, from the class only, and only while the draft is open', () => {
-    const club = off.order[0]!
+    // Whoever uses the first pick, its own or traded to him (ADR-033).
+    const club = draftClock(off)!.clubId
     const pick = off.draftClass[100]!.id
     const listed = setDraftList(off, club, [pick])
     expect(runDraft(listed).picks[0]).toMatchObject({ clubId: club, playerId: pick, round: 1 })
@@ -416,9 +418,9 @@ describe('the phase between Seasons', () => {
       expect([forwards, club.skaters.length - forwards, club.goalies.length]).toEqual([14, 7, 2])
       const all = everyone(club)
       const count = (group: string) => all.filter((p) => positionGroup(p) === group).length
-      // The shape of its contracts, but for a Player or two moved through waivers at camp.
+      // The shape of its contracts, but for Players moved through waivers at camp and by trades (ADR-033).
       for (const [group, shape] of [['forward', 20], ['defence', 10], ['goalie', 4]] as const) {
-        expect(Math.abs(count(group) - shape)).toBeLessThanOrEqual(4)
+        expect(Math.abs(count(group) - shape)).toBeLessThanOrEqual(6)
       }
       expect(everyone(club).some((p) => held.has(p.id))).toBe(false)
       const lineup = next.lineups[club.id]!

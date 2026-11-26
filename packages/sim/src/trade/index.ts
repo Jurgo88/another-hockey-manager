@@ -43,12 +43,22 @@ import { fairCapHit, regularsOf } from '../generate/contracts.js'
  *   playoffs and buys above that one;
  * - `playoffs`: what the playoffs add to an upgrade, as a share of a regular
  *   Season, whenever in it a Club acquires him;
- * - `perRound`: trades a Club makes at most in one round;
- * - `offeredYears`: a Club offers the Players with at most this many Seasons
- *   left on their contracts.
+ * - `patience`: what a seller asks beyond the margin, times the share of the
+ *   Season still before the deadline: it waits for the offers the deadline
+ *   brings, as the measured moves bunch before it;
+ * - `share`: the least share of what a trade gains both Clubs that the seller
+ *   takes, as several buyers bidding for a Player would give it; without it a
+ *   Club in the race bought stars for a late pick and the table spread past its
+ *   band (#138);
+ * - `perRound` and `perWindow`: trades a Club makes at most in one round of a
+ *   Season, and in one round of a window between Seasons;
+ * - `offeredYears`: during a Season a Club offers the Players with at most
+ *   this many Seasons left on their contracts, and no Goalie: a Goalie traded
+ *   during a Season splits his starts between two Clubs, which took the most-used
+ *   Goalie's share below its band (#138). Between Seasons it offers anyone.
  */
 export const TRADE = {
-  margin: 0.003,
+  margin: 0.001,
   discount: 0.85,
   now: { base: 0.3, race: 1.2 },
   win: 0.06,
@@ -56,10 +66,13 @@ export const TRADE = {
   pickDelay: 2,
   controlled: 3,
   reach: 0.6,
-  sell: 0.3,
-  buy: 0.6,
+  sell: 0.25,
+  buy: 0.65,
   playoffs: 0.5,
-  perRound: 2,
+  perRound: 4,
+  perWindow: 6,
+  patience: 0.05,
+  share: 0.4,
   offeredYears: 2,
 }
 
@@ -88,6 +101,8 @@ export interface TradeContext {
   now: number
   /** The Season now, or the one about to start. */
   year: number
+  /** The share of a regular Season still to go before the deadline: 0 between Seasons. */
+  toDeadline: number
   picks: readonly TradablePick[]
   /** Whether a trade breaks no rule of the Season (cap, contracts, retention). */
   valid: (trade: Trade) => boolean
@@ -307,7 +322,7 @@ function side(clubId: ClubId): TradeSide {
 }
 
 /** How many of a buyer's assets of each kind the search tries as payment. */
-const PAYMENTS = { picks: 8, prospects: 4, players: 4 }
+const PAYMENTS = { picks: 12, prospects: 4, players: 4 }
 
 /**
  * The trades the assistant makes in a round (ADR-033, #138), the same for every
@@ -328,7 +343,10 @@ export function assistantTrades(market: TradeMarket): Trade[] {
   )
   for (const seller of sellers) {
     const offered = contractedOf(seller).filter(
-      (p) => ctx.tradable(p) && (p.contract?.years ?? 0) <= TRADE.offeredYears,
+      (p) =>
+        ctx.tradable(p) &&
+        (between || (p.contract?.years ?? 0) <= TRADE.offeredYears) &&
+        (between || positionGroup(p) !== 'goalie'),
     )
     for (const player of offered) {
       for (const buyer of ctx.clubs) {
@@ -346,8 +364,8 @@ export function assistantTrades(market: TradeMarket): Trade[] {
   for (const { trade } of candidates) {
     const [a, b] = trade.sides
     const ids = [...a.players, ...a.prospects, ...b.players, ...b.prospects]
-    if ((busy.get(a.clubId) ?? 0) >= TRADE.perRound || (busy.get(b.clubId) ?? 0) >= TRADE.perRound)
-      continue
+    const most = between ? TRADE.perWindow : TRADE.perRound
+    if ((busy.get(a.clubId) ?? 0) >= most || (busy.get(b.clubId) ?? 0) >= most) continue
     if (ids.some((id) => moved.has(id))) continue
     if ([...a.picks, ...b.picks].some((p) => moved.has(`${p.year}:${p.round}:${p.clubId}`)))
       continue
@@ -401,7 +419,14 @@ function bestPayment(
   ]
   let best: { trade: Trade; score: number } | null = null
   for (const payment of payments) {
-    for (const kept of [0, ctx.rules.retention.maxShare]) {
+    const most = Math.max(
+      0,
+      Math.min(
+        ctx.rules.retention.maxShare,
+        1 - ctx.rules.minimum / (player.contract?.capHit ?? 1),
+      ),
+    )
+    for (const kept of most > 0 ? [0, most] : [0]) {
       const give: TradeSide = {
         ...side(seller.id),
         players: [player.id],
@@ -410,7 +435,10 @@ function bestPayment(
       const trade: Trade = { sides: [give, payment] }
       const gainSeller = market.gain(trade, seller.id)
       const gainBuyer = market.gain(trade, buyer.id)
-      if (gainSeller < TRADE.margin || gainBuyer < TRADE.margin) continue
+      const asked = TRADE.margin + TRADE.patience * ctx.toDeadline
+      if (gainSeller < asked || gainBuyer < TRADE.margin) continue
+      // Several buyers bid for a Player: the seller takes its share of what the trade gains.
+      if (gainSeller < TRADE.share * (gainSeller + gainBuyer)) continue
       const score = gainSeller + gainBuyer
       if (best && score <= best.score) continue
       if (!ctx.valid(trade)) continue

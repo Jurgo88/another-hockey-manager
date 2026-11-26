@@ -56,6 +56,8 @@ export interface Transfer {
   toClubId: ClubId
   day: number
   kind: 'trade' | 'claim'
+  /** His NHL games that Season before the move: with more after it, he played for both Clubs. */
+  gamesBefore: number
 }
 
 /** A key for a pick in the record of who owns it. */

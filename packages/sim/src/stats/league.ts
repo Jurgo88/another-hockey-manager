@@ -272,7 +272,8 @@ function correlation(a: readonly number[], b: readonly number[]): number {
  * more, a Player's Club in a Season the one he played for last, and at the start
  * of the next the one he played for first, which is the Club he left in his
  * first move of that Season when he had one. A move during a Season is a trade
- * or a claim of a Player who played in it, dated by its day.
+ * or a claim of a Player who played for both Clubs in it, before the move and
+ * after, dated by its day.
  */
 export interface Movement {
   /** Share of Players with 20+ Fixtures, who play the next Season, doing so for another Club. */
@@ -309,14 +310,17 @@ export function movement(records: readonly SeasonRecord[]): Movement {
   const continuity: number[] = []
   records.forEach((record, s) => {
     const now = lines(record)
-    const movers = new Set((record.transfers ?? []).map((t) => t.playerId))
+    // Played for both: games before the move, and more after it.
+    const both = (record.transfers ?? []).filter(
+      (t) => t.gamesBefore > 0 && (now.get(t.playerId)?.gamesPlayed ?? 0) > t.gamesBefore,
+    )
+    const movers = new Set(both.map((t) => t.playerId))
     for (const [id, line] of now) {
       if (line.gamesPlayed < REGULAR_FIXTURES) continue
       regulars++
       if (movers.has(id)) moved++
     }
-    for (const t of record.transfers ?? []) {
-      if (!now.has(t.playerId)) continue
+    for (const t of both) {
       moves++
       if (
         record.deadline !== undefined &&
