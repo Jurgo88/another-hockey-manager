@@ -285,14 +285,19 @@ export function onTheClock(
   format: DraftFormat,
   order: readonly ClubId[],
   made: number,
-): { pick: number; round: number; clubId: ClubId } | null {
+  ownerOf: PickOwner = (_round, clubId) => clubId,
+): { pick: number; round: number; clubId: ClubId; fromClubId: ClubId } | null {
   if (order.length === 0 || made >= format.rounds * order.length) return null
-  return {
-    pick: made + 1,
-    round: Math.floor(made / order.length) + 1,
-    clubId: order[made % order.length]!,
-  }
+  const round = Math.floor(made / order.length) + 1
+  const fromClubId = order[made % order.length]!
+  return { pick: made + 1, round, clubId: ownerOf(round, fromClubId), fromClubId }
 }
+
+/**
+ * Who uses a pick of a round that keeps a Club's place in the order: the Club
+ * itself unless it was traded (ADR-033).
+ */
+export type PickOwner = (round: number, clubId: ClubId) => ClubId
 
 /** The next pick, made with `player`: it goes to the Club on the clock (ADR-028 amendment, #92). */
 export function takePick(
@@ -301,12 +306,20 @@ export function takePick(
   order: readonly ClubId[],
   made: number,
   player: Player,
+  ownerOf?: PickOwner,
 ): { pick: DraftPick; prospect: Prospect } {
-  const clock = onTheClock(format, order, made)
+  const clock = onTheClock(format, order, made, ownerOf)
   if (!clock) throw new Error('The draft is over')
-  const { pick, round, clubId } = clock
+  const { pick, round, clubId, fromClubId } = clock
   return {
-    pick: { year, round, pick, clubId, playerId: player.id },
+    pick: {
+      year,
+      round,
+      pick,
+      clubId,
+      playerId: player.id,
+      ...(fromClubId !== clubId ? { fromClubId } : {}),
+    },
     prospect: { player: { ...player, clubId }, year, round, pick },
   }
 }
@@ -325,6 +338,7 @@ export function continuePicks(
   lists: Readonly<Record<ClubId, readonly PlayerId[]>>,
   made: readonly DraftPick[],
   stop: (clubId: ClubId) => boolean = () => false,
+  ownerOf?: PickOwner,
 ): { picks: DraftPick[]; prospects: Prospect[]; available: Player[] } {
   const left = new Map(available.map((player) => [player.id, player]))
   // The assistant's order is total, so ranking once equals ranking what is left.
@@ -332,11 +346,11 @@ export function continuePicks(
   const picks = [...made]
   const prospects: Prospect[] = []
   for (;;) {
-    const clock = onTheClock(format, order, picks.length)
+    const clock = onTheClock(format, order, picks.length, ownerOf)
     if (!clock || left.size === 0 || stop(clock.clubId)) break
     const listed = (lists[clock.clubId] ?? []).find((id) => left.has(id))
     const player = listed ? left.get(listed)! : ranked.find((p) => left.has(p.id))!
-    const taken = takePick(format, year, order, picks.length, player)
+    const taken = takePick(format, year, order, picks.length, player, ownerOf)
     left.delete(player.id)
     picks.push(taken.pick)
     prospects.push(taken.prospect)

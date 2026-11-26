@@ -16,6 +16,11 @@ export interface Contract {
   kind: 'entry-level' | 'standard'
   /** What the Player is when it runs out: restricted under the age `CapRules` sets. */
   onExpiry: 'restricted' | 'unrestricted'
+  /**
+   * Part of its cap hit is kept by a Club that traded him (ADR-033): `capHit` is
+   * what is left, and the contract may not be retained again.
+   */
+  retained?: true
 }
 
 /**
@@ -45,6 +50,8 @@ export interface DeadMoney {
   capHit: number
   /** Seasons left, this one included. */
   years: number
+  /** Kept of a traded Player's cap hit (ADR-033), not bought out: counts against the limit of retained contracts. */
+  retained?: true
 }
 
 /**
@@ -144,6 +151,12 @@ export interface CapRules {
    * emergency lasts (CBA 50.10(e)).
    */
   rosterEmergency: { maxCapHit: number }
+  /**
+   * A Club trading a Player may keep up to `maxShare` of his cap hit until his
+   * contract ends, on at most `maxContracts` contracts at once; a contract
+   * retained once is not retained again (ADR-033, CBA 50.5(e)).
+   */
+  retention: { maxShare: number; maxContracts: number }
 }
 
 /** The length of an entry-level contract signed at `age`. */

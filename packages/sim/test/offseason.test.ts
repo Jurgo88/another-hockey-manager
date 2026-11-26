@@ -45,8 +45,10 @@ beforeAll(async () => {
 
 describe('the draft room', () => {
   it('stops when a Club is on the clock, the picks before it made for the others', () => {
+    // Without traded picks, each Club uses its own place (ADR-033).
+    const plain = { ...off, pickOwners: {} }
     const clubId = off.order[3]!
-    const room = draftUntil(off, clubId)
+    const room = draftUntil(plain, clubId)
     expect(draftClock(room)).toMatchObject({ pick: 4, round: 1, clubId })
     expect(room.picks.map((pick) => pick.clubId)).toEqual(off.order.slice(0, 3))
     expect(room.phase).toBe('draft')

@@ -265,3 +265,96 @@ function correlation(a: readonly number[], b: readonly number[]): number {
   }
   return covariance / Math.sqrt(va * vb)
 }
+
+/**
+ * How Players move between Clubs over a run, as `07-league-over-time.md`
+ * measures it (#122, #138), folded from the records: Players with 20 Fixtures or
+ * more, a Player's Club in a Season the one he played for last, and at the start
+ * of the next the one he played for first, which is the Club he left in his
+ * first move of that Season when he had one. A move during a Season is a trade
+ * or a claim of a Player who played for both Clubs in it, before the move and
+ * after, dated by its day.
+ */
+export interface Movement {
+  /** Share of Players with 20+ Fixtures, who play the next Season, doing so for another Club. */
+  anotherClubNextSeason: number
+  /** Share of Players with 20+ Fixtures who moved during the Season. */
+  moreThanOneClub: number
+  /** Share of moves during a Season in the 14 days before the deadline. */
+  nearDeadline: number
+  /** Mean share of a Club's Skater ice time played by Skaters who played for it the Season before. */
+  continuity: number
+  /** Moves during a Season, per Season. */
+  movesPerSeason: number
+}
+
+const REGULAR_FIXTURES = 20
+const NEAR_DEADLINE_DAYS = 14
+
+export function movement(records: readonly SeasonRecord[]): Movement {
+  const lines = (record: SeasonRecord) =>
+    new Map<PlayerId, { clubId: ClubId; gamesPlayed: number; iceTimeSeconds: number }>([
+      ...Object.entries(record.totals.regular.goalies).map(
+        ([id, line]) => [id, { ...line, iceTimeSeconds: 0 }] as const,
+      ),
+      ...Object.entries(record.totals.regular.skaters),
+    ])
+  const firstMove = (record: SeasonRecord, id: PlayerId) =>
+    (record.transfers ?? []).find((t) => t.playerId === id)
+  let eligible = 0
+  let another = 0
+  let regulars = 0
+  let moved = 0
+  let moves = 0
+  let near = 0
+  const continuity: number[] = []
+  records.forEach((record, s) => {
+    const now = lines(record)
+    // Played for both: games before the move, and more after it.
+    const both = (record.transfers ?? []).filter(
+      (t) => t.gamesBefore > 0 && (now.get(t.playerId)?.gamesPlayed ?? 0) > t.gamesBefore,
+    )
+    const movers = new Set(both.map((t) => t.playerId))
+    for (const [id, line] of now) {
+      if (line.gamesPlayed < REGULAR_FIXTURES) continue
+      regulars++
+      if (movers.has(id)) moved++
+    }
+    for (const t of both) {
+      moves++
+      if (
+        record.deadline !== undefined &&
+        t.day >= record.deadline - NEAR_DEADLINE_DAYS &&
+        t.day < record.deadline
+      )
+        near++
+    }
+    const next = records[s + 1]
+    if (!next) return
+    const after = lines(next)
+    for (const [id, line] of now) {
+      const then = after.get(id)
+      if (line.gamesPlayed < REGULAR_FIXTURES || !then || then.gamesPlayed < 1) continue
+      eligible++
+      const startClub = firstMove(next, id)?.fromClubId ?? then.clubId
+      if (startClub !== line.clubId) another++
+    }
+    const byClub = new Map<ClubId, { all: number; kept: number }>()
+    for (const [id, line] of Object.entries(next.totals.regular.skaters)) {
+      const club = byClub.get(line.clubId) ?? { all: 0, kept: 0 }
+      club.all += line.iceTimeSeconds
+      if (record.totals.regular.skaters[id]?.clubId === line.clubId)
+        club.kept += line.iceTimeSeconds
+      byClub.set(line.clubId, club)
+    }
+    for (const club of byClub.values()) if (club.all > 0) continuity.push(club.kept / club.all)
+  })
+  return {
+    anotherClubNextSeason: eligible > 0 ? another / eligible : 0,
+    moreThanOneClub: regulars > 0 ? moved / regulars : 0,
+    nearDeadline: moves > 0 ? near / moves : 0,
+    continuity:
+      continuity.length > 0 ? continuity.reduce((a, b) => a + b, 0) / continuity.length : 0,
+    movesPerSeason: records.length > 0 ? moves / records.length : 0,
+  }
+}

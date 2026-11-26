@@ -28,6 +28,7 @@ import {
 import { createRng } from '../src/rng/index.js'
 import {
   advanceDay,
+  draftClock,
   endSeason,
   InvalidMovesError,
   isSeasonOver,
@@ -285,7 +286,8 @@ describe('the phase between Seasons', () => {
   })
 
   it('takes a declared list, from the class only, and only while the draft is open', () => {
-    const club = off.order[0]!
+    // Whoever uses the first pick, its own or traded to him (ADR-033).
+    const club = draftClock(off)!.clubId
     const pick = off.draftClass[100]!.id
     const listed = setDraftList(off, club, [pick])
     expect(runDraft(listed).picks[0]).toMatchObject({ clubId: club, playerId: pick, round: 1 })
@@ -293,14 +295,22 @@ describe('the phase between Seasons', () => {
     expect(() => setDraftList(drafted, club, [pick])).toThrow(/has been made/)
   })
 
-  it('gives each Club 4 prospects, one a round, held off its Roster', () => {
+  it('gives each Club a prospect for each pick it uses, one place a round, held off its Roster', () => {
     expect(drafted.phase).toBe('roster')
     expect(drafted.picks).toHaveLength(128)
+    // Every Club's place is used once a round, by it or by whom it traded the pick to (ADR-033).
+    for (let round = 1; round <= 4; round++) {
+      const places = drafted.picks
+        .filter((p) => p.round === round)
+        .map((p) => p.fromClubId ?? p.clubId)
+      expect(new Set(places).size).toBe(32)
+    }
     for (const club of drafted.clubs) {
       const held = drafted.prospects.filter(
         (p) => p.player.clubId === club.id && p.year === drafted.year,
       )
-      expect(held.map((p) => p.round).sort()).toEqual([1, 2, 3, 4])
+      const used = drafted.picks.filter((p) => p.clubId === club.id)
+      expect(held.map((p) => p.round).sort()).toEqual(used.map((p) => p.round).sort())
       const ids = new Set(everyone(club).map((p) => p.id))
       expect(held.some((p) => ids.has(p.player.id))).toBe(false)
     }
@@ -408,9 +418,9 @@ describe('the phase between Seasons', () => {
       expect([forwards, club.skaters.length - forwards, club.goalies.length]).toEqual([14, 7, 2])
       const all = everyone(club)
       const count = (group: string) => all.filter((p) => positionGroup(p) === group).length
-      // The shape of its contracts, but for a Player or two moved through waivers at camp.
+      // The shape of its contracts, but for Players moved through waivers at camp and by trades (ADR-033).
       for (const [group, shape] of [['forward', 20], ['defence', 10], ['goalie', 4]] as const) {
-        expect(Math.abs(count(group) - shape)).toBeLessThanOrEqual(4)
+        expect(Math.abs(count(group) - shape)).toBeLessThanOrEqual(6)
       }
       expect(everyone(club).some((p) => held.has(p.id))).toBe(false)
       const lineup = next.lineups[club.id]!

@@ -75,8 +75,12 @@ describe('Season history and careers', () => {
   })
 
   it('has no line for a Season in which a Player did not play', () => {
+    // Regular Season or playoffs: a Goalie may play only in the playoffs.
     const played = new Set(
-      run.seasons.flatMap((season) => Object.keys(season.totals.regular.goalies)),
+      run.seasons.flatMap((season) => [
+        ...Object.keys(season.totals.regular.goalies),
+        ...Object.keys(season.totals.playoffs.goalies),
+      ]),
     )
     const idle = run.clubs.flatMap((club) => club.goalies).find((goalie) => !played.has(goalie.id))
     if (idle) expect(goalieCareer(run.seasons, idle.id)).toEqual([])

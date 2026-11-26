@@ -9,9 +9,11 @@ import { gateSuite } from '../../sim/test/support/gate.js'
  * eight generated leagues of `@ahm/sim`. With the farm (ADR-036, #133) every
  * target is asserted again but those listed, which the author chose on
  * 2026-11-23 to report: one run, a hair outside, and a draft has its luck.
+ * With trades (ADR-033, #138) round 4 joins them, chosen on 2026-11-26.
  */
 
 const NEAR = 'a hair outside with the farm (#133); asserted again at the Phase 3 gate'
+const TRADED = 'a hair outside with trades (#138); asserted again at the Phase 3 gate'
 
 const rosterFile = readFileSync(new URL('../data/nhl-20252026.json', import.meta.url), 'utf8')
 
@@ -22,6 +24,7 @@ gateSuite(
     'Players aged 23 or younger: 30% ±5 pp': NEAR,
     'round 2: 0.385 play 200 Fixtures or more (±0.12)': NEAR,
     'round 3: 0.199 play 200 Fixtures or more (±0.1)': NEAR,
+    'round 4: 0.165 play 200 Fixtures or more (±0.1)': TRADED,
     'bottom 8 still bottom 8 the next Season: 51% ±12 pp': NEAR,
   },
 )

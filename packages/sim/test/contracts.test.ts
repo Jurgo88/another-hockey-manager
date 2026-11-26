@@ -174,7 +174,16 @@ describe('contracts from one Season to the next', () => {
       const slid = was.kind === 'entry-level' && player.contract!.years === was.years
       if (was.years > 1 || slid) {
         ran++
-        if (!slid) expect(player.contract).toEqual({ ...was, years: was.years - 1 })
+        // A contract traded with salary kept carries less of its cap hit (ADR-033).
+        const kept = player.contract!.retained && !was.retained
+        if (!slid && !kept) {
+          // The floor may raise it as the Season starts (ADR-031): a Club that traded salary away can fall below it.
+          expect({ ...player.contract, capHit: was.capHit }).toEqual({
+            ...was,
+            years: was.years - 1,
+          })
+          expect(player.contract!.capHit).toBeGreaterThanOrEqual(was.capHit - 1e-12)
+        }
       } else {
         renewed++
         expect(player.contract!.kind).toBe('standard')

@@ -322,6 +322,13 @@ before a recall. A run without farm games is unchanged, result for result, and
 `Player.form`, read by nothing, is gone. The `farm` tier runs the realism suites
 on Seasons with farm games, weekly in CI; ten Seasons of it are a later issue.
 
+Item 6 is done in #138: the assistant trades Players, prospects and picks of the
+next three drafts, with retained salary, once a week up to the deadline and in
+two rounds between Seasons, valuing through a Club's view, which is the truth
+until scouting (ADR-033 amendments). Every move is recorded as a transfer, and
+the movement targets are folded from the records, reported in the long run until
+the gate, with the share of rounds 3 and 4 who become regulars.
+
 **Gate:** ten simulated Seasons of AI-only roster movement, on eight generated
 leagues and the 2025-26 roster file, leave wage inflation and talent
 distribution inside defined bounds, and the table targets deferred from the

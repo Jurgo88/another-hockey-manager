@@ -2,6 +2,7 @@ import type { DraftPick } from '../domain/draft.js'
 import type { ClubId, Departure, NaturalPosition, PlayerId } from '../domain/player.js'
 import type { PlayoffState } from '../domain/playoff.js'
 import type { StandingsRow } from '../domain/standings.js'
+import type { Transfer } from '../domain/trade.js'
 import type { GoalieStats, SkaterStats } from './match.js'
 import { addCounts, type SeasonTotals } from './season.js'
 import { divisionTables } from './standings.js'
@@ -31,6 +32,10 @@ export interface SeasonRecord {
   draft: readonly DraftPick[]
   /** Who left the league between the Season before and this one, empty before the first. */
   departures: readonly Departure[]
+  /** Every move between Clubs during the Season, by trade or claim (ADR-033, #138); absent before. */
+  transfers?: readonly Transfer[]
+  /** The first day after the trade deadline (ADR-036), with `transfers`. */
+  deadline?: number
   /** Everyone on a Roster as the Season ended (ADR-025 amendment). */
   roster: readonly RosterEntry[]
 }
