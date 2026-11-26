@@ -1238,6 +1238,17 @@ export function offerViolations(
 }
 
 /**
+ * Items best first by the level their Player is expected to reach a Season on,
+ * ties by id; each level is worked out once, not at every comparison.
+ */
+function byExpectedLevel<T>(items: readonly T[], playerOf: (item: T) => Player): T[] {
+  const levels = new Map(items.map((item) => [item, expectedLevel(playerOf(item))]))
+  return [...items].sort(
+    (a, b) => levels.get(b)! - levels.get(a)! || (playerOf(a).id < playerOf(b).id ? -1 : 1),
+  )
+}
+
+/**
  * The assistant's offers for a Club in this round (ADR-032, #130): for each open
  * place, the best free agent a Season ahead at the natural position of whoever
  * left it that the Club can afford with its other offers, at his ask. The
@@ -1247,10 +1258,7 @@ export function proposedOffers(off: Offseason, clubId: ClubId): Offer[] {
   if (off.phase !== 'market') return []
   const club = offseasonClub(off, clubId)
   const needs = needsAtOpening(off, club)
-  const best = [...off.freeAgents].sort(
-    (a, b) =>
-      expectedLevel(b.player) - expectedLevel(a.player) || (a.player.id < b.player.id ? -1 : 1),
-  )
+  const best = byExpectedLevel(off.freeAgents, (a) => a.player)
   // In the first round the Club's offers to its own Players testing the market
   // stand, and take their places first (ADR-032).
   const offers: Offer[] =
@@ -1398,10 +1406,7 @@ export function marketRound(off: Offseason): Offseason {
   }
   const signings: Signing[] = [...off.signings]
   const joining = new Map<ClubId, Player[]>()
-  const order = [...off.freeAgents].sort(
-    (a, b) =>
-      expectedLevel(b.player) - expectedLevel(a.player) || (a.player.id < b.player.id ? -1 : 1),
-  )
+  const order = byExpectedLevel(off.freeAgents, (a) => a.player)
   const signed = new Set<PlayerId>()
   for (const agent of order) {
     const options = toPlayer.get(agent.player.id)
@@ -1736,9 +1741,7 @@ export function askOf(off: Offseason, playerId: PlayerId, years?: number): Contr
  */
 export function proposedReSignings(off: Offseason, clubId: ClubId): ReSigning[] {
   const kept: ReSigning[] = []
-  const best = [...expiringPlayers(off, clubId)].sort(
-    (a, b) => expectedLevel(b) - expectedLevel(a) || (a.id < b.id ? -1 : 1),
-  )
+  const best = byExpectedLevel(expiringPlayers(off, clubId), (p) => p)
   for (const player of best) {
     // A Player outside the league's regulars is kept only while young (#130).
     const place = off.expiring[player.id]!
