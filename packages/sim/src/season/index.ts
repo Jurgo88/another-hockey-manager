@@ -1115,7 +1115,10 @@ export function freeAgentAsk(off: Offseason, playerId: PlayerId, years?: number)
   const rules = off.ended.capRules
   const ask = askingContract(rules, agent.player, off.places[playerId], rng, years)
   // Unsigned round after round, he asks less, down to the minimum.
-  const factor = MARKET.askDecay ** Math.max(0, off.round - 1)
+  // By multiplying: `**` goes to the platform's `pow`, whose last bit differs
+  // between Windows and Linux (D-01, #143).
+  let factor = 1
+  for (let round = 1; round < off.round; round++) factor *= MARKET.askDecay
   const capHit = Math.max(
     rules.minimum,
     Math.round(ask.capHit * factor * rules.upperLimit) / rules.upperLimit,

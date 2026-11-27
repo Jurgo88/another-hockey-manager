@@ -99,7 +99,8 @@ function fitted(points: readonly { x: number; y: number; w: number }[]): Rate | 
   const weight = points.reduce((sum, p) => sum + p.w, 0)
   const mx = points.reduce((sum, p) => sum + p.w * p.x, 0) / weight
   const my = points.reduce((sum, p) => sum + p.w * p.y, 0) / weight
-  const sxx = points.reduce((sum, p) => sum + p.w * (p.x - mx) ** 2, 0)
+  // A square by multiplying, not `**`, which goes to the platform's `pow` (D-01, #143).
+  const sxx = points.reduce((sum, p) => sum + p.w * ((p.x - mx) * (p.x - mx)), 0)
   const sxy = points.reduce((sum, p) => sum + p.w * (p.x - mx) * (p.y - my), 0)
   if (sxx <= 0) return null
   const slope = sxy / sxx
