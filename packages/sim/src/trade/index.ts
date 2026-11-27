@@ -112,6 +112,18 @@ export interface TradeContext {
   assistant: (clubId: ClubId) => boolean
 }
 
+/**
+ * The weight of a Season `seasons` ahead, by multiplying: `**` goes to the
+ * platform's `pow`, whose last bit differs between Windows and Linux, and a
+ * near tie between two trades fell one way locally and the other in CI (D-01,
+ * #143).
+ */
+function discounted(seasons: number): number {
+  let weight = 1
+  for (let s = 0; s < seasons; s++) weight *= TRADE.discount
+  return weight
+}
+
 /** The chance of the playoffs from points above (or below) the last place in, and the Fixtures left. */
 export function playoffChance(margin: number, fixturesLeft: number): number {
   if (fixturesLeft <= 0) return margin >= 0 ? 1 : 0
@@ -241,7 +253,7 @@ export class TradeMarket {
     const nowWeight = this.nowWeight(clubId)
     let value = 0
     for (let s = 0; s < years; s++) {
-      const weight = s === 0 ? nowWeight : TRADE.discount ** s
+      const weight = s === 0 ? nowWeight : discounted(s)
       value += weight * (this.fair(group, path[s]!) - capHit)
     }
     // A better Lineup is worth what it adds to the race: nothing to a Club out of it.
@@ -253,7 +265,7 @@ export class TradeMarket {
   private controlled(group: PositionGroup, peak: number, delay: number): number {
     const surplus = Math.max(0, this.fair(group, peak) - this.ctx.rules.entryLevel.capHit)
     let value = 0
-    for (let k = 0; k < TRADE.controlled; k++) value += TRADE.discount ** (delay + k) * surplus
+    for (let k = 0; k < TRADE.controlled; k++) value += discounted(delay + k) * surplus
     return value
   }
 
@@ -307,7 +319,7 @@ export class TradeMarket {
       const kept = (side.retained?.[id] ?? 0) * capHit
       const years = player.contract?.years ?? 0
       for (let s = 0; s < years; s++) {
-        value += (s === 0 ? this.nowWeight(clubId) : TRADE.discount ** s) * kept
+        value += (s === 0 ? this.nowWeight(clubId) : discounted(s)) * kept
       }
     }
     for (const id of side.prospects)
